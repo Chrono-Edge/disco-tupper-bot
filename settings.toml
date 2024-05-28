@@ -1,0 +1,10 @@
+title = "DiscoTupperBot"
+
+# Logging settings
+[logging]
+file_path = 'logs/bot.log'
+level = "INFO"
+format = "<green>{time:YYYY-MM-DD HH:mm:ss}</green> [<bold>{level.icon}<level>{level}</level></bold>] <magenta>{name}</magenta> - {message}"
+rotation = "1 day"
+enqueue = "True"
+colorize = "True"
