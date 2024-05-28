@@ -33,6 +33,7 @@ class DiscoTupperBot(commands.Bot):
 
     initial_extensions = [
             'greetings'
+            'dices'
             ]
 
     async def setup_hook(self) -> None:
