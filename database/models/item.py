@@ -1,8 +1,6 @@
 ﻿from tortoise import fields
 from tortoise.models import Model
 
-from database.validators.integers import not_negative
-
 class Item(Model):
     id = fields.BigIntField(pk=True)
     actor_owner = fields.ForeignKeyField('models.Actor', related_name='items', on_delete=fields.CASCADE)
