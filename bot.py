@@ -1,7 +1,9 @@
+import asyncio
 import traceback
 
 import discord
 from discord.ext import commands
+from tortoise import Tortoise
 
 import config
 from config import logger
@@ -18,7 +20,8 @@ class DiscoTupperBot(commands.Bot):
                 intents=self.setup_intents(),
                 command_prefix=commands.when_mentioned_or(*prefixes),  # type: ignore
                 )
-        self.debug_guild = discord.Object(config.debug_guild)
+        if config.debug_guild:
+            self.debug_guild = discord.Object(config.debug_guild)
 
     @staticmethod
     def setup_intents():
@@ -66,5 +69,15 @@ class DiscoTupperBot(commands.Bot):
     async def start(self, *args, **kwargs) -> None:
         await super().start(*args, **kwargs)
 
-
+    async def init_tortoise(self):
+        logger.info("Initializing Tortoise...")
+        await Tortoise.init(
+            db_url='sqlite://db.sqlite3',
+            modules={'models': ['database.models.users', 'database.models.tuppers', 'database.models.items', 'database.models.inventory']},
+        )
+        logger.info("Tortoise initialized")
+        await Tortoise.generate_schemas()
+    
+    
+    
 bot = DiscoTupperBot()
