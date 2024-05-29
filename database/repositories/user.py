@@ -1,15 +1,16 @@
 ﻿from database.models.user import User
+from discord.abc import  Snowflake
 
 class UserRepository:
     """Repository class for handling CRUD operations with User objects."""
 
     @staticmethod
-    async def create_user(discord_id: int, username: str) -> User:
+    async def create_user(discord_id: Snowflake, username: str) -> User:
         """
         Create a new user with the given Discord ID and username.
 
         Args:
-            discord_id (int): The Discord ID of the user.
+            discord_id (Snowflake): The Discord ID of the user.
             username (str): The username of the user.
 
         Returns:
@@ -33,12 +34,12 @@ class UserRepository:
         return user
 
     @staticmethod
-    async def get_user_by_discord_id(discord_id: int) -> User:
+    async def get_user_by_discord_id(discord_id: Snowflake) -> User:
         """
         Retrieve a user by their Discord ID.
 
         Args:
-            discord_id (int): The Discord ID of the user to retrieve.
+            discord_id (Snowflake): The Discord ID of the user to retrieve.
 
         Returns:
             User: The user object if found, else None.
@@ -47,29 +48,29 @@ class UserRepository:
         return user
 
     @staticmethod
-    async def update_username(user_id: int, new_username: str) -> int:
+    async def update_username(discord_id: Snowflake, new_username: str) -> int:
         """
         Update the username of a user.
 
         Args:
-            user_id (int): The ID of the user to update.
+            discord_id (Snowflake): The ID of the user to update.
             new_username (str): The new username for the user.
 
         Returns:
             int: The number of updated rows (1 if successful, 0 if user not found).
         """
-        user = await User.filter(id=user_id).update(username=new_username)
+        user = await User.filter(discord_id=discord_id).update(username=new_username)
         return user
 
     @staticmethod
-    async def delete_user(user_id: int):
+    async def delete_user(user_id: Snowflake):
         """
         Delete a user by their ID.
 
         Args:
             user_id (int): The ID of the user to delete.
         """
-        await User.filter(id=user_id).delete()
+        await User.filter(discord_id=user_id).delete()
 
     @staticmethod
     async def count_users() -> int:
