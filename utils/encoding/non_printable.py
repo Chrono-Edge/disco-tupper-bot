@@ -1,4 +1,4 @@
-﻿pua_start = 0xE0000
+﻿UTF8_MASK = 0xE0000
 HEADER = u"\U000E0042\U000E0042\U000E0011\U000E0011"  # Unique header consisting of 4 non-printable UTF-8 characters
 
 
@@ -19,7 +19,7 @@ class NonPrintableEncoder:
         Returns:
             str: The string with the encoded data embedded.
         """
-        encoded_string = ''.join(chr(pua_start + byte) for byte in data)
+        encoded_string = ''.join(chr(UTF8_MASK + byte) for byte in data)
         return f"{text}{HEADER}{encoded_string}"
 
     @staticmethod
@@ -43,5 +43,5 @@ class NonPrintableEncoder:
 
         encoded_body_start += len(HEADER)
         encoded_body = encoded_string[encoded_body_start:]
-        byte_string = bytes((ord(char) - pua_start) for char in encoded_body)
+        byte_string = bytes((ord(char) - UTF8_MASK) for char in encoded_body)
         return byte_string
