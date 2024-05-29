@@ -12,7 +12,8 @@ class Actor(Model):
     inventory_chat_id = fields.IntField()
     created_at = fields.DatetimeField(auto_now_add=True)
 
-    owners: fields.ManyToManyRelation['models.User'] = fields.ManyToManyField('models.User', related_name='actors', through='user_actors')
+    owners: fields.ManyToManyRelation['models.User'] = fields.ManyToManyField('models.User', related_name='actors',
+                                                                              through='user_actors')
     items: fields.ReverseRelation['models.Item']
 
     class Meta:

@@ -8,7 +8,7 @@ class NonPrintableEncoder:
     """
 
     @staticmethod
-    def encode(text: str, data : bytes):
+    def encode(text: str, data: bytes):
         """
         Encodes byte data and embeds it within a string, preserving the original text.
 

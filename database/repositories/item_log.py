@@ -77,6 +77,5 @@ class ItemLogRepository:
 
     @staticmethod
     async def get_item_logs_by_channel_id(channel_id: int) -> List[ItemLog]:
-        
         all_logs = await ItemLog.filter(channel_id=channel_id).all()
         return all_logs
