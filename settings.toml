@@ -8,3 +8,7 @@ format = "<green>{time:YYYY-MM-DD HH:mm:ss}</green> [<bold>{level.icon}<level>{l
 rotation = "1 day"
 enqueue = "True"
 colorize = "True"
+
+[bot]
+initial_extensions = ['greetings', 'dices', 'tupper']
+prefixes = [".", "dt ", "disco "]

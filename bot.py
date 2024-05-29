@@ -10,7 +10,7 @@ from config import logger
 
 logger.info("Starting DiscoTupperBot")
 
-prefixes = [".", "dt ", "disco "]
+prefixes = config.values.get("bot.prefixes")
 
 
 class DiscoTupperBot(commands.Bot):
@@ -31,10 +31,7 @@ class DiscoTupperBot(commands.Bot):
         intents.messages = True
         return intents
 
-    initial_extensions = [
-            'greetings'
-            'dices'
-            ]
+    initial_extensions = config.values.get("bot.initial_extensions")
 
     async def setup_hook(self) -> None:
         logger.info("Bot initialisation...")

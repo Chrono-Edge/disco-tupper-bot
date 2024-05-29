@@ -6,7 +6,7 @@ import sys
 from dynaconf import Dynaconf
 from loguru import logger
 
-settings = Dynaconf(
+values = Dynaconf(
     envvar_prefix="DYNACONF",
     settings_files=['settings.toml', '.secrets.toml'],
 )
@@ -14,26 +14,25 @@ settings = Dynaconf(
 # `envvar_prefix` = export envvars with `export DYNACONF_FOO=bar`.
 # `settings_files` = Load these files in the order.
 
-token = settings.get("bot.token")
-debug_guild = settings.get("bot.debug_guild")
-
+token = values.get("secrets.token")
+debug_guild = values.get("secrets.debug_guild")
 
 # Remove the existing logger
 logger.remove()
 # Add a new logger with the given settings
 logger.add(
     sys.stdout,
-    colorize=settings.get("logging.colorize"),
-    level=settings.get("logging.level"),
-    format=settings.get("logging.format"),
+    colorize=values.get("logging.colorize"),
+    level=values.get("logging.level"),
+    format=values.get("logging.format"),
 )
 # Add logging to file
 logger.add(
-    settings.get("logging.file_path"),
-    level=settings.get("logging.level"),
-    format=settings.get("logging.format"),
-    rotation=settings.get("logging.rotation"),
-    enqueue=settings.get("logging.enqueue"),
+    values.get("logging.file_path"),
+    level=values.get("logging.level"),
+    format=values.get("logging.format"),
+    rotation=values.get("logging.rotation"),
+    enqueue=values.get("logging.enqueue"),
 )
 logger.level("INFO", color="<blue>")
 
