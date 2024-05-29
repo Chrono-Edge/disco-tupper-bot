@@ -1,5 +1,7 @@
 from typing import TYPE_CHECKING
 
+from utils.encoding.non_printable import NonPrintableEncoder
+
 if TYPE_CHECKING:
     from bot import DiscoTupperBot
 
@@ -22,20 +24,25 @@ class TupperCog(commands.Cog):
 
             embed = discord.Embed(type="link")
             embed.set_author(name="Creator", )
-
-            await webhook.send(str(message.content[2:]), username="Test",
+            test_text = NonPrintableEncoder.encode(str(message.content[2:]), "HIDDEN TEXT".encode())
+            await webhook.send(test_text, username="Test",
                                avatar_url="https://media.discordapp.net/attachments/738472141636501594/1245268256172933120/image.png?ex=665821f0&is=6656d070&hm=508f4a1c5645b655a30e07ecd49fd5976f169cbb6c206e457a95219b40f76967&=&format=webp&quality=lossless&width=534&height=532")
 
             print(message)
-            # await webhook.delete()
+            await webhook.delete()
         await self.bot.process_commands(message)
 
     @commands.command(name='get_info')
     async def get_mess_info(self, ctx, ch_id: int, mess_id: int):
         channel = await self.bot.fetch_channel(ch_id)
         message = await channel.fetch_message(mess_id)
-        logger.info(message)
-        logger.info(message.author.avatar)
+        decode_text = NonPrintableEncoder.decode(message.content)
+        logger.info(message.content)
+        logger.info(decode_text.decode())
+
+    @commands.hybrid_command(name="create_actor")
+    async def create_actor(self, ctx, name: str, avatar=""):
+
         pass
 
 

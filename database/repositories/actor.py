@@ -55,6 +55,20 @@ class ActorRepository:
         return actors
 
     @staticmethod
+    async def get_actors_by_name(name: str) -> List[Actor]:
+        """
+        Retrieve all actors belonging to a specific owner.
+
+        Args:
+            name (int): The actor name
+
+        Returns:
+            Optional[Actor]: The actor if found, else None.
+        """
+        actors = await Actor.filter(name=name).first()
+        return actors
+
+    @staticmethod
     async def update_actor_balance(actor_id: int, new_balance: int) -> int:
         """
         Update the balance of an actor.
