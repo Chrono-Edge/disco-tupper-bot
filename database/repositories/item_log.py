@@ -5,20 +5,20 @@ from database.models.item_log import ItemLog
 
 class ItemLogRepository:
     @staticmethod
-    async def create_item_log(item_id: int, chat_id: int, message_id: int, quantity_income: int = 0) -> ItemLog:
+    async def create_item_log(item_id: int, channel_id: int, message_id: int, quantity_income: int = 0) -> ItemLog:
         """
         Create a new item log.
 
         Args:
             item_id (int): The ID of the item associated with the log.
-            chat_id (int): The ID of the chat associated with the log.
+            channel_id (int): The ID of the chat associated with the log.
             message_id (int): The ID of the message associated with the log.
             quantity_income (int, optional): The quantity income for the item log. Defaults to 0.
 
         Returns:
             ItemLog: The newly created item log.
         """
-        item_log = await ItemLog.create(item_id=item_id, chat_id=chat_id, message_id=message_id,
+        item_log = await ItemLog.create(item_id=item_id, channel_id=channel_id, message_id=message_id,
                                         quantity_income=quantity_income)
         return item_log
 
@@ -75,4 +75,8 @@ class ItemLogRepository:
         """
         await ItemLog.filter(id=log_id).delete()
 
-    # Add more methods as needed...
+    @staticmethod
+    async def get_item_logs_by_channel_id(channel_id: int) -> List[ItemLog]:
+        
+        all_logs = await ItemLog.filter(channel_id=channel_id).all()
+        return all_logs
