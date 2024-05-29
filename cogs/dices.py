@@ -22,7 +22,7 @@ class DicesCog(commands.Cog):
             number_of_sides (int, optional): Number of sides on each die. Defaults to 6.
         """
         member = member or ctx.author
-        
+
         if number_of_dice <= 0 or number_of_sides <= 0:
             await ctx.send(f"Number of dice and sides must be positive integers.")
             return
@@ -40,6 +40,7 @@ class DicesCog(commands.Cog):
         rolls_str = ', '.join(map(str, rolls))
 
         await ctx.send(f"You rolled: {rolls_str}. Total: {total}")
+
 
 async def setup(bot: "DiscoTupperBot"):
     await bot.add_cog(DicesCog(bot))

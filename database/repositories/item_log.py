@@ -18,7 +18,8 @@ class ItemLogRepository:
         Returns:
             ItemLog: The newly created item log.
         """
-        item_log = await ItemLog.create(item_id=item_id, chat_id=chat_id, message_id=message_id, quantity_income=quantity_income)
+        item_log = await ItemLog.create(item_id=item_id, chat_id=chat_id, message_id=message_id,
+                                        quantity_income=quantity_income)
         return item_log
 
     @staticmethod

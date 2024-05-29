@@ -18,7 +18,7 @@ class GreetingsCog(commands.Cog):
         if channel is not None:
             await channel.send(f'Welcome {member.mention}.')
 
-    @commands.hybrid_command(name="hello", aliases=["привет", "ку","прувет"])
+    @commands.hybrid_command(name="hello", aliases=["привет", "ку", "прувет"])
     async def hello(self, ctx, *, member: discord.Member = None):
         """Says hello"""
         member = member or ctx.author

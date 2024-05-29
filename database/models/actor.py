@@ -12,8 +12,8 @@ class Actor(Model):
     balance = fields.IntField(default=0, validators=[integers.not_negative])
     inventory_chat_id = fields.IntField()
     created_at = fields.DatetimeField(auto_now_add=True)
-    
+
     items: fields.ReverseRelation['models.Item']
-    
+
     class Meta:
         table = 'actors'

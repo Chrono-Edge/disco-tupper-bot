@@ -16,9 +16,9 @@ class DiscoTupperBot(commands.Bot):
     def __init__(self) -> None:
         # Forward all arguments, and keyword-only arguments to commands.Bot
         super().__init__(
-                intents=self.setup_intents(),
-                command_prefix=commands.when_mentioned_or(*prefixes),  # type: ignore
-                )
+            intents=self.setup_intents(),
+            command_prefix=commands.when_mentioned_or(*prefixes),  # type: ignore
+        )
         if config.debug_guild:
             self.debug_guild = discord.Object(config.debug_guild)
 
@@ -38,19 +38,19 @@ class DiscoTupperBot(commands.Bot):
             await self.load_extension(f'cogs.{extension}')
             logger.success(f"Loaded extension: {extension}")
 
-        #logger.warning("Commands synchronization")
+        # logger.warning("Commands synchronization")
         # This copies the global commands over to your guild.
-        #guild = self.debug_guild
+        # guild = self.debug_guild
 
-        #self.tree.copy_global_to(guild=guild)
-        #if await self.tree.sync():
+        # self.tree.copy_global_to(guild=guild)
+        # if await self.tree.sync():
         #    logger.success("Commands synced!")
 
     async def on_ready(self):
         self.remove_command("help")
         logger.info(
-                f"Logged in as: {self.user.name} - {self.user.id} Version: {discord.__version__}\n"
-                )
+            f"Logged in as: {self.user.name} - {self.user.id} Version: {discord.__version__}\n"
+        )
         await self.change_presence(status=discord.Status.dnd)
         logger.success("Successfully loaded, the initialization of the modules...")
 
@@ -58,7 +58,7 @@ class DiscoTupperBot(commands.Bot):
         await interaction.response.send_message('Oops! Something went wrong.', ephemeral=True)
         error = traceback.format_exc()
         error_msg = (
-                f"\ninteraction:\n{interaction}\n\nargs:\n{args}\nkwargs:\n{kwargs}\nerror:\n{error}"
+            f"\ninteraction:\n{interaction}\n\nargs:\n{args}\nkwargs:\n{kwargs}\nerror:\n{error}"
         )
         logger.exception(error_msg)
 
@@ -70,11 +70,11 @@ class DiscoTupperBot(commands.Bot):
         logger.info("Initializing Tortoise...")
         await Tortoise.init(
             db_url='sqlite://db.sqlite3',
-            modules={'models': ['database.models.user', 'database.models.actor', 'database.models.item', 'database.models.item_log']},
+            modules={'models': ['database.models.user', 'database.models.actor', 'database.models.item',
+                                'database.models.item_log']},
         )
         logger.info("Tortoise initialized")
         await Tortoise.generate_schemas()
-    
-    
-    
+
+
 bot = DiscoTupperBot()

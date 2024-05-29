@@ -4,7 +4,7 @@ from database.models.actor import Actor
 
 
 class ActorRepository:
-    
+
     @staticmethod
     async def create_actor(owner_id: int, name: str, call_pattern: str, image: str,
                            balance: int = 0, inventory_chat_id: Optional[int] = None) -> Actor:
