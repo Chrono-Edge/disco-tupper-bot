@@ -33,7 +33,7 @@ class TupperCog(commands.Cog):
         # await self.bot.process_commands(message)
 
     @commands.command(name='get_info')
-    async def get_mess_info(self, ctx, ch_id: int, mess_id: int):
+    async def get_mess_info(self, ch_id: int, mess_id: int):
         channel = await self.bot.fetch_channel(ch_id)
         message = await channel.fetch_message(mess_id)
         decode_text = NonPrintableEncoder.decode(message.content)

@@ -12,8 +12,8 @@ class User(Model):
     class Meta:
         table = 'users'
 
-    def set_discord_id(self, id: [Union[str, int]]):
-        self.discord_id = str(id)
+    def set_discord_id(self, member_id: [Union[str, int]]):
+        self.discord_id = str(member_id)
 
     def get_discord_id(self) -> Union[str, int]:
         return self.discord_id

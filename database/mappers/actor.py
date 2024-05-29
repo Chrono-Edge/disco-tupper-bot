@@ -2,7 +2,6 @@
 
 from database.models.actor import Actor
 
-
 class ActorMapper:
 
     @staticmethod
@@ -16,6 +15,7 @@ class ActorMapper:
         Returns:
             discord.Embed: The resulting Discord Embed object.
         """
+        
         embed = discord.Embed(
             title=actor.name,
             description=f"Balance: {actor.balance}",
@@ -23,7 +23,6 @@ class ActorMapper:
         )
         embed.set_image(url=actor.image)
         embed.add_field(name="Call Pattern", value=actor.call_pattern)
-        embed.add_field(name="Owner ID", value=actor.owner_id)
         embed.add_field(name="Created at:", value=actor.created_at)
         embed.set_footer(text=f"Actor ID: {actor.id}")
         return embed

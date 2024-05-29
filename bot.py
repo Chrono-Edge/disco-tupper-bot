@@ -66,6 +66,7 @@ class DiscoTupperBot(commands.Bot):
     async def start(self, *args, **kwargs) -> None:
         await super().start(*args, **kwargs)
 
+    @staticmethod
     async def init_tortoise(self):
         logger.info("Initializing Tortoise...")
         await Tortoise.init(

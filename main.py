@@ -1,3 +1,4 @@
+# noinspection PyProtectedMember
 from tortoise import run_async
 
 import config
