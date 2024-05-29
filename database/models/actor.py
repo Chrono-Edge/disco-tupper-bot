@@ -5,7 +5,6 @@ from database.validators import url, integers
 
 class Actor(Model):
     id = fields.BigIntField(pk=True)
-    owner = fields.ForeignKeyField('models.User', related_name='actors', on_delete=fields.CASCADE)
     name = fields.CharField(max_length=255, unique=True)
     call_pattern = fields.TextField()
     image = fields.TextField(description="URL to avatar", validators=[url.valid_url])
@@ -13,6 +12,7 @@ class Actor(Model):
     inventory_chat_id = fields.IntField()
     created_at = fields.DatetimeField(auto_now_add=True)
 
+    owners: fields.ManyToManyRelation['models.User'] = fields.ManyToManyField('models.User', related_name='actors', through='user_actors')
     items: fields.ReverseRelation['models.Item']
 
     class Meta:
