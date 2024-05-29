@@ -1,5 +1,5 @@
 # Ignore dynaconf secret files
-.secrets.*
+.secrets.toml
 # Ignore logs
 logs/*
 # JetBrains stuff
@@ -109,3 +109,4 @@ pyvenv.cfg
 .venv
 pip-selfcheck.json
 
+/.secrets.toml
