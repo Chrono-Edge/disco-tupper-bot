@@ -30,7 +30,7 @@ class TupperCog(commands.Cog):
 
             print(message)
             await webhook.delete()
-        await self.bot.process_commands(message)
+        #await self.bot.process_commands(message)
 
     @commands.command(name='get_info')
     async def get_mess_info(self, ctx, ch_id: int, mess_id: int):

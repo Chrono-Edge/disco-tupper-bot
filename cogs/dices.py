@@ -13,7 +13,7 @@ class DicesCog(commands.Cog):
         self.bot = bot
 
     @commands.command(name='roll', aliases=['dice'])
-    async def roll_dice(self, ctx, member: discord.Member = None, number_of_dice: int = 1, number_of_sides: int = 6):
+    async def roll_dice(self, ctx, number_of_dice: int = 1, number_of_sides: int = 6):
         """
         Roll a dice.
 
@@ -21,7 +21,7 @@ class DicesCog(commands.Cog):
             number_of_dice (int, optional): Number of dice to roll. Defaults to 1.
             number_of_sides (int, optional): Number of sides on each die. Defaults to 6.
         """
-        member = member or ctx.author
+        member = ctx.author
 
         if number_of_dice <= 0 or number_of_sides <= 0:
             await ctx.send(f"Number of dice and sides must be positive integers.")
