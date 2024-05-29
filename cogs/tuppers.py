@@ -1,16 +1,9 @@
-from datetime import datetime
 from typing import TYPE_CHECKING
-
-import aiohttp
-from discord import Webhook
-
-
 if TYPE_CHECKING:
     from bot import DiscoTupperBot
 
 import discord
 from discord.ext import commands
-from discord import Embed
 from config import logger
 
 

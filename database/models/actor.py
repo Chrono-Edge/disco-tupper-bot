@@ -1,5 +1,7 @@
 ﻿from tortoise import fields, Model
+
 from database.validators import url, integers
+
 
 class Actor(Model):
     id = fields.BigIntField(pk=True)

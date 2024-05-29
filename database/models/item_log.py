@@ -2,6 +2,7 @@
 
 from database.validators import integers
 
+
 class ItemLog(Model):
     id = fields.IntField(pk=True)
     item = fields.ForeignKeyField('models.Item', related_name='item_log', to_field='id', on_delete=fields.CASCADE)

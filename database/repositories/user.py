@@ -1,5 +1,7 @@
-﻿from database.models.user import User
-from discord.abc import  Snowflake
+﻿from discord.abc import Snowflake
+
+from database.models.user import User
+
 
 class UserRepository:
     """Repository class for handling CRUD operations with User objects."""

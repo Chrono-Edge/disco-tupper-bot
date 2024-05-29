@@ -1,4 +1,3 @@
-import asyncio
 import traceback
 
 import discord

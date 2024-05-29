@@ -1,5 +1,7 @@
-﻿from database.models.actor import Actor
-import discord
+﻿import discord
+
+from database.models.actor import Actor
+
 
 class ActorMapper:
 

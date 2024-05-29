@@ -1,9 +1,7 @@
 from tortoise import run_async
 
-from bot import bot
 import config
-
-
+from bot import bot
 
 
 def main():

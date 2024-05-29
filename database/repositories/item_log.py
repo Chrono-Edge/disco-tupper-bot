@@ -1,5 +1,7 @@
 ﻿from typing import List, Optional
+
 from database.models.item_log import ItemLog
+
 
 class ItemLogRepository:
     @staticmethod

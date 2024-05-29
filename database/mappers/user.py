@@ -1,5 +1,7 @@
-﻿from database.models.user import User
-from discord import Member
+﻿from discord import Member
+
+from database.models.user import User
+
 
 class UserMapper:
     @staticmethod

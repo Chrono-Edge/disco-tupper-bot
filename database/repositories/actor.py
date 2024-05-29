@@ -1,5 +1,7 @@
 ﻿from typing import List, Optional
+
 from database.models.actor import Actor
+
 
 class ActorRepository:
     
