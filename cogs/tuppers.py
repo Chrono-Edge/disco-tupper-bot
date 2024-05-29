@@ -24,7 +24,7 @@ class TupperCog(commands.Cog):
             return
         logger.info(message.content)
         if message.content[:2] == "99":
-            webhook = await message.channel.create_webhook(name=message.author.id)
+            webhook = await message.channel.create_webhook(name=str(message.author.id))
 
             embed = discord.Embed(type="link")
             embed.set_author(name="Creator",)
