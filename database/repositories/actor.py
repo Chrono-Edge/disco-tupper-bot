@@ -6,8 +6,8 @@ from database.models.actor import Actor
 class ActorRepository:
 
     @staticmethod
-    async def create_actor(owner_id: int, name: str, call_pattern: str, image: str,
-                           balance: int = 0, inventory_chat_id: Optional[int] = None) -> Actor:
+    async def create_actor(name: str, call_pattern: str, image: str,
+                           balance: int = 0, inventory_chat_id: Optional[int] = 0) -> Actor:
         """
         Create a new actor.
 
@@ -22,7 +22,7 @@ class ActorRepository:
         Returns:
             Actor: The newly created actor.
         """
-        actor = await Actor.create(owner_id=owner_id, name=name, call_pattern=call_pattern,
+        actor = await Actor.create(name=name, call_pattern=call_pattern,
                                    image=image, balance=balance, inventory_chat_id=inventory_chat_id)
         return actor
 

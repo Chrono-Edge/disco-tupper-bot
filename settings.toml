@@ -13,4 +13,6 @@ colorize = "True"
 initial_extensions = ['greetings', 'dices', 'tuppers', 'users']
 prefixes = [".", "dt ", "disco "]
 default_avatar = ""
+player_roles = ['test_player_role']
 admin_roles = ['test_admin_role']
+defalut_avatar_url = "https://chrono-edge.taruu.ru/images/c/c9/Logo.png"

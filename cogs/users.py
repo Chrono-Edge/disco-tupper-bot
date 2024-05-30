@@ -19,15 +19,31 @@ class UserCog(commands.Cog):
     @commands.hybrid_command(name="create_user")
     @commands.has_any_role(*config.admin_roles)
     async def create_user(self, ctx: discord.ext.commands.Context, member: discord.Member):
-        await UserRepository.create_user()
-        await ctx.send(f"discord {member}")
-        pass
+        local_user = await UserRepository.get_user_by_discord_id(member.id)
+        if not local_user:
+            await ctx.send(f"User already exist")
+            return
+        await UserRepository.create_user(member.id)
+        await ctx.send(f"Create user {member.mention} in database")
 
     @commands.hybrid_command(name="remove_user")
     @commands.has_any_role(*config.admin_roles)
     async def remove_user(self, ctx: discord.ext.commands.Context, member: discord.Member):
-        await ctx.send(f"discord {member}")
-        pass
+        local_user = await UserRepository.get_user_by_discord_id(member.id)
+        if not local_user:
+            await local_user.delete()
+            await ctx.send(f"User {member.mention} removed ")
+            return
+        await UserRepository.create_user(member.id)
+        await ctx.send(f"User {member.mention} not exist in database")
+
+    @commands.hybrid_command(name="sync_commands")
+    @commands.has_any_role(*config.admin_roles)
+    async def sync_commands(self, ctx):
+        self.bot.tree.copy_global_to(guild=config.debug_guild)
+        if await self.bot.tree.sync():
+            logger.success("Commands synced!")
+            await ctx.send("Commands synced!")
 
 
 async def setup(bot: "DiscoTupperBot"):

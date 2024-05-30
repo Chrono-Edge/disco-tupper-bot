@@ -16,7 +16,7 @@ values = Dynaconf(
 token = values.get("secrets.token")
 debug_guild = values.get("secrets.debug_guild")
 admin_roles = values.get("bot.admin_roles")
-
+player_roles = values.get("bot.player_roles")
 
 # Remove the existing logger
 logger.remove()

@@ -7,7 +7,7 @@ class UserRepository:
     """Repository class for handling CRUD operations with User objects."""
 
     @staticmethod
-    async def create_user(discord_id: Snowflake, username: str) -> User:
+    async def create_user(discord_id: int) -> User:
         """
         Create a new user with the given Discord ID and username.
 
@@ -18,25 +18,29 @@ class UserRepository:
         Returns:
             User: The newly created user object.
         """
-        user = await User.create(discord_id=discord_id, username=username)
+        user = await User.create(id=discord_id)
         return user
 
     @staticmethod
-    async def get_user_by_id(user_id: int) -> User:
+    async def get_or_create_user(discord_id: int) -> User:
         """
-        Retrieve a user by their ID.
+        Get or Create a user with the given Discord ID and username.
 
         Args:
-            user_id (int): The ID of the user to retrieve.
+            discord_id (Snowflake): The Discord ID of the user.
+            username (str): The username of the user.
 
         Returns:
-            User: The user object if found, else None.
+            User: The newly created user object.
         """
-        user = await User.filter(id=user_id).first()
+        user = await User.filter(id=discord_id).first()
+        if not user:
+            user = await User.create(id=discord_id)
         return user
 
+
     @staticmethod
-    async def get_user_by_discord_id(discord_id: Snowflake) -> User:
+    async def get_user_by_discord_id(discord_id: int) -> User:
         """
         Retrieve a user by their Discord ID.
 
@@ -46,18 +50,18 @@ class UserRepository:
         Returns:
             User: The user object if found, else None.
         """
-        user = await User.filter(discord_id=discord_id).first()
+        user = await User.filter(id=discord_id).first()
         return user
 
     @staticmethod
-    async def delete_user(user_id: Snowflake):
+    async def delete_user(discord_id: Snowflake):
         """
         Delete a user by their ID.
 
         Args:
-            user_id (int): The ID of the user to delete.
+            discord_id (int): The ID of the user to delete.
         """
-        await User.filter(discord_id=user_id).delete()
+        await User.filter(id=discord_id).delete()
 
     @staticmethod
     async def count_users() -> int:

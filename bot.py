@@ -40,11 +40,6 @@ class DiscoTupperBot(commands.Bot):
 
         # logger.warning("Commands synchronization")
         # This copies the global commands over to your guild.
-        guild = self.debug_guild
-
-        self.tree.copy_global_to(guild=guild)
-        if await self.tree.sync():
-            logger.success("Commands synced!")
 
     async def on_ready(self):
         self.remove_command("help")
