@@ -30,7 +30,14 @@ class TupperCog(commands.Cog):
 
             print(message)
             await webhook.delete()
-        # await self.bot.process_commands(message)
+            message.content = message.content[2:]
+            print(message.content)
+            await self.bot.process_commands(message)
+
+    @commands.command(name='test')
+    async def test(self, ctx: discord.ext.commands.Context):
+        await ctx.send("99 responce")
+
 
     @commands.command(name='get_info')
     async def get_mess_info(self, ch_id: int, mess_id: int):
@@ -41,8 +48,28 @@ class TupperCog(commands.Cog):
         logger.info(decode_text.decode())
 
     @commands.hybrid_command(name="create_actor")
-    async def create_actor(self, ctx, name: str, avatar=""):
+    async def create_actor(self, ctx, name: str):
+        pass
 
+    @commands.hybrid_command(name="remove_actor")
+    async def remove_actor(self, ctx, name: str):
+        pass
+
+    @commands.hybrid_command(name="edit_actor")
+    async def edit_actor(self, ctx, actor_name: str, parameter: str, value=""):
+        parameter_list = ["name", "call_pattern", "avatar", "inventory_chat_id"]
+        pass
+
+    @commands.hybrid_command(name="set_actor_avatar")
+    async def set_actor_avatar(self, ctx, member : discord.Member):
+        pass
+
+    @commands.hybrid_command(name="add_user_to_actor")
+    async def add_user_to_actor(self, ctx):
+        pass
+
+    @commands.hybrid_command(name="remove_user_to_actor")
+    async def remove_user_to_actor(self, ctx):
         pass
 
 

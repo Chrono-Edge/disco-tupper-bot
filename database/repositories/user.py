@@ -50,21 +50,6 @@ class UserRepository:
         return user
 
     @staticmethod
-    async def update_username(discord_id: Snowflake, new_username: str) -> int:
-        """
-        Update the username of a user.
-
-        Args:
-            discord_id (Snowflake): The ID of the user to update.
-            new_username (str): The new username for the user.
-
-        Returns:
-            int: The number of updated rows (1 if successful, 0 if user not found).
-        """
-        user = await User.filter(discord_id=discord_id).update(username=new_username)
-        return user
-
-    @staticmethod
     async def delete_user(user_id: Snowflake):
         """
         Delete a user by their ID.
@@ -110,31 +95,3 @@ class UserRepository:
         """
         users = await User.all().limit(limit).offset(offset)
         return users
-
-    @staticmethod
-    async def search_users_by_username(query: str) -> list[User]:
-        """
-        Search for users by username.
-
-        Args:
-            query (str): The username query to search for.
-
-        Returns:
-            list[User]: A list of user objects matching the query.
-        """
-        users = await User.filter(username__icontains=query).all()
-        return users
-
-    @staticmethod
-    async def is_username_available(username: str) -> bool:
-        """
-        Check if a username is available (not already taken).
-
-        Args:
-            username (str): The username to check.
-
-        Returns:
-            bool: True if the username is available, else False.
-        """
-        user = await User.filter(username=username).first()
-        return not bool(user)

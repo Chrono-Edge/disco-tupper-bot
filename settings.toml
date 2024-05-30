@@ -10,6 +10,7 @@ enqueue = "True"
 colorize = "True"
 
 [bot]
-initial_extensions = ['greetings', 'dices', 'tuppers']
+initial_extensions = ['greetings', 'dices', 'tuppers', 'users']
 prefixes = [".", "dt ", "disco "]
 default_avatar = ""
+admin_roles = ['test_admin_role']

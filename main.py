@@ -7,7 +7,7 @@ from bot import bot
 
 def main():
     config.logger.info("Starting bot...")
-    run_async(bot.init_tortoise())
+    run_async(bot.init_tortoise(bot))
 
     bot.run(token=config.token, log_handler=config.discord_log_handler, log_level="INFO")
 
