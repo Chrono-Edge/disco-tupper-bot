@@ -14,7 +14,8 @@ values = Dynaconf(
 # `settings_files` = Load these files in the order.
 
 token = values.get("secrets.token")
-debug_guild = values.get("secrets.debug_guild")
+guild = values.get("secrets.guild")
+
 admin_roles = values.get("bot.admin_roles")
 player_roles = values.get("bot.player_roles")
 

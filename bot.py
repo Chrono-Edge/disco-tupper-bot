@@ -19,8 +19,8 @@ class DiscoTupperBot(commands.Bot):
             intents=self.setup_intents(),
             command_prefix=commands.when_mentioned_or(*prefixes),  # type: ignore
         )
-        if config.debug_guild:
-            self.debug_guild = discord.Object(config.debug_guild)
+        if config.guild:
+            self.debug_guild = discord.Object(config.guild)
 
     @staticmethod
     def setup_intents():
@@ -28,6 +28,7 @@ class DiscoTupperBot(commands.Bot):
         intents.members = True
         intents.message_content = True
         intents.messages = True
+        intents.reactions = True
         return intents
 
     initial_extensions = config.values.get("bot.initial_extensions")

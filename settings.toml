@@ -12,7 +12,10 @@ colorize = "True"
 [bot]
 initial_extensions = ['greetings', 'dices', 'tuppers', 'users']
 prefixes = [".", "dt ", "disco "]
-default_avatar = ""
-player_roles = ['test_player_role']
 admin_roles = ['test_admin_role']
-defalut_avatar_url = "https://chrono-edge.taruu.ru/images/c/c9/Logo.png"
+player_roles = ['test_player_role']
+reaction_to_edit = "📝"
+reaction_to_remove = "❌"
+
+[actor]
+default_avatar_url = "https://chrono-edge.taruu.ru/images/c/c9/Logo.png"

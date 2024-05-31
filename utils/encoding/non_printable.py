@@ -1,4 +1,6 @@
-﻿UTF8_MASK = 0xE0000
+﻿from typing import Union, Tuple
+
+UTF8_MASK = 0xE0000
 HEADER = u"\U000E0042\U000E0042\U000E0011\U000E0011"  # Unique header consisting of 4 non-printable UTF-8 characters
 
 
@@ -8,7 +10,7 @@ class NonPrintableEncoder:
     """
 
     @staticmethod
-    def encode(text: str, data: bytes):
+    def encode(text: str, data: bytes) -> str:
         """
         Encodes byte data and embeds it within a string, preserving the original text.
 
@@ -23,7 +25,7 @@ class NonPrintableEncoder:
         return f"{text}{HEADER}{encoded_string}"
 
     @staticmethod
-    def decode(encoded_string: str) -> bytes:
+    def decode(encoded_string: str) -> tuple[str, bytes]:
         """
         Extracts and decodes the hidden byte data from a string.
 
@@ -44,4 +46,4 @@ class NonPrintableEncoder:
         encoded_body_start += len(HEADER)
         encoded_body = encoded_string[encoded_body_start:]
         byte_string = bytes((ord(char) - UTF8_MASK) for char in encoded_body)
-        return byte_string
+        return encoded_string[:encoded_body_start], byte_string
