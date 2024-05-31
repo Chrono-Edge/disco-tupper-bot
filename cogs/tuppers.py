@@ -206,23 +206,28 @@ class TupperCog(commands.Cog):
         await ctx.send("OK!")
 
     @commands.hybrid_command(name="remove_actor")
+    @commands.has_any_role(*config.player_roles)
     async def remove_actor(self, ctx, name: str):
         pass
 
     @commands.hybrid_command(name="edit_actor")
+    @commands.has_any_role(*config.player_roles)
     async def edit_actor(self, ctx, actor_name: str, parameter: str, value=""):
-        parameter_list = ["name", "call_pattern", "avatar", "inventory_chat_id"]
+        parameter_list = ["name", "call_pattern", "inventory_chat_id"]
         pass
 
     @commands.hybrid_command(name="set_actor_avatar")
+    @commands.has_any_role(*config.player_roles)
     async def set_actor_avatar(self, ctx, member: discord.Member):
         pass
 
     @commands.hybrid_command(name="add_user_to_actor")
+    @commands.has_any_role(*config.player_roles)
     async def add_user_to_actor(self, ctx):
         pass
 
     @commands.hybrid_command(name="remove_user_to_actor")
+    @commands.has_any_role(*config.player_roles)
     async def remove_user_to_actor(self, ctx):
         pass
 
