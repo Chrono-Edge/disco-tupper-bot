@@ -1,3 +1,4 @@
+import asyncio
 from typing import TYPE_CHECKING
 
 import config
@@ -42,6 +43,7 @@ class UserCog(commands.Cog):
     async def sync_commands(self, ctx: discord.ext.commands.Context):
         self.bot.tree.copy_global_to(guild=ctx.guild)
         if await self.bot.tree.sync():
+            await asyncio.sleep(2)
             logger.success("Commands synced!")
             await ctx.send("Commands synced!")
 
