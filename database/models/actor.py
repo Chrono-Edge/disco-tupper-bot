@@ -9,7 +9,7 @@ class Actor(Model):
     call_pattern = fields.TextField()
     image = fields.TextField(description="URL to avatar", validators=[url.valid_url])
     balance = fields.IntField(default=0, validators=[integers.not_negative])
-    inventory_chat_id = fields.IntField(unique=True)
+    inventory_chat_id = fields.IntField(default=0)
     created_at = fields.DatetimeField(auto_now_add=True)
 
     owners: fields.ReverseRelation["Actor"]

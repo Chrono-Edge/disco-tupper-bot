@@ -20,7 +20,7 @@ from database.repositories.user import UserRepository
 from database.repositories.actor import ActorRepository
 
 
-class TupperCog(commands.Cog):
+class TupperMessageCog(commands.Cog):
     def __init__(self, bot: discord.ext.commands.Bot):
         self.bot = bot
         self.reaction_to_edit = config.values.get("bot.reaction_to_edit")
@@ -181,56 +181,6 @@ class TupperCog(commands.Cog):
         await webhook.send(message_content, username=actor.name, avatar_url=actor.image, files=files_content)
         await message.delete()
 
-    @commands.command(name='test')
-    async def test(self, ctx: discord.ext.commands.Context):
-        await ctx.send("99 responce")
-
-    @commands.command(name='get_info')
-    async def get_mess_info(self, ctx, ch_id: int, mess_id: int):
-        channel = await self.bot.fetch_channel(ch_id)
-        message = await channel.fetch_message(mess_id)
-        decode_text = NonPrintableEncoder.decode(message.content)
-        logger.info(message.content)
-        logger.info(decode_text.decode())
-        await ctx.send(f"Hidden text {decode_text}")
-
-    @commands.hybrid_command(name="create_actor")
-    @commands.has_any_role(*config.player_roles)
-    async def create_actor(self, ctx: discord.ext.commands.Context, name: str, call_pattern: str):
-        user = await UserRepository.get_or_create_user(ctx.author.id)
-        actor = await ActorRepository.create_actor(name=name, call_pattern=call_pattern,
-                                                   image=config.values.get("actor.default_avatar_url"))
-        await user.actors.add(actor)
-        logger.debug(user)
-        logger.debug(actor)
-        await ctx.send("OK!")
-
-    @commands.hybrid_command(name="remove_actor")
-    @commands.has_any_role(*config.player_roles)
-    async def remove_actor(self, ctx, name: str):
-        pass
-
-    @commands.hybrid_command(name="edit_actor")
-    @commands.has_any_role(*config.player_roles)
-    async def edit_actor(self, ctx, actor_name: str, parameter: str, value=""):
-        parameter_list = ["name", "call_pattern", "inventory_chat_id"]
-        pass
-
-    @commands.hybrid_command(name="set_actor_avatar")
-    @commands.has_any_role(*config.player_roles)
-    async def set_actor_avatar(self, ctx, member: discord.Member):
-        pass
-
-    @commands.hybrid_command(name="add_user_to_actor")
-    @commands.has_any_role(*config.player_roles)
-    async def add_user_to_actor(self, ctx):
-        pass
-
-    @commands.hybrid_command(name="remove_user_to_actor")
-    @commands.has_any_role(*config.player_roles)
-    async def remove_user_to_actor(self, ctx):
-        pass
-
 
 async def setup(bot: "DiscoTupperBot"):
-    await bot.add_cog(TupperCog(bot))
+    await bot.add_cog(TupperMessageCog(bot))

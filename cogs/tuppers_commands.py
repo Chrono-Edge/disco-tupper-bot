@@ -1,4 +1,5 @@
 import json
+import typing
 from builtins import str
 from typing import TYPE_CHECKING, Union
 
@@ -20,7 +21,7 @@ from database.repositories.user import UserRepository
 from database.repositories.actor import ActorRepository
 
 
-class TupperCog(commands.Cog):
+class TupperCommandsCog(commands.Cog):
     def __init__(self, bot: discord.ext.commands.Bot):
         self.bot = bot
         self.reaction_to_edit = config.values.get("bot.reaction_to_edit")
@@ -63,20 +64,45 @@ class TupperCog(commands.Cog):
 
     @commands.hybrid_command(name="create_actor")
     @commands.has_any_role(*config.player_roles)
-    async def create_actor(self, ctx: discord.ext.commands.Context, name: str, call_pattern: str):
-        user = await UserRepository.get_or_create_user(ctx.author.id)
+    async def create_actor(self, ctx: discord.ext.commands.Context, name: str, call_pattern: str,
+                           member: typing.Optional[discord.Member]):
+
+        if await self._user_is_admin(ctx) and member:
+            user = await UserRepository.get_or_create_user(member.id)
+        else:
+            user = await UserRepository.get_or_create_user(ctx.author.id)
+
+        actor = None
+
+        actor = await user.actors.filter(name=name).first()
+        if actor:
+            await ctx.reply("You already have actor with this name")
+            return
+
+        actor = await user.actors.filter(call_pattern=call_pattern)
+        if actor:
+            await ctx.reply("You already have actor with this call pattern")
+            return
+
         actor = await ActorRepository.create_actor(name=name, call_pattern=call_pattern,
                                                    image=config.values.get("actor.default_avatar_url"))
+
         await user.actors.add(actor)
+
         await ctx.reply(f"Successful create actor: {actor.name}")
         webhook = await self._get_webhook(ctx.channel.id)
         await webhook.send("-- Hello World!", username=actor.name, avatar_url=actor.image)
 
     @commands.hybrid_command(name="remove_actor")
     @commands.has_any_role(*config.player_roles)
-    async def remove_actor(self, ctx, name: str):
-        user = await UserRepository.get_or_create_user(ctx.author.id)
+    async def remove_actor(self, ctx, name: str, member: typing.Optional[discord.Member]):
+        if await self._user_is_admin(ctx) and member:
+            user = await UserRepository.get_or_create_user(member.id)
+        else:
+            user = await UserRepository.get_or_create_user(ctx.author.id)
+
         actor = await user.actors.filter(name=name).first()
+
         if not actor:
             return
         name = actor.name
@@ -113,4 +139,4 @@ class TupperCog(commands.Cog):
 
 
 async def setup(bot: "DiscoTupperBot"):
-    await bot.add_cog(TupperCog(bot))
+    await bot.add_cog(TupperCommandsCog(bot))

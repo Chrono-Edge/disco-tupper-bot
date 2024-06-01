@@ -33,7 +33,9 @@ class UserRepository:
         Returns:
             User: The newly created user object.
         """
+
         user = await User.filter(id=discord_id).first()
+        print(user)
         if not user:
             user = await User.create(id=discord_id)
         return user
