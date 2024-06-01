@@ -1,9 +1,11 @@
 import json
 import typing
 from builtins import str
+from datetime import datetime
 from typing import TYPE_CHECKING, Union
 
 import config
+import database.models.user
 from database.models.actor import Actor
 from database.models.user import User
 from utils.encoding.non_printable import NonPrintableEncoder
@@ -21,6 +23,39 @@ from database.repositories.user import UserRepository
 from database.repositories.actor import ActorRepository
 
 
+class ListMenu(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+        self.value = None
+
+    @staticmethod
+    async def actor_list_page(discord_user: discord.Member, page=0):
+        user = await UserRepository.get_or_create_user(discord_user.id)
+        embed = discord.Embed(colour=0x00b0f4,
+                              timestamp=datetime.now())
+
+        embed.set_author(name=f"{discord_user.display_name} actors")
+        for actor in await user.actors.offset(page * 25).limit(25).all():
+            embed.add_field(name=actor.name,
+                            value=f"Actor call pattern: \n `{actor.call_pattern}`",
+                            inline=False)
+        hidden_data = {"member_id": discord_user.id, "page": page}
+        hidden_text = NonPrintableEncoder.encode("Meta info", json.dumps(hidden_data).encode())
+        embed.set_footer(text=hidden_text)
+        return embed
+
+    @discord.ui.button(label="Left", style=discord.ButtonStyle.blurple, custom_id='persistent_view:left')
+    async def left_step(self, interaction: discord.Interaction, button: discord.ui.Button):
+
+        print(interaction.message.embeds)
+        pass
+
+    @discord.ui.button(label="Right", style=discord.ButtonStyle.blurple, custom_id='persistent_view:right')
+    async def right_step(self, interaction: discord.Interaction, button: discord.ui.Button):
+        print(interaction.message.embeds)
+        pass
+
+
 class TupperCommandsCog(commands.Cog):
     def __init__(self, bot: discord.ext.commands.Bot):
         self.bot = bot
@@ -36,6 +71,16 @@ class TupperCommandsCog(commands.Cog):
                 user_is_admin = True
                 break
         return user_is_admin
+
+    async def _get_user_to_edit_actor(self, ctx: discord.ext.commands.Context, member: discord.Member) -> typing.Tuple[
+        discord.Member, database.models.user.User]:
+
+        if await self._user_is_admin(ctx) and member:
+            member, user = await UserRepository.get_or_create_user(member.id)
+            return member, user
+        else:
+            user = await UserRepository.get_or_create_user(ctx.author.id)
+            return ctx.author, user
 
     async def _get_webhook(self, channel_id: int):
         # TODO exception if limit of used webhooks
@@ -65,12 +110,10 @@ class TupperCommandsCog(commands.Cog):
     @commands.hybrid_command(name="create_actor")
     @commands.has_any_role(*config.player_roles)
     async def create_actor(self, ctx: discord.ext.commands.Context, name: str, call_pattern: str,
+                           avatar: discord.Attachment,
                            member: typing.Optional[discord.Member]):
 
-        if await self._user_is_admin(ctx) and member:
-            user = await UserRepository.get_or_create_user(member.id)
-        else:
-            user = await UserRepository.get_or_create_user(ctx.author.id)
+        discord_user, user = await self._get_user_to_edit_actor(ctx, member)
 
         actor = None
 
@@ -85,7 +128,7 @@ class TupperCommandsCog(commands.Cog):
             return
 
         actor = await ActorRepository.create_actor(name=name, call_pattern=call_pattern,
-                                                   image=config.values.get("actor.default_avatar_url"))
+                                                   image=avatar.url)
 
         await user.actors.add(actor)
 
@@ -96,15 +139,14 @@ class TupperCommandsCog(commands.Cog):
     @commands.hybrid_command(name="remove_actor")
     @commands.has_any_role(*config.player_roles)
     async def remove_actor(self, ctx, name: str, member: typing.Optional[discord.Member]):
-        if await self._user_is_admin(ctx) and member:
-            user = await UserRepository.get_or_create_user(member.id)
-        else:
-            user = await UserRepository.get_or_create_user(ctx.author.id)
+        discord_user, user = await self._get_user_to_edit_actor(ctx, member)
 
         actor = await user.actors.filter(name=name).first()
 
         if not actor:
+            await ctx.reply(f"Cant find actor: {name}")
             return
+
         name = actor.name
         await ActorRepository.delete_actor(actor.id)
         await user.actors.add(actor)
@@ -113,18 +155,24 @@ class TupperCommandsCog(commands.Cog):
 
     @commands.hybrid_command(name="edit_actor")
     @commands.has_any_role(*config.player_roles)
-    async def edit_actor(self, ctx, actor_name: str, parameter: str):
+    async def edit_actor(self, ctx, actor_name: str, new_name: typing.Optional[str],
+                         new_call_pattern: typing.Optional[str], member: typing.Optional[discord.Member]):
         parameter_list = ["name", "call_pattern", ]
         pass
 
-    @commands.hybrid_command(name="set_inventory_chat_ud")
+    @commands.hybrid_command(name="set_inventory_chat_id")
     @commands.has_any_role(*config.player_roles)
-    async def set_inventory_chat_ud(self, ctx, name: str):
+    async def set_inventory_chat_id(self, ctx, name: str, member: typing.Optional[discord.Member]):
         pass
 
     @commands.hybrid_command(name="set_actor_avatar")
     @commands.has_any_role(*config.player_roles)
-    async def set_actor_avatar(self, ctx, member: discord.Member):
+    async def set_actor_avatar(self, ctx, name: str, avatar: discord.Attachment,
+                               member: typing.Optional[discord.Member]):
+        print(ctx)
+        print(name)
+        print(avatar.url)
+        await ctx.reply("Test")
         pass
 
     @commands.hybrid_command(name="add_user_to_actor")
@@ -136,6 +184,14 @@ class TupperCommandsCog(commands.Cog):
     @commands.has_any_role(*config.player_roles)
     async def remove_user_from_actor(self, ctx):
         pass
+
+    @commands.hybrid_command(name="actor_list")
+    @commands.has_any_role(*config.player_roles)
+    async def actor_list(self, ctx, member: typing.Optional[discord.Member]):
+        view = ListMenu()
+        discord_user, user = await self._get_user_to_edit_actor(ctx, member)
+        embed = await ListMenu.actor_list_page(discord_user, 0)
+        await ctx.reply(embed=embed, view=view)
 
 
 async def setup(bot: "DiscoTupperBot"):

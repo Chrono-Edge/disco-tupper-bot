@@ -5,6 +5,7 @@ from discord.ext import commands
 from tortoise import Tortoise
 
 import config
+from cogs.tuppers_commands import ListMenu
 from config import logger
 
 logger.info("Starting DiscoTupperBot")
@@ -38,6 +39,8 @@ class DiscoTupperBot(commands.Bot):
         for extension in self.initial_extensions:
             await self.load_extension(f'cogs.{extension}')
             logger.success(f"Loaded extension: {extension}")
+
+        self.add_view(ListMenu())
 
         # logger.warning("Commands synchronization")
         # This copies the global commands over to your guild.
