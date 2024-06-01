@@ -46,13 +46,25 @@ class ListMenu(discord.ui.View):
 
     @discord.ui.button(label="Left", style=discord.ButtonStyle.blurple, custom_id='persistent_view:left')
     async def left_step(self, interaction: discord.Interaction, button: discord.ui.Button):
+        embed = interaction.message.embeds[0]
+        interaction.user.roles
 
-        print(interaction.message.embeds)
+
+        ___, hidden_data = NonPrintableEncoder.decode(embed.footer.text)
+        meta_dict = json.loads(hidden_data)
+        print()
         pass
 
     @discord.ui.button(label="Right", style=discord.ButtonStyle.blurple, custom_id='persistent_view:right')
     async def right_step(self, interaction: discord.Interaction, button: discord.ui.Button):
-        print(interaction.message.embeds)
+
+        embed = interaction.message.embeds[0]
+        ___, hidden_data = NonPrintableEncoder.decode(embed.footer.text)
+        meta_dict = json.loads(hidden_data)
+
+        user = UserRepository.get_or_create_user(meta_dict["member_id"])
+
+        print(hidden_data.decode())
         pass
 
 
