@@ -1,3 +1,4 @@
+import re
 import json
 from builtins import str
 from typing import TYPE_CHECKING
@@ -158,17 +159,23 @@ class TupperMessageCog(commands.Cog):
             await self._edit_tupper_message(message)
             return
 
-        start_message = message.content[:256]
-        first_word = start_message.split()[0]
+        message_content = message.content.strip()
 
-        actor: Actor = await db_user.actors.filter(call_pattern=first_word).first()
+        actor = None
+        actors = await db_user.actors.all()
+        for other_actor in actors:
+            if match := re.match(other_actor.call_pattern, message_content):
+                actor = other_actor
+                message_content = match.groups(1)
+
+                break
+
         if not actor:
             return
 
         webhook = await self._get_webhook(message.channel.id)
-
         hidden_data = {"actor_id": actor.id}
-        message_content = message.content.split(actor.call_pattern, 1)[1].strip()
+        
         if len(message_content) == 0:
             return
         # TODO limit messages to 1800 with relpy

@@ -1,3 +1,8 @@
+from database.repositories.actor import ActorRepository
+from database.repositories.user import UserRepository
+from config import logger
+from discord.ext import commands
+import discord
 import json
 import typing
 from builtins import str
@@ -10,17 +15,12 @@ from database.models.actor import Actor
 from database.models.user import User
 from utils.encoding.non_printable import NonPrintableEncoder
 from utils.encoding.non_printable import HEADER
+from utils.tupper_template import parse_template
 
 hidden_header = HEADER
 
 if TYPE_CHECKING:
     from bot import DiscoTupperBot
-
-import discord
-from discord.ext import commands
-from config import logger
-from database.repositories.user import UserRepository
-from database.repositories.actor import ActorRepository
 
 
 class ListMenu(discord.ui.View):
@@ -37,10 +37,12 @@ class ListMenu(discord.ui.View):
         embed.set_author(name=f"{discord_user.display_name} actors")
         for actor in await user.actors.offset(page * 25).limit(25).all():
             embed.add_field(name=actor.name,
-                            value=f"Actor call pattern: \n `{actor.call_pattern}`",
+                            value=f"Actor call pattern: \n `{
+                                actor.call_pattern}`",
                             inline=False)
         hidden_data = {"member_id": discord_user.id, "page": page}
-        hidden_text = NonPrintableEncoder.encode("Meta info", json.dumps(hidden_data).encode())
+        hidden_text = NonPrintableEncoder.encode(
+            "Meta info", json.dumps(hidden_data).encode())
         embed.set_footer(text=hidden_text)
         return embed
 
@@ -48,7 +50,6 @@ class ListMenu(discord.ui.View):
     async def left_step(self, interaction: discord.Interaction, button: discord.ui.Button):
         embed = interaction.message.embeds[0]
         interaction.user.roles
-
 
         ___, hidden_data = NonPrintableEncoder.decode(embed.footer.text)
         meta_dict = json.loads(hidden_data)
@@ -76,7 +77,8 @@ class TupperCommandsCog(commands.Cog):
         self.admin_roles = config.values.get("bot.admin_roles")
 
     async def _user_is_admin(self, ctx: discord.ext.commands.Context):
-        admin_roles = [discord.utils.get(ctx.guild.roles, name=role_name) for role_name in self.admin_roles]
+        admin_roles = [discord.utils.get(
+            ctx.guild.roles, name=role_name) for role_name in self.admin_roles]
         user_is_admin = False
         for admin_role in admin_roles:
             if admin_role in ctx.author.roles:
@@ -85,7 +87,7 @@ class TupperCommandsCog(commands.Cog):
         return user_is_admin
 
     async def _get_user_to_edit_actor(self, ctx: discord.ext.commands.Context, member: discord.Member) -> typing.Tuple[
-        discord.Member, database.models.user.User]:
+            discord.Member, database.models.user.User]:
 
         if await self._user_is_admin(ctx) and member:
             member, user = await UserRepository.get_or_create_user(member.id)
@@ -132,6 +134,13 @@ class TupperCommandsCog(commands.Cog):
         actor = await user.actors.filter(name=name).first()
         if actor:
             await ctx.reply("You already have actor with this name")
+            return
+
+        try:
+            call_pattern = parse_template(call_pattern)
+        except SyntaxError as e:
+            await ctx.reply(str(e))
+
             return
 
         actor = await user.actors.filter(call_pattern=call_pattern)
