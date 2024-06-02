@@ -26,6 +26,8 @@ T_WS = re.compile(r'([ \t\r\n]+)')
 TOKEN_NAMES = {
     T_NAME: 'имя',
     T_COLON: 'двоеточие',
+    T_TILDA: 'тильда',
+    T_EXCL: 'восклицательный знак',
     T_DICE: 'кость',
     T_OP: 'оператор',
     T_DIGIT: 'число',
