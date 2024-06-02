@@ -13,7 +13,7 @@ class RollCog(commands.Cog):
 
         try:
             dices.roll()
-        except (ValueError, SyntaxError) as e:
+        except (ValueError, SyntaxError, NameError) as e:
             await ctx.send(str(e))
 
             return

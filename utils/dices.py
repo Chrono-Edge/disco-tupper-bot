@@ -11,8 +11,12 @@ OPS = {
     '^': operator.pow,
 }
 
-T_DICE = re.compile(r'd(\d+)')
+T_NAME = re.compile(r'([a-zA-Z_][a-zA-Z0-9_]*)')
+T_COLON = re.compile(r'(:)')
+T_DICE = re.compile(r'(d)')
 T_MINUS = re.compile(r'(-)')
+T_TILDA = re.compile(r'(~)')
+T_EXCL = re.compile(r'(!)')
 T_OP = re.compile(f'([{''.join(OPS.keys()).replace('-', r'\-')}])')
 T_DIGIT = re.compile(r'(\d+)')
 T_OPEN_PAREN = re.compile(r'(\()')
@@ -20,6 +24,8 @@ T_CLOSE_PAREN = re.compile(r'(\))')
 T_WS = re.compile(r'([ \t\r\n]+)')
 
 TOKEN_NAMES = {
+    T_NAME: 'имя',
+    T_COLON: 'двоеточие',
     T_DICE: 'кость',
     T_OP: 'оператор',
     T_DIGIT: 'число',
@@ -52,6 +58,7 @@ class Dices:
         self.text = text.strip().lower()
         self.position = 0
 
+        self.names = {}
         self.rolls = []
         self.result = None
 
@@ -61,7 +68,7 @@ class Dices:
 
         return self.text
 
-    def _roll(self, count, sides):
+    def _roll(self, count, sides, dont_save=False):
         if count <= 0:
             raise ValueError('Количество костей должно быть больше нуля.')
 
@@ -72,7 +79,8 @@ class Dices:
         for _ in range(count):
             rolls.append(random.randint(1, sides))
 
-        self.rolls.append(Value(rolls))
+        if not dont_save:
+            self.rolls.append(Value(rolls))
 
         return rolls
 
@@ -105,24 +113,51 @@ class Dices:
 
         return match
 
+    def _parse_dice(self, left=1):
+        if self._match(T_OPEN_PAREN):
+            right = self._parse_expr()
+
+            self._expect(T_CLOSE_PAREN)
+        else:
+            right = self._parse_atom()
+
+        dont_save = self._match(T_EXCL)
+
+        left = int(left)
+        right = int(right)
+
+        return Value(self._roll(left, right, dont_save=dont_save))
+
     def _parse_atom(self):
         if self._match(T_OPEN_PAREN):
             expr = self._parse_expr()
 
             self._expect(T_CLOSE_PAREN)
 
+            if self._match(T_DICE):
+                return self._parse_dice(expr)
+
             return expr
         elif self._match(T_MINUS):
             return self._parse_atom().apply(operator.neg)
+        elif self._match(T_TILDA):
+            return Value(int(self._parse_atom()))
         elif match := self._match(T_DIGIT):
             left = int(match[0])
 
             if match := self._match(T_DICE, skip_ws=False):
-                left = Value(self._roll(left, int(match[0])))
+                return self._parse_dice(left)
 
             return Value(left)
-        elif match := self._match(T_DICE):
-            return Value(self._roll(1, int(match[0])))
+        elif self._match(T_DICE):
+            return self._parse_dice()
+        elif match := self._match(T_NAME):
+            name = match[0]
+
+            if name not in self.names:
+                raise NameError(f'Неизвестная переменная: `{name}`.')
+
+            return self.names[name]
 
         self._expected('число, кость или открывающая скобка')
 
@@ -134,17 +169,27 @@ class Dices:
             right = self._parse_expr()
 
             left = left.apply(op, right)
+        elif self._match(T_COLON):
+            right = self._expect(T_NAME)[0]
+
+            self.names[right] = left
+
+            return
 
         return left
 
     def _parse_exprs(self):
         exprs = []
         while not self._done():
-            exprs.append(self._parse_expr())
+            expr = self._parse_expr()
+
+            if expr is not None:
+                exprs.append(expr)
 
         return Value(exprs)
 
     def roll(self):
+        self.names = {}
         self.position = 0
         self.rolls = []
 
@@ -168,3 +213,8 @@ if __name__ == '__main__':
     print(Dices('-d5 + -d5').roll())
     print(Dices('d20+5 d20+3').roll())
     print(Dices('(5d20) * 2 d20').roll())
+    print(Dices('d(5*2)').roll())
+    print(Dices('d20:x x*2').roll())
+    print(Dices('2d5:x x+1').roll())
+    print(Dices('2d5:x ~(x+1)').roll())
+    print(Dices('2d5!:x dx').roll())
