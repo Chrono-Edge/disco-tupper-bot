@@ -62,6 +62,7 @@ class Dices:
 
         self.names = {}
         self.rolls = []
+        self.has_rolls = False
         self.result = None
 
     def __repr__(self):
@@ -84,15 +85,20 @@ class Dices:
         if not dont_save:
             self.rolls.append(Value(rolls))
 
-        return rolls
+        if not self.has_rolls:
+            self.has_rolls = True
 
-    def _done(self):
-        return self.position >= len(self.text)
+        return rolls
 
     def _skip_ws(self):
         match = T_WS.match(self.text, self.position)
         if match:
             self.position += len(match.group(0))
+
+    def _done(self):
+        self._skip_ws()
+
+        return self.position >= len(self.text)
 
     def _match(self, what, skip_ws=True):
         if skip_ws:
@@ -188,16 +194,20 @@ class Dices:
             if expr is not None:
                 exprs.append(expr)
 
+        if not exprs:
+            raise SyntaxError('Выражение не должно быть пустым.')
+
         return Value(exprs)
 
     def roll(self):
         self.names = {}
         self.position = 0
         self.rolls = []
+        self.has_rolls = False
 
         self.result = self._parse_exprs()
 
-        if not self.rolls:
+        if not self.has_rolls:
             raise ValueError('Выражение не содержит бросков.')
 
         return self
@@ -220,3 +230,5 @@ if __name__ == '__main__':
     print(Dices('2d5:x x+1').roll())
     print(Dices('2d5:x ~(x+1)').roll())
     print(Dices('2d5!:x dx').roll())
+    print(Dices('4d4:x x*2').roll())    
+    print(Dices('4d4:x ~x*2').roll())    
