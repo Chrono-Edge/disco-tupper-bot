@@ -7,15 +7,13 @@ import json
 import typing
 from builtins import str
 from datetime import datetime
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING
 
 import config
 import database.models.user
-from database.models.actor import Actor
-from database.models.user import User
-from utils.encoding.non_printable import NonPrintableEncoder
-from utils.encoding.non_printable import HEADER
+from utils.encoding.non_printable import NonPrintableEncoder, HEADER
 from utils.tupper_template import parse_template
+from utils.discord.permissions import Permissions
 
 hidden_header = HEADER
 
@@ -37,8 +35,8 @@ class ListMenu(discord.ui.View):
         embed.set_author(name=f"{discord_user.display_name} actors")
         for actor in await user.actors.offset(page * 25).limit(25).all():
             embed.add_field(name=actor.name,
-                            value=f"Actor call pattern: \n `{
-                                actor.call_pattern}`",
+                            value=f"Actor call pattern: \n"
+                                  f"`{actor.call_pattern}`",
                             inline=False)
         hidden_data = {"member_id": discord_user.id, "page": page}
         hidden_text = NonPrintableEncoder.encode(
@@ -76,37 +74,37 @@ class TupperCommandsCog(commands.Cog):
         self.reaction_to_remove = config.values.get("bot.reaction_to_remove")
         self.admin_roles = config.values.get("bot.admin_roles")
 
-    async def _user_is_admin(self, ctx: discord.ext.commands.Context):
-        admin_roles = [discord.utils.get(
-            ctx.guild.roles, name=role_name) for role_name in self.admin_roles]
-        user_is_admin = False
-        for admin_role in admin_roles:
-            if admin_role in ctx.author.roles:
-                user_is_admin = True
-                break
-        return user_is_admin
-
     async def _get_user_to_edit_actor(self, ctx: discord.ext.commands.Context, member: discord.Member) -> typing.Tuple[
             discord.Member, database.models.user.User]:
-
-        if await self._user_is_admin(ctx) and member:
-            member, user = await UserRepository.get_or_create_user(member.id)
-            return member, user
-        else:
-            user = await UserRepository.get_or_create_user(ctx.author.id)
-            return ctx.author, user
+        if await Permissions.get_user_is_admin(self.admin_roles, ctx) and member:
+            return member, await UserRepository.get_or_create_user(member.id)
+        return ctx.author, await UserRepository.get_or_create_user(ctx.author.id)
 
     async def _get_webhook(self, channel_id: int):
         # TODO exception if limit of used webhooks
-        channel = await self.bot.fetch_channel(channel_id)
-        webhooks_list = await channel.webhooks()
-        webhook = None
-        for in_webhook in webhooks_list:
-            if in_webhook.name == str(self.bot.user.id):
-                webhook = in_webhook
-        if not webhook:
-            webhook = await channel.create_webhook(name=str(self.bot.user.id))
-        return webhook
+        try:
+            channel = await self.bot.fetch_channel(channel_id)
+            webhooks_list = await channel.webhooks()
+            bot_webhook_name = str(self.bot.user.id)
+
+            webhook = next((wh for wh in webhooks_list if wh.name == bot_webhook_name), None)
+
+            if webhook is None:
+                webhook = await channel.create_webhook(name=bot_webhook_name)
+                logger.info(f"Created new webhook in channel {channel_id}")
+            else:
+                logger.info(f"Found existing webhook in channel {channel_id}")
+
+            return webhook
+
+        except discord.Forbidden:
+            logger.error(f"Bot does not have permissions to fetch/create webhooks in channel {channel_id}")
+        except discord.NotFound:
+            logger.error(f"Channel with ID {channel_id} not found")
+        except discord.HTTPException as e:
+            logger.error(f"Failed to fetch/create webhooks in channel {channel_id}: {e}")
+        except Exception as e:
+            logger.error(f"Unexpected error in _get_webhook: {e}")
 
     @commands.command(name='test')
     async def test(self, ctx: discord.ext.commands.Context):
@@ -129,10 +127,7 @@ class TupperCommandsCog(commands.Cog):
 
         discord_user, user = await self._get_user_to_edit_actor(ctx, member)
 
-        actor = None
-
-        actor = await user.actors.filter(name=name).first()
-        if actor:
+        if await user.actors.filter(name=name).first():
             await ctx.reply("You already have actor with this name")
             return
 
@@ -140,16 +135,13 @@ class TupperCommandsCog(commands.Cog):
             call_pattern = parse_template(call_pattern)
         except SyntaxError as e:
             await ctx.reply(str(e))
-
             return
 
-        actor = await user.actors.filter(call_pattern=call_pattern)
-        if actor:
+        if await user.actors.filter(call_pattern=call_pattern):
             await ctx.reply("You already have actor with this call pattern")
             return
 
-        actor = await ActorRepository.create_actor(name=name, call_pattern=call_pattern,
-                                                   image=avatar.url)
+        actor = await ActorRepository.create_actor(name=name, call_pattern=call_pattern, image=avatar.url)
 
         await user.actors.add(actor)
 
