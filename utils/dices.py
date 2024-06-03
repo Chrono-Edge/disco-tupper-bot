@@ -11,7 +11,7 @@ OPS = {
     '^': operator.pow,
 }
 
-T_NAME = re.compile(r'([a-zA-Zа-яА-Я_][a-zA-Zа-яА-Я0-9_]*)')
+T_NAME = re.compile(r'([а-я]{3}|[abce-z]+)')
 T_COLON = re.compile(r'(:)')
 T_DICE = re.compile(r'(d)')
 T_MINUS = re.compile(r'(-)')
@@ -111,7 +111,8 @@ class Dices:
             return match.groups()
 
     def _expected(self, expected):
-        raise SyntaxError(f'Неожиданный ввод на позиции # {self.position + 1}: ожидалось: {expected}.')
+        raise SyntaxError(f'Неожиданный ввод на позиции # {
+                          self.position + 1}: ожидалось: {expected}.')
 
     def _expect(self, what):
         match = self._match(what)
@@ -141,7 +142,7 @@ class Dices:
 
             self._expect(T_CLOSE_PAREN)
 
-            if self._match(T_DICE):
+            if self._match(T_DICE, skip_ws=False):
                 return self._parse_dice(expr)
 
             return expr
@@ -164,7 +165,12 @@ class Dices:
             if name not in self.names:
                 raise NameError(f'Неизвестная переменная: `{name}`.')
 
-            return self.names[name]
+            expr = self.names[name]
+
+            if self._match(T_DICE, skip_ws=False):
+                return self._parse_dice(expr)
+
+            return expr
 
         self._expected('число, кость или открывающая скобка')
 
@@ -212,6 +218,19 @@ class Dices:
         return self
 
 
+def roll_dices(dices, vars={}):
+    dices = Dices(dices)
+
+    try:
+        dices.roll(vars=vars)
+    except (ValueError, SyntaxError, NameError) as e:
+        return str(e)
+    except ZeroDivisionError:
+        return 'Попытка деления на ноль.'
+
+    return str(dices)
+
+
 if __name__ == '__main__':
     print(Dices('d20').roll())
     print(Dices('2d20').roll())
@@ -232,3 +251,5 @@ if __name__ == '__main__':
     print(Dices('4d4:x x*2').roll())
     print(Dices('4d4:x ~x*2').roll())
     print(Dices('d20+ЛВК').roll({'ЛВК': 5}))
+    print(Dices('ЛВКd5').roll({'ЛВК': 5}))
+    print(Dices('ЛВК d5').roll({'ЛВК': 5}))

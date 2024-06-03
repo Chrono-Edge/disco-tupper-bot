@@ -14,7 +14,7 @@ from database.models.user import User
 from utils.encoding.non_printable import NonPrintableEncoder
 from utils.encoding.non_printable import HEADER
 from utils.tupper_command_parser import parse_command
-from utils.dices import Dices
+from utils.dices import roll_dices
 
 hidden_header = HEADER
 
@@ -192,20 +192,17 @@ class TupperMessageCog(commands.Cog):
         # Main idea it is create new child message and sent to function bot.process_commands
         # Not sure about of this variant but this code also not ideal...
 
+        command = parse_command(message_content)
         if command:
             match command.name:
                 case 'r' | 'roll':
                     if command.argc >= 1:
-                        dices = Dices(' '.join(command.args))
+                        vars = {}
+                        async for attr in await actor.attrs():
+                            vars[attr.name] = attr.value
 
-                        try:
-                            dices.roll()
-
-                            message_content = str(dices)
-                        except (ValueError, SyntaxError, NameError) as e:
-                            message_content = str(e)
-                        except ZeroDivisionError:
-                            message_content = 'Попытка деления на ноль.'
+                        message_content = roll_dices(
+                            ' '.join(command.args), vars=vars)
 
         message_content = NonPrintableEncoder.encode(
             message_content, json.dumps(hidden_data).encode())

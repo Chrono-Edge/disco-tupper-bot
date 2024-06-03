@@ -1,6 +1,6 @@
 ﻿from discord.ext import commands
 
-from utils.dices import Dices
+from utils.dices import roll_dices
 
 
 class RollCog(commands.Cog):
@@ -9,20 +9,7 @@ class RollCog(commands.Cog):
 
     @commands.hybrid_command(name='roll', aliases=['r'])
     async def roll_dice(self, ctx, text: str):
-        dices = Dices(text)
-
-        try:
-            dices.roll()
-        except (ValueError, SyntaxError, NameError) as e:
-            await ctx.send(str(e))
-
-            return
-        except ZeroDivisionError:
-            await ctx.send('Попытка деления на ноль.')
-
-            return
-
-        await ctx.send(f'{ctx.author.display_name} бросает {dices}.')
+        await ctx.send(f'{ctx.author.display_name} бросает {roll_dices(text)}.')
 
 
 async def setup(bot):
