@@ -149,6 +149,62 @@ class TupperMessageCog(commands.Cog):
 
         await new_message.reply(message_relpy)
 
+    async def _handle_tupper_command(self, webhook, actor, message_content):
+        command = parse_command(message_content)
+        if not command:
+            return
+
+        match command.name:
+            case 'r' | 'roll':
+                if command.argc < 1:
+                    return
+
+                vars = {}
+                async for attr in actor.attrs:
+                    vars[attr.name] = attr.value
+
+                message_content = roll_dices(
+                    ' '.join(command.args), vars=vars)
+
+            case 'b' | 'balance':
+                return f'Текущий баланс: {actor.balance}.'
+
+            case 's' | 'send':
+                if command.argc not in (2, 3):
+                    return
+
+                member = webhook.guild.get_member_named(command.args[0])
+                if not member:
+                    return
+
+                user = await UserRepository.get_or_create_user(member.id)
+                if not user:
+                    return
+
+                if command.argc == 2:
+                    to_actor = await user.actors.first()
+                    amount = command.args[1]
+                else:
+                    to_actor = await user.actors.filter(name=command.args[1]).first()
+                    amount = command.args[2]
+
+                if not to_actor:
+                    return
+
+                try:
+                    amount = abs(int(amount))
+                except ValueError:
+                    return
+
+                if amount > actor.balance:
+                    return f'Баланс слишком низкий: текущий баланс: `{actor.balance}`, нужно: `{amount}`.'
+
+                balance = actor.balance - amount
+                await actor.update(balance=balance)
+                await to_actor.update(balance=to_actor.balance + amount)
+
+                return f'Успешно. Текущий баланс: `{balance}`.'
+
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
         # cut off bots and selfmessages
@@ -190,17 +246,9 @@ class TupperMessageCog(commands.Cog):
         # Main idea it is create new child message and sent to function bot.process_commands
         # Not sure about of this variant but this code also not ideal...
 
-        command = parse_command(message_content)
-        if command:
-            match command.name:
-                case 'r' | 'roll':
-                    if command.argc >= 1:
-                        vars = {}
-                        async for attr in actor.attrs:
-                            vars[attr.name] = attr.value
-
-                        message_content = roll_dices(
-                            ' '.join(command.args), vars=vars)
+        new_content = await self._handle_tupper_command(webhook, actor, message_content)
+        if new_content is not None:
+            message_content = new_content
 
         message_content = NonPrintableEncoder.encode(
             message_content, json.dumps(hidden_data).encode())

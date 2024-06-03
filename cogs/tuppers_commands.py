@@ -38,7 +38,7 @@ class ListMenu(discord.ui.View):
         for actor in await user.actors.offset(page * 25).limit(25).all():
             embed.add_field(name=actor.name,
                             value=f"Actor call pattern: \n"
-                                  f"`{actor.call_pattern}`",
+                            f"`{actor.call_pattern}`",
                             inline=False)
         hidden_data = {"member_id": discord_user.id, "page": page}
         hidden_text = NonPrintableEncoder.encode(
@@ -232,12 +232,75 @@ class TupperCommandsCog(commands.Cog):
         attr = await actor.attrs.filter(name=name).first()
         if not attr:
             await Attribute.create(owner=actor, name=name, value=value)
-            
+
             return
-        
+
         await attr.update(value=value)
 
         await ctx.reply(f'Значение характеристики `{name}` у актёра `{actor_name}` изменено на `{value}`.')
+
+    @commands.hybrid_command(name="balance")
+    @commands.has_any_role(*config.player_roles)
+    async def balance(self, ctx, member: typing.Optional[discord.Member], actor_name: str):
+        _, user = await self._get_user_to_edit_actor(ctx, member)
+
+        actor = await user.actors.filter(name=actor_name).first()
+
+        if not actor:
+            await ctx.reply(f"Cant find actor: {actor_name}")
+
+            return
+
+        await ctx.reply(f'Текущий баланс: `{actor.balance}`.')
+
+    @commands.hybrid_command(name="add_balance")
+    @commands.has_any_role(*config.player_roles)
+    async def add_balance(self, ctx, member: typing.Optional[discord.Member], actor_name: str, amount: int):
+        _, user = await self._get_user_to_edit_actor(ctx, member)
+
+        actor = await user.actors.filter(name=actor_name).first()
+
+        if not actor:
+            await ctx.reply(f"Cant find actor: {actor_name}")
+
+            return
+
+        balance = abs(actor.balance + amount)
+        await actor.update(balance=balance)
+
+        await ctx.reply(f'Успешно. Текущий баланс: `{balance}`.')
+
+    @commands.hybrid_command(name="send_balance")
+    @commands.has_any_role(*config.player_roles)
+    async def send_balance(self, ctx, from_member: typing.Optional[discord.Member], from_actor_name: str, t_member: typing.Optional[discord.Member], to_actor_name: str, amount: int):
+        _, from_user = await self._get_user_to_edit_actor(ctx, from_member)
+
+        from_actor = await from_user.actors.filter(name=from_actor_name).first()
+
+        if not from_actor:
+            await ctx.reply(f"Cant find actor: {from_actor_name}")
+
+            return
+
+        _, to_user = await self._get_user_to_edit_actor(ctx, to_member)
+
+        to_actor = await to_user.actors.filter(name=to_actor_name).first()
+
+        if not to_actor:
+            await ctx.reply(f"Cant find actor: {to_actor_name}")
+
+            return
+
+        if amount > from_actor.balance:
+            await ctx.reply(f'Баланс слишком низкий: текущий баланс: `{from_actor.balance}`, нужно: `{amount}`.')
+
+            return
+
+        balance = from_actor.balance - amount
+        await from_actor.update(balance=balance)
+        await to_actor.update(balance=to_actor.balance + amount)
+
+        await ctx.reply(f'Успешно. Текущий баланс: `{balance}`.')
 
 
 async def setup(bot: "DiscoTupperBot"):
