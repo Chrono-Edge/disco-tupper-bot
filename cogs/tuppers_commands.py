@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING
 
 import config
 import database.models.user
+from database.models.attribute import Attribute
 from utils.encoding.non_printable import NonPrintableEncoder, HEADER
 from utils.tupper_template import parse_template
 from utils.discord.permissions import Permissions
@@ -87,7 +88,8 @@ class TupperCommandsCog(commands.Cog):
             webhooks_list = await channel.webhooks()
             bot_webhook_name = str(self.bot.user.id)
 
-            webhook = next((wh for wh in webhooks_list if wh.name == bot_webhook_name), None)
+            webhook = next(
+                (wh for wh in webhooks_list if wh.name == bot_webhook_name), None)
 
             if webhook is None:
                 webhook = await channel.create_webhook(name=bot_webhook_name)
@@ -98,11 +100,13 @@ class TupperCommandsCog(commands.Cog):
             return webhook
 
         except discord.Forbidden:
-            logger.error(f"Bot does not have permissions to fetch/create webhooks in channel {channel_id}")
+            logger.error(
+                f"Bot does not have permissions to fetch/create webhooks in channel {channel_id}")
         except discord.NotFound:
             logger.error(f"Channel with ID {channel_id} not found")
         except discord.HTTPException as e:
-            logger.error(f"Failed to fetch/create webhooks in channel {channel_id}: {e}")
+            logger.error(
+                f"Failed to fetch/create webhooks in channel {channel_id}: {e}")
         except Exception as e:
             logger.error(f"Unexpected error in _get_webhook: {e}")
 
@@ -205,6 +209,28 @@ class TupperCommandsCog(commands.Cog):
         discord_user, user = await self._get_user_to_edit_actor(ctx, member)
         embed = await ListMenu.actor_list_page(discord_user, 0)
         await ctx.reply(embed=embed, view=view)
+
+    @commands.hybrid_command(name="set_attr")
+    @commands.has_any_role(*config.player_roles)
+    async def set_attr(self, ctx, member: typing.Optional[discord.Member], actor_name: str, name: str, value: int):
+        _, user = await self._get_user_to_edit_actor(ctx, member)
+
+        actor = await user.actors.filter(name=actor_name).first()
+
+        if not actor:
+            await ctx.reply(f"Cant find actor: {actor_name}")
+
+            return
+
+        attr = await actor.attrs.filter(name=name).first()
+        if not attr:
+            await Attribute.create(owner=actor, name=name, value=value)
+            
+            return
+        
+        await attr.update(value=value)
+
+        await ctx.reply(f'Значение характеристики `{name}` у актёра `{actor_name}` изменено на `{value}`.')
 
 
 async def setup(bot: "DiscoTupperBot"):

@@ -1,3 +1,8 @@
+from database.repositories.actor import ActorRepository
+from database.repositories.user import UserRepository
+from config import logger
+from discord.ext import commands
+import discord
 import re
 import json
 from builtins import str
@@ -8,17 +13,13 @@ from database.models.actor import Actor
 from database.models.user import User
 from utils.encoding.non_printable import NonPrintableEncoder
 from utils.encoding.non_printable import HEADER
+from utils.tupper_command_parser import parse_command
+from utils.dices import Dices
 
 hidden_header = HEADER
 
 if TYPE_CHECKING:
     from bot import DiscoTupperBot
-
-import discord
-from discord.ext import commands
-from config import logger
-from database.repositories.user import UserRepository
-from database.repositories.actor import ActorRepository
 
 
 class TupperMessageCog(commands.Cog):
@@ -60,7 +61,8 @@ class TupperMessageCog(commands.Cog):
         message = await channel.fetch_message(payload.message_id)
         await message.remove_reaction(payload.emoji, user)
 
-        message_content, hidden_bytes = NonPrintableEncoder.decode(message.content)
+        message_content, hidden_bytes = NonPrintableEncoder.decode(
+            message.content)
 
         await user.send(f"Editing message:```{message_content}```")
 
@@ -68,7 +70,8 @@ class TupperMessageCog(commands.Cog):
         hidden_dict = {"guild_id": payload.guild_id, "channel_id": payload.channel_id, "message_id": payload.message_id,
                        "actor_id": metadata_dict["actor_id"]}
 
-        second_message_content = NonPrintableEncoder.encode(second_message, json.dumps(hidden_dict).encode())
+        second_message_content = NonPrintableEncoder.encode(
+            second_message, json.dumps(hidden_dict).encode())
 
         await user.send(second_message_content)
 
@@ -87,7 +90,8 @@ class TupperMessageCog(commands.Cog):
         if message.content.find(hidden_header) <= -1:
             return
 
-        message_content, hidden_bytes = NonPrintableEncoder.decode(message.content)
+        message_content, hidden_bytes = NonPrintableEncoder.decode(
+            message.content)
         metadata_dict = json.loads(hidden_bytes.decode())
 
         if "actor_id" in metadata_dict:
@@ -111,7 +115,8 @@ class TupperMessageCog(commands.Cog):
             await new_message.reply("Nothing to edit!")
             return
 
-        ___, hidden_bytes = NonPrintableEncoder.decode(message_with_metadata.content)
+        ___, hidden_bytes = NonPrintableEncoder.decode(
+            message_with_metadata.content)
         metadata_dict: dict = json.loads(hidden_bytes.decode())
 
         if "nothing_to_edit" in metadata_dict:
@@ -128,7 +133,8 @@ class TupperMessageCog(commands.Cog):
             return
 
         hidden_data = {"actor_id": actor.id}
-        message_content = NonPrintableEncoder.encode(new_message.content, json.dumps(hidden_data).encode())
+        message_content = NonPrintableEncoder.encode(
+            new_message.content, json.dumps(hidden_data).encode())
 
         # TODO we need to edit files or not?
         webhook = await self._get_webhook(metadata_dict.get("channel_id"))
@@ -175,12 +181,29 @@ class TupperMessageCog(commands.Cog):
 
         webhook = await self._get_webhook(message.channel.id)
         hidden_data = {"actor_id": actor.id}
-        
+
         if len(message_content) == 0:
             return
         # TODO limit messages to 1800 with relpy
 
-        message_content = NonPrintableEncoder.encode(message_content, json.dumps(hidden_data).encode())
+        command = parse_command(message_content)
+        if command:
+            match command.name:
+                case 'r' | 'roll':
+                    if command.argc >= 1:
+                        dices = Dices(' '.join(command.args))
+
+                        try:
+                            dices.roll()
+
+                            message_content = str(dices)
+                        except (ValueError, SyntaxError, NameError) as e:
+                            message_content = str(e)
+                        except ZeroDivisionError:
+                            message_content = 'Попытка деления на ноль.'
+
+        message_content = NonPrintableEncoder.encode(
+            message_content, json.dumps(hidden_data).encode())
 
         files_content = [await attachment.to_file(spoiler=attachment.is_spoiler()) for attachment in
                          message.attachments]

@@ -11,7 +11,7 @@ OPS = {
     '^': operator.pow,
 }
 
-T_NAME = re.compile(r'([a-zA-Z_][a-zA-Z0-9_]*)')
+T_NAME = re.compile(r'([a-zA-Zа-яА-Я_][a-zA-Zа-яА-Я0-9_]*)')
 T_COLON = re.compile(r'(:)')
 T_DICE = re.compile(r'(d)')
 T_MINUS = re.compile(r'(-)')
@@ -39,7 +39,7 @@ TOKEN_NAMES = {
 class Value:
     def __init__(self, value):
         if type(value) is not list:
-            value = [value]
+            value = [int(value)]
 
         self.value = value
 
@@ -111,8 +111,7 @@ class Dices:
             return match.groups()
 
     def _expected(self, expected):
-        raise SyntaxError(f'Неожиданный ввод на позиции #{
-            self.position + 1}: ожидалось: {expected}.')
+        raise SyntaxError(f'Неожиданный ввод на позиции # {self.position + 1}: ожидалось: {expected}.')
 
     def _expect(self, what):
         match = self._match(what)
@@ -199,8 +198,8 @@ class Dices:
 
         return Value(exprs)
 
-    def roll(self):
-        self.names = {}
+    def roll(self, vars={}):
+        self.names = {str(k).lower(): Value(vars[k]) for k in vars}
         self.position = 0
         self.rolls = []
         self.has_rolls = False
@@ -230,5 +229,6 @@ if __name__ == '__main__':
     print(Dices('2d5:x x+1').roll())
     print(Dices('2d5:x ~(x+1)').roll())
     print(Dices('2d5!:x dx').roll())
-    print(Dices('4d4:x x*2').roll())    
-    print(Dices('4d4:x ~x*2').roll())    
+    print(Dices('4d4:x x*2').roll())
+    print(Dices('4d4:x ~x*2').roll())
+    print(Dices('d20+ЛВК').roll({'ЛВК': 5}))

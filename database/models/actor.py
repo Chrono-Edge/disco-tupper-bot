@@ -14,6 +14,7 @@ class Actor(Model):
 
     owners: fields.ReverseRelation["Actor"]
     items: fields.ReverseRelation['models.Item']
+    attrs: fields.ReverseRelation['models.Attribute']
 
     class Meta:
         table = 'actors'
