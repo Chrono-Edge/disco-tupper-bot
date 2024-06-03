@@ -7,7 +7,7 @@ class RollCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name='roll', aliases=['r'])
+    @commands.hybrid_command(name='roll', aliases=['r'])
     async def roll_dice(self, ctx, text: str):
         dices = Dices(text)
 

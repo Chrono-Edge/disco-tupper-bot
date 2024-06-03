@@ -185,8 +185,13 @@ class TupperMessageCog(commands.Cog):
         if len(message_content) == 0:
             return
         # TODO limit messages to 1800 with relpy
-
         command = parse_command(message_content)
+
+        # TODO await bot.process_commands(message)
+        # Change to create custom ctx type with custom send and relpy system
+        # Main idea it is create new child message and sent to function bot.process_commands
+        # Not sure about of this variant but this code also not ideal...
+
         if command:
             match command.name:
                 case 'r' | 'roll':

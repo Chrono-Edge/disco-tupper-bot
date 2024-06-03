@@ -1,4 +1,5 @@
-﻿from typing import Union, Tuple
+﻿import json
+from typing import Union, Tuple
 
 UTF8_MASK = 0xE0000
 HEADER = u"\U000E0042\U000E0042\U000E0011\U000E0011"  # Unique header consisting of 4 non-printable UTF-8 characters
@@ -8,6 +9,44 @@ class NonPrintableEncoder:
     """
     Utility class to encode and decode hidden byte data within a string using non-printable UTF-8 characters.
     """
+
+    @staticmethod
+    def encode_dict(text: str, data: dict) -> str:
+        """
+        Encodes dict data and embeds it within a string, preserving the original text.
+
+        Args:
+            text (str): The text to embed the encoded data into.
+            data (dict): The dict data to encode.
+
+        Returns:
+            str: The string with the encoded data embedded.
+        """
+        json_dict = json.dumps(data)
+        json_dict_bytes = json_dict.encode()
+
+        return NonPrintableEncoder.encode(text, json_dict_bytes)
+
+    @staticmethod
+    def decode_dict(encoded_string: str) -> tuple[str, dict]:
+        """
+        Extracts and decodes the hidden byte data from a string.
+
+        Args:
+            encoded_string (str): The string containing the hidden encoded data.
+
+        Returns:
+            bytes: The decoded byte data.
+
+        Raises:
+            ValueError: If the encoded string is in an incorrect format.
+        """
+
+        text, dict_bytes = NonPrintableEncoder.decode(encoded_string)
+        #TODO need get error catch
+        dict_data = json.loads(dict_bytes.decode())
+
+        return text, dict_data
 
     @staticmethod
     def encode(text: str, data: bytes) -> str:
