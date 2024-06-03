@@ -71,7 +71,7 @@ class DiscoTupperBot(commands.Bot):
         await Tortoise.init(
             db_url='sqlite://db.sqlite3',
             modules={'models': ['database.models.user', 'database.models.actor', 'database.models.item',
-                                'database.models.item_log']},
+                                'database.models.item_log', 'database.models.attribute']},
         )
         logger.info("Tortoise initialized")
         await Tortoise.generate_schemas()
