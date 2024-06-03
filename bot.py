@@ -37,7 +37,7 @@ class DiscoTupperBot(commands.Bot):
     async def setup_hook(self) -> None:
         logger.info("Bot initialisation...")
         for extension in self.initial_extensions:
-            await self.load_extension(f'cogs.{extension}')
+            await self.load_extension(f"cogs.{extension}")
             logger.success(f"Loaded extension: {extension}")
 
         self.add_view(ListMenu())
@@ -54,11 +54,11 @@ class DiscoTupperBot(commands.Bot):
         logger.success("Successfully loaded, the initialization of the modules...")
 
     async def on_error(self, interaction, *args, **kwargs):
-        await interaction.response.send_message('Oops! Something went wrong.', ephemeral=True)
-        error = traceback.format_exc()
-        error_msg = (
-            f"\ninteraction:\n{interaction}\n\nargs:\n{args}\nkwargs:\n{kwargs}\nerror:\n{error}"
+        await interaction.response.send_message(
+            "Oops! Something went wrong.", ephemeral=True
         )
+        error = traceback.format_exc()
+        error_msg = f"\ninteraction:\n{interaction}\n\nargs:\n{args}\nkwargs:\n{kwargs}\nerror:\n{error}"
         logger.exception(error_msg)
 
     # Here you are overriding the default start method and write your own code.
@@ -69,9 +69,15 @@ class DiscoTupperBot(commands.Bot):
     async def init_tortoise(self):
         logger.info("Initializing Tortoise...")
         await Tortoise.init(
-            db_url='sqlite://db.sqlite3',
-            modules={'models': ['database.models.user', 'database.models.actor', 'database.models.item',
-                                'database.models.item_log', 'database.models.attribute']},
+            db_url="sqlite://db.sqlite3",
+            modules={
+                "models": [
+                    "database.models.user",
+                    "database.models.tupper",
+                    "database.models.item",
+                    "database.models.attribute",
+                ]
+            },
         )
         logger.info("Tortoise initialized")
         await Tortoise.generate_schemas()

@@ -7,7 +7,7 @@ from loguru import logger
 
 values = Dynaconf(
     envvar_prefix="DYNACONF",
-    settings_files=['settings.toml', '.secrets.toml'],
+    settings_files=["settings.toml", ".secrets.toml"],
 )
 
 # `envvar_prefix` = export envvars with `export DYNACONF_FOO=bar`.
@@ -57,7 +57,9 @@ class InterceptHandler(logging.Handler):
             frame = frame.f_back
             depth += 1
 
-        logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
+        logger.opt(depth=depth, exception=record.exc_info).log(
+            level, record.getMessage()
+        )
 
 
 icHandler = InterceptHandler()

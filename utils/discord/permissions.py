@@ -4,10 +4,10 @@ import discord.ext.commands
 
 
 class Permissions:
-
     @staticmethod
-    async def get_user_is_admin(admin_role_names: List[str], ctx: discord.ext.commands.Context) -> bool:
-
+    async def get_user_is_admin(
+        admin_role_names: List[str], ctx: discord.ext.commands.Context
+    ) -> bool:
         if ctx.guild is None or ctx.author is None:
             raise ValueError("Context must be used within a guild and with an author.")
 

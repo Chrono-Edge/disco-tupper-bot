@@ -6,14 +6,10 @@ from tortoise.models import Model
 
 class User(Model):
     id = fields.IntField(pk=True)
-    actors: fields.ManyToManyRelation['models.Actor'] = fields.ManyToManyField('models.Actor', related_name='user',
-                                                                               through='user_actors')
+    discord_id = fields.IntField()
+    tuppers: fields.ManyToManyRelation["models.Tupper"] = fields.ManyToManyField(
+        "models.Tupper", related_name="user", through="user_tuppers"
+    )
 
     class Meta:
-        table = 'users'
-
-    def set_discord_id(self, member_id: [Union[str, int]]):
-        self.id = int(member_id)
-
-    def get_discord_id(self) -> Union[str, int]:
-        return self.id
+        table = "users"

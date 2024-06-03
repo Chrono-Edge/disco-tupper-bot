@@ -2,7 +2,7 @@
 from typing import Union, Tuple
 
 UTF8_MASK = 0xE0000
-HEADER = u"\U000E0042\U000E0042\U000E0011\U000E0011"  # Unique header consisting of 4 non-printable UTF-8 characters
+HEADER = "\U000e0042\U000e0042\U000e0011\U000e0011"  # Unique header consisting of 4 non-printable UTF-8 characters
 
 
 class NonPrintableEncoder:
@@ -43,7 +43,7 @@ class NonPrintableEncoder:
         """
 
         text, dict_bytes = NonPrintableEncoder.decode(encoded_string)
-        #TODO need get error catch
+        # TODO need get error catch
         dict_data = json.loads(dict_bytes.decode())
 
         return text, dict_data
@@ -60,7 +60,7 @@ class NonPrintableEncoder:
         Returns:
             str: The string with the encoded data embedded.
         """
-        encoded_string = ''.join(chr(UTF8_MASK + byte) for byte in data)
+        encoded_string = "".join(chr(UTF8_MASK + byte) for byte in data)
         return f"{text}{HEADER}{encoded_string}"
 
     @staticmethod
@@ -80,7 +80,8 @@ class NonPrintableEncoder:
         encoded_body_start = encoded_string.find(HEADER)
         if encoded_body_start == -1:
             raise ValueError(
-                "Encoded string does not contain the expected header. Data may be corrupted or not encoded.")
+                "Encoded string does not contain the expected header. Data may be corrupted or not encoded."
+            )
 
         encoded_body_start += len(HEADER)
         encoded_body = encoded_string[encoded_body_start:]
