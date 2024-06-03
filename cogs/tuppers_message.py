@@ -198,7 +198,7 @@ class TupperMessageCog(commands.Cog):
                 case 'r' | 'roll':
                     if command.argc >= 1:
                         vars = {}
-                        async for attr in await actor.attrs():
+                        async for attr in actor.attrs:
                             vars[attr.name] = attr.value
 
                         message_content = roll_dices(
