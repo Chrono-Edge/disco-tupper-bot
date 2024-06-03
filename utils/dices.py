@@ -11,7 +11,7 @@ OPS = {
     '^': operator.pow,
 }
 
-T_NAME = re.compile(r'([а-я]{3}|[abce-z]+)')
+T_NAME = re.compile(r'([а-я]{2,3}|[abce-z]+)')
 T_COLON = re.compile(r'(:)')
 T_DICE = re.compile(r'(d)')
 T_MINUS = re.compile(r'(-)')

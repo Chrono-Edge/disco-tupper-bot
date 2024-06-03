@@ -1,3 +1,4 @@
+import re
 from database.repositories.actor import ActorRepository
 from database.repositories.user import UserRepository
 from config import logger
@@ -213,6 +214,12 @@ class TupperCommandsCog(commands.Cog):
     @commands.hybrid_command(name="set_attr")
     @commands.has_any_role(*config.player_roles)
     async def set_attr(self, ctx, member: typing.Optional[discord.Member], actor_name: str, name: str, value: int):
+        name = name.lower()
+        if not re.match(r'^[а-я]{2,3}$', name):
+            await ctx.reply(f'Некорректное имя характеристики: `{name}`.')
+
+            return
+
         _, user = await self._get_user_to_edit_actor(ctx, member)
 
         actor = await user.actors.filter(name=actor_name).first()
