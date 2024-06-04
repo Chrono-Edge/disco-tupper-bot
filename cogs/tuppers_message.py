@@ -36,7 +36,7 @@ class TupperMessageCog(commands.Cog):
         return webhook
 
     async def _remove_message(
-        self, payload: discord.RawReactionActionEvent, db_user: User, metadata_dict
+            self, payload: discord.RawReactionActionEvent, db_user: User, metadata_dict
     ):
         if str(payload.emoji) != self.reaction_to_remove:
             return
@@ -47,7 +47,7 @@ class TupperMessageCog(commands.Cog):
         await webhook.delete_message(payload.message_id)
 
     async def _create_edit_message(
-        self, payload: discord.RawReactionActionEvent, db_user: User, metadata_dict
+            self, payload: discord.RawReactionActionEvent, db_user: User, metadata_dict
     ):
         if str(payload.emoji) != self.reaction_to_edit:
             return
@@ -85,7 +85,7 @@ class TupperMessageCog(commands.Cog):
 
         # TODO check this strange bruh moment. need support custom emoji
         if (str(payload.emoji) != self.reaction_to_edit) and (
-            str(payload.emoji) != self.reaction_to_remove
+                str(payload.emoji) != self.reaction_to_remove
         ):
             return
 
@@ -110,7 +110,7 @@ class TupperMessageCog(commands.Cog):
     async def _edit_tupper_message(self, new_message: discord.Message):
         message_with_metadata = None
         async for message in new_message.channel.history(
-            before=new_message, limit=10, oldest_first=False
+                before=new_message, limit=10, oldest_first=False
         ):
             print(message.content, message.content.find(hidden_header))
             if message.content.find(hidden_header) > -1:
@@ -204,9 +204,8 @@ class TupperMessageCog(commands.Cog):
         if new_content is not None:
             message_content = new_content
 
-        message_content = NonPrintableEncoder.encode(
-            message_content, json.dumps(hidden_data).encode()
-        )
+        message_content = NonPrintableEncoder.encode_dict(
+            message_content, hidden_data)
 
         files_content = [
             await attachment.to_file(spoiler=attachment.is_spoiler())
