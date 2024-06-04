@@ -7,13 +7,10 @@ from builtins import str
 from typing import TYPE_CHECKING
 
 import config
-from database.models.tupper import Tupper
 from database.models.user import User
 from utils.encoding.non_printable import NonPrintableEncoder
 from utils.encoding.non_printable import HEADER
-from utils.tupper_command_parser import parse_command
-from utils.dices import roll_dices
-
+from utils.tupper_command import handle_tupper_command
 hidden_header = HEADER
 
 if TYPE_CHECKING:
@@ -161,61 +158,6 @@ class TupperMessageCog(commands.Cog):
 
         await new_message.reply(message_relpy)
 
-    async def _handle_tupper_command(self, webhook, tupper, message_content):
-        command = parse_command(message_content)
-        if not command:
-            return
-
-        match command.name:
-            case "r" | "roll":
-                if command.argc < 1:
-                    return
-
-                vars = {}
-                async for attr in tupper.attrs:
-                    vars[attr.name] = attr.value
-
-                message_content = roll_dices(" ".join(command.args), vars=vars)
-
-            case "b" | "balance":
-                return f"Текущий баланс: {tupper.balance}."
-
-            case "s" | "send":
-                if command.argc not in (2, 3):
-                    return
-
-                member = webhook.guild.get_member_named(command.args[0])
-                if not member:
-                    return
-
-                user = await User.get(discord_id=member.id)
-                if not user:
-                    return
-
-                if command.argc == 2:
-                    to_tupper = await user.tuppers.first()
-                    amount = command.args[1]
-                else:
-                    to_tupper = await user.tuppers.filter(name=command.args[1]).first()
-                    amount = command.args[2]
-
-                if not to_tupper:
-                    return
-
-                try:
-                    amount = abs(int(amount))
-                except ValueError:
-                    return
-
-                if amount > tupper.balance:
-                    return f"Баланс слишком низкий: текущий баланс: `{tupper.balance}`, нужно: `{amount}`."
-
-                balance = tupper.balance - amount
-                await tupper.update(balance=balance)
-                await to_tupper.update(balance=to_tupper.balance + amount)
-
-                return f"Успешно. Текущий баланс: `{balance}`."
-
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
         # cut off bots and selfmessages
@@ -256,7 +198,7 @@ class TupperMessageCog(commands.Cog):
         # Main idea it is create new child message and sent to function bot.process_commands
         # Not sure about of this variant but this code also not ideal...
 
-        new_content = await self._handle_tupper_command(
+        new_content = await handle_tupper_command(
             webhook, tupper, message_content
         )
         if new_content is not None:
