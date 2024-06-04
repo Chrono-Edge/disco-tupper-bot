@@ -124,7 +124,7 @@ class TupperMessageCog(commands.Cog):
             await new_message.reply("Nothing to edit!")
             return
 
-        ___, hidden_bytes = NonPrintableEncoder.decode(message_with_metadata.content)
+        _, hidden_bytes = NonPrintableEncoder.decode(message_with_metadata.content)
         metadata_dict: dict = json.loads(hidden_bytes.decode())
 
         if "nothing_to_edit" in metadata_dict:
