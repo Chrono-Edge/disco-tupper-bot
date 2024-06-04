@@ -1,10 +1,45 @@
 import shlex
 from collections import namedtuple
 
+import discord
+from loguru import logger
+
 from utils.dices import roll_dices
 from database.models.user import User
 
 Command = namedtuple("Command", ["name", "args", "argc"])
+
+
+async def get_webhook(bot, channel_id: int):
+    """Get our webhook"""
+    # TODO exception if limit of used webhooks
+    try:
+        channel = await bot.fetch_channel(channel_id)
+        webhooks_list = await channel.webhooks()
+        bot_webhook_name = str(bot.user.id)
+
+        webhook = None
+        for webhook_to_check in webhooks_list:
+            if webhook_to_check.name == bot_webhook_name:
+                webhook = webhook_to_check
+
+        if webhook is None:
+            webhook = await channel.create_webhook(name=bot_webhook_name)
+            logger.info(f"Created new webhook in channel {channel_id}")
+
+        return webhook
+    except discord.Forbidden:
+        logger.error(
+            f"Bot does not have permissions to fetch/create webhooks in channel {channel_id}"
+        )
+    except discord.NotFound:
+        logger.error(f"Channel with ID {channel_id} not found")
+    except discord.HTTPException as e:
+        logger.error(
+            f"Failed to fetch/create webhooks in channel {channel_id}: {e}"
+        )
+    except Exception as e:
+        logger.error(f"Unexpected error in _get_webhook: {e}")
 
 
 def parse_tupper_command(text):
@@ -20,6 +55,7 @@ def parse_tupper_command(text):
 
     return Command(name=parts[0].lower(), args=parts[1:], argc=len(parts) - 1)
 
+
 async def _command_roll(ctx, tupper, command):
     if command.argc < 1:
         return
@@ -33,6 +69,7 @@ async def _command_roll(ctx, tupper, command):
 
 async def _command_balance(ctx, tupper, command):
     return f"Текущий баланс: {tupper.balance}."
+
 
 async def _command_send(ctx, tupper, command):
     if command.argc not in (2, 3):
@@ -70,6 +107,7 @@ async def _command_send(ctx, tupper, command):
 
     return f"Успешно. Текущий баланс: `{balance}`."
 
+
 TUPPER_COMMANDS = {
     "roll": _command_roll,
     "balance": _command_balance,
@@ -78,6 +116,7 @@ TUPPER_COMMANDS = {
 for key in TUPPER_COMMANDS:
     TUPPER_COMMANDS[key[0]] = TUPPER_COMMANDS[key]
 
+
 async def handle_tupper_command(ctx, tupper, message_content):
     command = parse_tupper_command(message_content)
     if not command:
@@ -85,6 +124,5 @@ async def handle_tupper_command(ctx, tupper, message_content):
 
     if command.name not in TUPPER_COMMANDS:
         return
-    
+
     await TUPPER_COMMANDS[command.name](ctx, tupper, command)
-    

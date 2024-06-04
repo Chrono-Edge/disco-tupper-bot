@@ -6,7 +6,7 @@ from tortoise.models import Model
 
 class User(Model):
     id = fields.IntField(pk=True)
-    discord_id = fields.IntField()
+    discord_id = fields.IntField(unique=True)
     tuppers: fields.ManyToManyRelation["models.Tupper"] = fields.ManyToManyField(
         "models.Tupper", related_name="user", through="user_tuppers"
     )

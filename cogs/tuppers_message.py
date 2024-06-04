@@ -10,7 +10,8 @@ import config
 from database.models.user import User
 from utils.encoding.non_printable import NonPrintableEncoder
 from utils.encoding.non_printable import HEADER
-from utils.tupper_command import handle_tupper_command
+from utils.tupper_command import handle_tupper_command, get_webhook
+
 hidden_header = HEADER
 
 if TYPE_CHECKING:
@@ -24,16 +25,7 @@ class TupperMessageCog(commands.Cog):
         self.reaction_to_remove = config.values.get("bot.reaction_to_remove")
 
     async def _get_webhook(self, channel_id: int):
-        # TODO exception if limit of used webhooks
-        channel = await self.bot.fetch_channel(channel_id)
-        webhooks_list = await channel.webhooks()
-        webhook = None
-        for in_webhook in webhooks_list:
-            if in_webhook.name == str(self.bot.user.id):
-                webhook = in_webhook
-        if not webhook:
-            webhook = await channel.create_webhook(name=str(self.bot.user.id))
-        return webhook
+        return get_webhook(self.bot, channel_id)
 
     async def _remove_message(
             self, payload: discord.RawReactionActionEvent, db_user: User, metadata_dict
@@ -170,7 +162,6 @@ class TupperMessageCog(commands.Cog):
             return
 
         if message.channel.type == discord.ChannelType.private:
-            print("private")
             await self._edit_tupper_message(message)
             return
 
@@ -181,7 +172,6 @@ class TupperMessageCog(commands.Cog):
             if match := re.match(other_tupper.call_pattern, message_content):
                 tupper = other_tupper
                 message_content = match.groups(1)
-
                 break
 
         if not tupper:
