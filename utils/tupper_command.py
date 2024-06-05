@@ -6,6 +6,7 @@ from loguru import logger
 
 from utils.dices import roll_dices
 from database.models.user import User
+from localization import locale
 
 Command = namedtuple("Command", ["name", "args", "argc"])
 
@@ -35,9 +36,7 @@ async def get_webhook(bot, channel_id: int):
     except discord.NotFound:
         logger.error(f"Channel with ID {channel_id} not found")
     except discord.HTTPException as e:
-        logger.error(
-            f"Failed to fetch/create webhooks in channel {channel_id}: {e}"
-        )
+        logger.error(f"Failed to fetch/create webhooks in channel {channel_id}: {e}")
     except Exception as e:
         logger.error(f"Unexpected error in _get_webhook: {e}")
 
@@ -68,7 +67,7 @@ async def _command_roll(ctx, tupper, command):
 
 
 async def _command_balance(ctx, tupper, command):
-    return f"Текущий баланс: {tupper.balance}."
+    return locale.format("current_balance", balance=tupper.balance)
 
 
 async def _command_send(ctx, tupper, command):
@@ -99,13 +98,13 @@ async def _command_send(ctx, tupper, command):
         return
 
     if amount > tupper.balance:
-        return f"Баланс слишком низкий: текущий баланс: `{tupper.balance}`, нужно: `{amount}`."
+        return locale.format("balance_is_too_low", need=amount, have=tupper.balance)
 
     balance = tupper.balance - amount
     await tupper.update(balance=balance)
     await to_tupper.update(balance=to_tupper.balance + amount)
 
-    return f"Успешно. Текущий баланс: `{balance}`."
+    return locale.format("current_balance", balance=balance)
 
 
 TUPPER_COMMANDS = {

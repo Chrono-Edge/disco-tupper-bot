@@ -2,6 +2,8 @@ import re
 import random
 import operator
 
+from localization import locale
+
 OPS = {
     "+": operator.add,
     "-": operator.sub,
@@ -16,7 +18,7 @@ T_NAME = re.compile(r"([abce-zа-я]+)")
 T_COLON = re.compile(r"(:)")
 T_DICE = re.compile(r"(d)")
 T_MINUS = re.compile(r"(-)")
-T_TILDA = re.compile(r"(~)")
+T_TILDE = re.compile(r"(~)")
 T_EXCL = re.compile(r"(!)")
 T_OP = re.compile(f"([{OPS_KEYS}])")
 T_DIGIT = re.compile(r"(\d+)")
@@ -25,15 +27,15 @@ T_CLOSE_PAREN = re.compile(r"(\))")
 T_WS = re.compile(r"([ \t\r\n]+)")
 
 TOKEN_NAMES = {
-    T_NAME: "имя",
-    T_COLON: "двоеточие",
-    T_TILDA: "тильда",
-    T_EXCL: "восклицательный знак",
-    T_DICE: "кость",
-    T_OP: "оператор",
-    T_DIGIT: "число",
-    T_OPEN_PAREN: "открывающая скобка",
-    T_CLOSE_PAREN: "закрывающая скобка",
+    T_NAME: locale.T_NAME,
+    T_COLON: locale.T_COLON,
+    T_TILDE: locale.T_TILDE,
+    T_EXCL: locale.T_EXCL,
+    T_DICE: locale.T_DICE,
+    T_OP: locale.T_OP,
+    T_DIGIT: locale.T_DIGIT,
+    T_OPEN_PAREN: locale.T_OPEN_PAREN,
+    T_CLOSE_PAREN: locale.T_CLOSE_PAREN,
 }
 
 
@@ -76,10 +78,10 @@ class Dices:
 
     def _roll(self, count, sides, dont_save=False):
         if count <= 0:
-            raise ValueError("Количество костей должно быть больше нуля.")
+            raise ValueError(locale.number_of_dices_should_be_gte)
 
         if sides <= 0:
-            raise ValueError("Количество сторон должно быть больше нуля.")
+            raise ValueError(locale.number_of_sides_should_be_gte)
 
         rolls = []
         for _ in range(count):
@@ -115,7 +117,9 @@ class Dices:
 
     def _expected(self, expected):
         raise SyntaxError(
-            f"Неожиданный ввод на позиции # {self.position + 1}: ожидалось: {expected}."
+            locale.format(
+                "unexpected_input", position=self.position + 1, expected=expected
+            )
         )
 
     def _expect(self, what):
@@ -152,7 +156,7 @@ class Dices:
             return expr
         elif self._match(T_MINUS):
             return self._parse_atom().apply(operator.neg)
-        elif self._match(T_TILDA):
+        elif self._match(T_TILDE):
             return Value(int(self._parse_atom()))
         elif match := self._match(T_DIGIT):
             left = int(match[0])
@@ -167,7 +171,7 @@ class Dices:
             name = match[0]
 
             if name not in self.names:
-                raise NameError(f"Неизвестная переменная: `{name}`.")
+                raise NameError(locale.format("undefined_variable", name=name))
 
             expr = self.names[name]
 
@@ -176,7 +180,7 @@ class Dices:
 
             return expr
 
-        self._expected("число, кость или открывающая скобка")
+        self._expected(locale.number_dice_or_a_variable)
 
     def _parse_expr(self):
         left = self._parse_atom()
@@ -204,7 +208,7 @@ class Dices:
                 exprs.append(expr)
 
         if not exprs:
-            raise SyntaxError("Выражение не должно быть пустым.")
+            raise SyntaxError(locale.expression_should_not_be_empty)
 
         return Value(exprs)
 
@@ -217,7 +221,7 @@ class Dices:
         self.result = self._parse_exprs()
 
         if not self.has_rolls:
-            raise ValueError("Выражение не содержит бросков.")
+            raise ValueError(locale.expression_does_not_contain_rolls)
 
         return self
 
@@ -230,7 +234,7 @@ def roll_dices(dices, vars={}):
     except (ValueError, SyntaxError, NameError) as e:
         return str(e)
     except ZeroDivisionError:
-        return "Попытка деления на ноль."
+        return locale.division_by_zero
 
     return str(dices)
 

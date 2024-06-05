@@ -16,6 +16,7 @@ admin_roles = ['test_admin_role']
 player_roles = ['test_player_role']
 reaction_to_edit = "📝"
 reaction_to_remove = "❌"
+language = "en"
 
 [actor]
 default_avatar_url = "https://chrono-edge.taruu.ru/images/c/c9/Logo.png"

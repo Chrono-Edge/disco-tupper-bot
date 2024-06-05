@@ -17,6 +17,7 @@ from utils.encoding.non_printable import NonPrintableEncoder, HEADER
 from utils.tupper_command import get_webhook
 from utils.tupper_template import parse_template
 from utils.discord.permissions import Permissions
+from localization import locale
 
 hidden_header = HEADER
 
@@ -38,7 +39,9 @@ class ListMenu(discord.ui.View):
         for tupper in await user.tuppers.offset(page * 25).limit(25).all():
             embed.add_field(
                 name=tupper.name,
-                value=f"Шаблон вызова таппера: `{tupper.call_pattern}`",
+                value=locale.format(
+                    "tupper_call_pattern", call_pattern=tupper.call_pattern
+                ),
                 inline=False,
             )
         hidden_data = {"member_id": discord_user.id, "page": page}
@@ -54,7 +57,7 @@ class ListMenu(discord.ui.View):
         custom_id="persistent_view:left",
     )
     async def left_step(
-            self, interaction: discord.Interaction, button: discord.ui.Button
+        self, interaction: discord.Interaction, button: discord.ui.Button
     ):
         embed = interaction.message.embeds[0]
         interaction.user.roles
@@ -70,7 +73,7 @@ class ListMenu(discord.ui.View):
         custom_id="persistent_view:right",
     )
     async def right_step(
-            self, interaction: discord.Interaction, button: discord.ui.Button
+        self, interaction: discord.Interaction, button: discord.ui.Button
     ):
         embed = interaction.message.embeds[0]
         _, hidden_data = NonPrintableEncoder.decode(embed.footer.text)
@@ -90,7 +93,7 @@ class TupperCommandsCog(commands.Cog):
         self.admin_roles = config.values.get("bot.admin_roles")
 
     async def _get_user_to_edit_tupper(
-            self, ctx: discord.ext.commands.Context, member: discord.Member
+        self, ctx: discord.ext.commands.Context, member: discord.Member
     ) -> typing.Tuple[discord.Member, database.models.user.User]:
         """get current user as target or specified  by admin"""
         if await Permissions.get_user_is_admin(self.admin_roles, ctx) and member:
@@ -118,28 +121,31 @@ class TupperCommandsCog(commands.Cog):
     @commands.hybrid_command(name="create_tupper")
     @commands.has_any_role(*config.player_roles)
     async def create_tupper(
-            self,
-            ctx: discord.ext.commands.Context,
-            name: str,
-            call_pattern: str,
-            avatar: discord.Attachment,
-            member: typing.Optional[discord.Member],
+        self,
+        ctx: discord.ext.commands.Context,
+        name: str,
+        call_pattern: str,
+        avatar: discord.Attachment,
+        member: typing.Optional[discord.Member],
     ):
         """Create new tupper"""
         _, user = await self._get_user_to_edit_tupper(ctx, member)
 
         if await user.tuppers.filter(name=name).first():
-            await ctx.reply("Таппер с таким именем уже существует.")
+            await ctx.reply(locale.tupper_already_exists)
+
             return
 
         try:
             call_pattern = parse_template(call_pattern)
         except SyntaxError as e:
             await ctx.reply(str(e))
+
             return
 
         if await user.tuppers.filter(call_pattern=call_pattern).first():
-            await ctx.reply("Таппер с таким шаблоном вызова уже существует.")
+            await ctx.reply(locale.tupper_already_exists)
+
             return
 
         tupper = await Tupper.create(
@@ -147,60 +153,91 @@ class TupperCommandsCog(commands.Cog):
         )
         await user.tuppers.add(tupper)
 
-        await ctx.reply(f"Успешно. Таппер с именем `{tupper.name}` создан.")
-
-        webhook = await self._get_webhook(ctx.channel.id)
-        await webhook.send(
-            "-- Hello World!", username=tupper.name, avatar_url=tupper.image
-        )
+        await ctx.reply(locale.tupper_was_successfully_created)
 
     @commands.hybrid_command(name="remove_tupper")
     @commands.has_any_role(*config.player_roles)
     async def remove_tupper(
-            self, ctx, name: str, member: typing.Optional[discord.Member]
+        self, ctx, name: str, member: typing.Optional[discord.Member]
     ):
         _, user = await self._get_user_to_edit_tupper(ctx, member)
 
         tupper = await user.tuppers.filter(name=name).first()
 
         if not tupper:
-            await ctx.reply(f"Таппер с таким именем не найден: `{name}`.")
+            await ctx.reply(locale.format("no_such_tupper", tupper_name=name))
+
             return
 
         name = tupper.name
         await Tupper.filter(id=tupper.id).delete()
 
-        await ctx.reply(f"Таппер был успешно удалён: `{name}`.")
+        await ctx.reply(locale.tupper_was_successfully_removed)
 
     @commands.hybrid_command(name="edit_tupper")
     @commands.has_any_role(*config.player_roles)
     async def edit_tupper(
-            self,
-            ctx,
-            tupper_name: str,
-            new_name: typing.Optional[str],
-            new_call_pattern: typing.Optional[str],
-            avatar: typing.Optional[discord.Attachment],
-            member: typing.Optional[discord.Member],
+        self,
+        ctx,
+        tupper_name: str,
+        new_name: typing.Optional[str],
+        new_call_pattern: typing.Optional[str],
+        avatar: typing.Optional[discord.Attachment],
+        member: typing.Optional[discord.Member],
     ):
         _, user = await self._get_user_to_edit_tupper(ctx, member)
 
         tupper: Tupper = await user.tuppers.filter(name=tupper_name).first()
 
         if not tupper:
-            await ctx.reply(f"Таппер с таким именем не найден: `{tupper_name}`.")
+            await ctx.reply(locale.no_such_tupper)
+
             return
 
-        if new_name:
-            tupper.name = new_name
+        keys = {}
 
-        logger.info(f"Changed values in {tupper.id}")
-        await tupper.save()
+        if new_name:
+            keys["name"] = new_name
+
+        if new_call_pattern:
+            try:
+                new_call_pattern = parse_template(new_call_pattern)
+            except SyntaxError as e:
+                await ctx.reply(str(e))
+
+                return
+
+            keys["call_pattern"] = new_call_pattern
+
+        if avatar:
+            keys["image"] = avatar.url
+
+        if member:
+            if await user.tuppers.filter(
+                name=new_name if new_name else tupper.name
+            ).first():
+                await ctx.reply(locale.tupper_already_exists)
+
+                return
+
+            if await user.tuppers.filter(
+                call_pattern=new_call_pattern
+                if new_call_pattern
+                else tupper.call_pattern
+            ).first():
+                await ctx.reply(locale.tupper_already_exists)
+
+                return
+
+            await user.tuppers.add(tupper)
+
+        if keys:
+            await tupper.update(**keys)
 
     @commands.hybrid_command(name="set_inventory_chat")
     @commands.has_any_role(*config.player_roles)
     async def set_inventory_chat_id(
-            self, ctx, name: str, member: typing.Optional[discord.Member]
+        self, ctx, name: str, member: typing.Optional[discord.Member]
     ):
         pass
 
@@ -226,16 +263,16 @@ class TupperCommandsCog(commands.Cog):
     @commands.hybrid_command(name="set_attribute")
     @commands.has_any_role(*config.player_roles)
     async def set_attr(
-            self,
-            ctx,
-            member: typing.Optional[discord.Member],
-            tupper_name: str,
-            name: str,
-            value: int,
+        self,
+        ctx,
+        member: typing.Optional[discord.Member],
+        tupper_name: str,
+        name: str,
+        value: int,
     ):
         name = name.lower()
         if not re.match(r"^[а-яa-z]{2,3}$", name):
-            await ctx.reply(f"Некорректное имя характеристики: `{name}`.")
+            await ctx.reply(locale.illegal_attribute_name)
 
             return
 
@@ -244,7 +281,7 @@ class TupperCommandsCog(commands.Cog):
         tupper = await user.tuppers.filter(name=tupper_name).first()
 
         if not tupper:
-            await ctx.reply(f"Таппер с таким именем не найден: `{tupper_name}`.")
+            await ctx.reply(locale.no_such_tupper)
 
             return
 
@@ -256,59 +293,57 @@ class TupperCommandsCog(commands.Cog):
 
         await attr.update(value=value)
 
-        await ctx.reply(
-            f"Значение характеристики `{name}` у таппера `{tupper_name}` изменено на `{value}`."
-        )
+        await ctx.reply(locale.attribute_was_successfully_changed)
 
     @commands.hybrid_command(name="balance")
     @commands.has_any_role(*config.player_roles)
     async def balance(
-            self, ctx, member: typing.Optional[discord.Member], tupper_name: str
+        self, ctx, member: typing.Optional[discord.Member], tupper_name: str
     ):
         _, user = await self._get_user_to_edit_tupper(ctx, member)
 
         tupper = await user.tuppers.filter(name=tupper_name).first()
 
         if not tupper:
-            await ctx.reply(f"Таппер с таким именем не найден: `{tupper_name}`.")
+            await ctx.reply(locale.no_such_tupper)
 
             return
 
-        await ctx.reply(f"Текущий баланс: `{tupper.balance}`.")
+        await ctx.reply(locale.format("current_balance", tupper.balance))
 
     @commands.hybrid_command(name="add_balance")
     @commands.has_any_role(*config.player_roles)
     async def add_balance(
-            self,
-            ctx,
-            member: typing.Optional[discord.Member],
-            tupper_name: str,
-            amount: int,
+        self,
+        ctx,
+        member: typing.Optional[discord.Member],
+        tupper_name: str,
+        amount: int,
     ):
         _, user = await self._get_user_to_edit_tupper(ctx, member)
 
         tupper = await user.tuppers.filter(name=tupper_name).first()
 
         if not tupper:
-            await ctx.reply(f"Таппер с таким именем не найден: `{tupper_name}`.")
+            await ctx.reply(locale.no_such_tupper)
 
             return
 
         balance = abs(tupper.balance + amount)
         await tupper.update(balance=balance)
 
-        await ctx.reply(f"Успешно. Текущий баланс: `{balance}`.")
+        await ctx.reply(locale.format("current_balance", balance))
 
     @commands.hybrid_command(name="send_balance")
     @commands.has_any_role(*config.player_roles)
     async def send_balance(
-            self,
-            ctx,
-            from_member: typing.Optional[discord.Member],
-            from_tupper_name: str,
-            to_member: discord.Member,
-            to_tupper_name: str,
-            amount: int,
+        self,
+        ctx,
+        from_member: typing.Optional[discord.Member],
+        from_tupper_name: str,
+        to_member: discord.Member,
+        to_tupper_name: str,
+        amount: int,
     ):
         _, from_user = await self._get_user_to_edit_tupper(ctx, from_member)
 
@@ -319,17 +354,20 @@ class TupperCommandsCog(commands.Cog):
         to_tupper = await to_user.tuppers.filter(name=to_tupper_name).first()
 
         if not from_tupper:
-            await ctx.reply(f"Таппер с таким именем не найден: `{from_tupper_name}`.")
+            await ctx.reply(locale.no_such_tupper)
+
             return
 
         if not to_tupper:
-            await ctx.reply(f"Таппер с таким именем не найден: `{to_tupper_name}`.")
+            await ctx.reply(locale.no_such_tupper)
 
             return
 
         if amount > from_tupper.balance:
             await ctx.reply(
-                f"Баланс слишком низкий: текущий баланс: `{from_tupper.balance}`, нужно: `{amount}`."
+                locale.format(
+                    "balance_is_too_low", need=amount, have=from_tupper.balance
+                )
             )
 
             return
@@ -338,7 +376,7 @@ class TupperCommandsCog(commands.Cog):
         await from_tupper.update(balance=new_balance)
         await to_tupper.update(balance=to_tupper.balance + amount)
 
-        await ctx.reply(f"Успешно. Текущий баланс: `{new_balance}`.")
+        await ctx.reply(locale.format("current_balance", balance=new_balance))
 
 
 async def setup(bot: "DiscoTupperBot"):

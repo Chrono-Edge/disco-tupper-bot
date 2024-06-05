@@ -1,0 +1,33 @@
+{
+    "tupper_call_pattern": "Tupper call pattern: `{call_pattern}`.",
+    "tupper_already_exists": "Tupper with such name or/and call pattern already exists.",
+    "tupper_was_successfully_created": "Tupper was successfully created.",
+    "no_such_tupper": "No such tupper: `{tupper_name}`",
+    "tupper_was_successfully_removed": "Tupper was successfully removed.",
+    "illegal_attribute_name": "Illegal attribute name.",
+    "attribute_was_successfully_changed": "Attribute value was successfully changed.",
+    "current_balance": "Current balance: `{balance}`.",
+    "balance_is_too_low": "Your balance is too low: need `{need}`, have: `{have}`.",
+    "editing_message": "Editing message: ```{message}```",
+    "send_content_of_new_message": "Please send me the new content of the message here:",
+    "nothing_to_edit": "Nothing to edit.",
+    "message_edited": "Messaged edited: {jump_url}",
+
+    "T_NAME": "name",
+    "T_TILDE": "tilde",
+    "T_EXCL": "exclamation mark",
+    "T_DICE": "dice",
+    "T_OP": "operator",
+    "T_DIGIT": "number",
+    "T_OPEN_PAREN": "open parenthesis",
+    "T_CLOSE_PAREN": "closing parenthesis",
+
+    "number_of_dices_should_be_gte": "The number of dices should be greater than zero.",
+    "number_of_sides_should_be_gte": "The number of sides should be greater than zero.",
+    "unexpected_input": "Unexpected input on position `#{position}`: expected `{expected}`.",
+    "undefined_variable": "Undefined variable: `{name}`.",
+    "number_dice_or_a_variable": "number, dice or a variable",
+    "expression_should_not_be_empty": "Expression should not be empty.",
+    "expression_does_not_contain_rolls": "Expression does not contain rolls.",
+    "division_by_zero": "Attempt to divide by zero."
+}
