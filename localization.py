@@ -2,12 +2,13 @@ import json
 import glob
 
 import config
+import pathlib
 
 LANGUAGES = {}
 
-for filename in glob.glob("./langs/[a-z][a-z].json"):
+for filename in glob.glob("./locales/[a-z][a-z].json"):
     with open(filename, "r") as f:
-        LANGUAGES[filename.split(".")[0]] = json.load(f)
+        LANGUAGES[pathlib.Path(filename).name.split(".")[0]] = json.load(f)
 
 
 class Language:

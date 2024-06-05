@@ -112,9 +112,12 @@ TUPPER_COMMANDS = {
     "balance": _command_balance,
     "send": _command_send,
 }
-for key in TUPPER_COMMANDS:
-    TUPPER_COMMANDS[key[0]] = TUPPER_COMMANDS[key]
 
+ALIES_TUPPER_COMMANDS = {}
+for key in TUPPER_COMMANDS.keys():
+    ALIES_TUPPER_COMMANDS[key[0]] = TUPPER_COMMANDS[key]
+
+TUPPER_COMMANDS.update(ALIES_TUPPER_COMMANDS)
 
 async def handle_tupper_command(ctx, tupper, message_content):
     command = parse_tupper_command(message_content)

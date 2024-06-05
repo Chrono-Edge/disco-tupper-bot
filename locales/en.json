@@ -21,6 +21,7 @@
     "T_DIGIT": "number",
     "T_OPEN_PAREN": "open parenthesis",
     "T_CLOSE_PAREN": "closing parenthesis",
+    "T_COLON" : "NOT SET",
 
     "number_of_dices_should_be_gte": "The number of dices should be greater than zero.",
     "number_of_sides_should_be_gte": "The number of sides should be greater than zero.",
