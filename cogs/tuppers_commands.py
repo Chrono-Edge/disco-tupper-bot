@@ -434,6 +434,8 @@ class TupperCommandsCog(commands.Cog):
                         member: typing.Optional[discord.Member]):
         _, user = await self._get_user_to_edit_tupper(ctx, member)
 
+        print(ctx.message.reference)
+
         if not ctx.message.reference:
             await ctx.reply("Not set message where u receive item ")
             return
