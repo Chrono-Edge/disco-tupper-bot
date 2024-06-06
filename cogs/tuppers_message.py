@@ -105,7 +105,7 @@ class TupperMessageCog(commands.Cog):
         async for message in new_message.channel.history(
                 before=new_message, limit=10, oldest_first=False
         ):
-            print(message.content, message.content.find(hidden_header))
+
             if message.content.find(hidden_header) > -1:
                 message_with_metadata = message
                 break
@@ -160,10 +160,12 @@ class TupperMessageCog(commands.Cog):
         if (message.author.id == self.bot.user.id) or message.author.bot:
             return
 
+        # take user form database by discord id
         db_user = await User.get(discord_id=message.author.id)
         if not db_user:
             return
 
+        # if channel is private
         if message.channel.type == discord.ChannelType.private:
             await self._edit_tupper_message(message)
             return
@@ -171,27 +173,30 @@ class TupperMessageCog(commands.Cog):
         message_content = message.content.strip()
 
         tupper = None
+        # take tupper from user tuppers list
         async for other_tupper in db_user.tuppers:
             if match := re.match(other_tupper.call_pattern, message_content):
                 tupper = other_tupper
-                message_content = match.groups(1)
+                message_content = match.groups(1)[0]
                 break
 
         if not tupper:
             return
 
-        webhook = await self._get_webhook(message.channel.id)
-        hidden_data = {"tupper_id": tupper.id}
-
         if len(message_content) == 0:
             return
+
         # TODO limit messages to 1800 with relpy
         # TODO await bot.process_commands(message)
         # Change to create custom ctx type with custom send and relpy system
         # Main idea it is create new child message and sent to function bot.process_commands
         # Not sure about of this variant but this code also not ideal...
 
+        webhook = await self._get_webhook(message.channel.id)
+        hidden_data = {"tupper_id": tupper.id, "author_id": message.author.id}
+
         new_content = await handle_tupper_command(webhook, tupper, message_content)
+
         if new_content is not None:
             message_content = new_content
 

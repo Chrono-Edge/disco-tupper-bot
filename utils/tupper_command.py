@@ -44,7 +44,7 @@ async def get_webhook(bot, channel_id: int):
 def parse_tupper_command(text):
     text = text.strip()
 
-    if not text or not text.startwith("!"):
+    if not text or not text.startswith("!"):
         return None
 
     parts = shlex.split(text[1:])
@@ -119,7 +119,9 @@ for key in TUPPER_COMMANDS.keys():
 
 TUPPER_COMMANDS.update(ALIES_TUPPER_COMMANDS)
 
+
 async def handle_tupper_command(ctx, tupper, message_content):
+    print(ctx, tupper, message_content)
     command = parse_tupper_command(message_content)
     if not command:
         return
