@@ -41,7 +41,7 @@ TOKEN_NAMES = {
 
 class Value:
     def __init__(self, value):
-        if type(value) is not list:
+        if not isinstance(value, list):
             value = [int(value)]
 
         self.value = value
@@ -241,6 +241,7 @@ def roll_dices(dices, vars={}):
 
 if __name__ == "__main__":
     print(Dices("d20").roll())
+    print(Dices("1d20").roll())
     print(Dices("2d20").roll())
     print(Dices("2d20+3").roll())
     print(Dices("2d20 + 2d20").roll())
