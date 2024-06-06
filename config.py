@@ -21,6 +21,8 @@ player_roles = values.get("bot.player_roles")
 
 language = values.get("language", "en")
 
+prefixes = tuple(values.get("bot.prefixes", ()))
+
 # Remove the existing logger
 logger.remove()
 # Add a new logger with the given settings

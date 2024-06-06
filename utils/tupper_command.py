@@ -4,6 +4,7 @@ from collections import namedtuple
 import discord
 from loguru import logger
 
+import config
 from utils.dices import roll_dices
 from database.models.user import User
 from localization import locale
@@ -44,18 +45,18 @@ async def get_webhook(bot, channel_id: int):
 def parse_tupper_command(text):
     text = text.strip()
 
-    if not text and not text.startswith("!"):
+    if not text or not text.startswith(config.prefixes):
         return None
 
     parts = shlex.split(text[1:])
+
     if len(parts) < 1:
         return None
 
-    return Command(name=parts[0].lower().strip(), args=parts[1:], argc=len(parts) - 1)
+    return Command(name=parts[0].lower(), args=parts[1:], argc=len(parts) - 1)
 
 
 async def _command_roll(ctx, tupper, command):
-    print("_command_roll", tupper, command)
     if command.argc < 1:
         return
 
@@ -122,11 +123,12 @@ TUPPER_COMMANDS.update(ALIES_TUPPER_COMMANDS)
 
 
 async def handle_tupper_command(ctx, tupper, message_content):
+    print(ctx, tupper, message_content)
     command = parse_tupper_command(message_content)
     if not command:
-        return None
+        return
 
-    if command.name.strip() not in TUPPER_COMMANDS:
-        return None
+    if command.name not in TUPPER_COMMANDS:
+        return
 
-    return await TUPPER_COMMANDS[command.name](ctx, tupper, command)
+    await TUPPER_COMMANDS[command.name](ctx, tupper, command)

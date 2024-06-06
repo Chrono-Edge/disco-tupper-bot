@@ -14,6 +14,7 @@
     "message_edited": "Messaged edited: {jump_url}",
 
     "T_NAME": "name",
+    "T_COLON" : "colon",
     "T_TILDE": "tilde",
     "T_EXCL": "exclamation mark",
     "T_DICE": "dice",
@@ -21,7 +22,6 @@
     "T_DIGIT": "number",
     "T_OPEN_PAREN": "open parenthesis",
     "T_CLOSE_PAREN": "closing parenthesis",
-    "T_COLON" : "NOT SET",
 
     "number_of_dices_should_be_gte": "The number of dices should be greater than zero.",
     "number_of_sides_should_be_gte": "The number of sides should be greater than zero.",
@@ -30,5 +30,10 @@
     "number_dice_or_a_variable": "number, dice or a variable",
     "expression_should_not_be_empty": "Expression should not be empty.",
     "expression_does_not_contain_rolls": "Expression does not contain rolls.",
-    "division_by_zero": "Attempt to divide by zero."
+    "division_by_zero": "Attempt to divide by zero.",
+
+    "user_already_exists": "User already exists.",
+    "user_was_successfully_created": "User was successfully created.",
+    "user_was_successfully_removed": "User was successfully removed.",
+    "user_does_not_exist": "User doesn't exist."
 }

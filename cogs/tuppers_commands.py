@@ -9,6 +9,7 @@ import typing
 from builtins import str
 from datetime import datetime
 from typing import TYPE_CHECKING
+from tortoise.expressions import F
 
 import config
 import database.models.user
@@ -285,13 +286,11 @@ class TupperCommandsCog(commands.Cog):
             await ctx.reply(locale.no_such_tupper)
             return
 
-        attr = await tupper.attrs.filter(name=name).first()
-
-        if not attr:
+        if not await tupper.attrs.filter(name=name).exists():
             await Attribute.create(owner=tupper, name=name, value=value)
             return
 
-        await attr.update(value=value)
+        await tupper.attrs.filter(name=name).update(value=value)
         await ctx.reply(locale.attribute_was_successfully_changed)
 
     @commands.hybrid_command(name="balance")
@@ -327,8 +326,7 @@ class TupperCommandsCog(commands.Cog):
             return
 
         balance = abs(tupper.balance + amount)
-        await tupper.update(balance=balance)
-        await tupper.save()
+        await Tupper.filter(id=tupper.id).update(balance=balance)
 
         await ctx.reply(locale.format("current_balance", balance))
 
@@ -368,8 +366,8 @@ class TupperCommandsCog(commands.Cog):
             return
 
         new_balance = from_tupper.balance - amount
-        await from_tupper.update(balance=new_balance)
-        await to_tupper.update(balance=to_tupper.balance + amount)
+        await Tupper.filter(id=from_tupper.id).update(balance=new_balance)
+        await Tupper.filter(id=to_tupper).update(balance=F("balance") + amount)
 
         await ctx.reply(locale.format("current_balance", balance=new_balance))
 
