@@ -1,5 +1,9 @@
 import math
 import re
+
+from tortoise.functions import Lower
+
+from database.models.item import Item
 from database.models.user import User
 from database.models.tupper import Tupper
 from config import logger
@@ -418,6 +422,59 @@ class TupperCommandsCog(commands.Cog):
         await Tupper.filter(id=to_tupper).update(balance=F("balance") + amount)
 
         await ctx.reply(locale.format("current_balance", balance=new_balance))
+
+    @commands.hybrid_command(name="item_move")
+    @commands.has_any_role(*config.player_roles)
+    async def item_move(self,
+                        ctx: discord.ext.commands.Context,
+                        tupper_name: str,
+                        item_name: str,
+                        item_quantity: int,
+                        item_description: typing.Optional[str],
+                        member: typing.Optional[discord.Member]):
+        _, user = await self._get_user_to_edit_tupper(ctx, member)
+
+        if not ctx.message.reference:
+            await ctx.reply("Not set message where u receive item ")
+            return
+
+        tupper = await user.tuppers.filter(name=tupper_name).first()
+        if tupper.inventory_chat_id == 0:
+            await ctx.reply(f"{tupper_name} not set inventory chat")
+            return
+
+        inventory_chat = await self.bot.fetch_channel(tupper.inventory_chat_id)
+
+        if not tupper:
+            await ctx.reply(f"{tupper_name} does not exist!")
+            return
+
+        item = await Item.annotate(name=Lower(item_name)).filter(name=item_name.lower(), tupper_owner=user).first()
+        if not item:
+            if item_quantity < 0:
+                await ctx.reply(f"Item {item_name} does not exist")
+                return
+            item = await Item.create(tupper_owner=user, name=tupper_name, description=item_description,
+                                     quantity=item_quantity)
+            await item.save()
+        elif item:
+            new_quantity = item.quantity + item_quantity
+            if new_quantity < 0:
+                await ctx.reply(f"You not enough {item.name}")
+                return
+
+            item.quantity = new_quantity
+            if item_description:
+                item.description = item_description
+            await item.save()
+
+        await inventory_chat.send(
+            f"""Item log: `{item.name}` quantity: {item.quantity}
+             ```{item.description}``` 
+             Place: {ctx.message.reference.jump_url}""")
+
+        if item.quantity <= 0:
+            await item.delete()
 
 
 async def setup(bot: "DiscoTupperBot"):
