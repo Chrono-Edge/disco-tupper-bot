@@ -103,7 +103,7 @@ class TupperCommandsCog(commands.Cog):
         return ctx.author, user
 
     async def _get_webhook(self, channel_id: int):
-        return get_webhook(self.bot, channel_id)
+        return await get_webhook(self.bot, channel_id)
 
     @commands.hybrid_command(name="create_tupper")
     @commands.has_any_role(*config.player_roles)
