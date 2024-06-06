@@ -8,7 +8,7 @@
     "attribute_was_successfully_changed": "Attribute value was successfully changed.",
     "current_balance": "Current balance: `{balance}`.",
     "balance_is_too_low": "Your balance is too low: need `{need}`, have: `{have}`.",
-    "editing_message": "Editing message:",
+    "editing_message": "Editing message ```{message}```:",
     "send_content_of_new_message": "Please send me the new content of the message here:",
     "nothing_to_edit": "Nothing to edit.",
     "message_edited": "Messaged edited: {jump_url}",
