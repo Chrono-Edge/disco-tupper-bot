@@ -19,9 +19,11 @@ guild = values.get("secrets.guild")
 admin_roles = values.get("bot.admin_roles")
 player_roles = values.get("bot.player_roles")
 
-language = values.get("language", "en")
+language = values.get("bot.language", "en")
 
 prefixes = tuple(values.get("bot.prefixes", ()))
+
+log_channel_id = values.get("bot.log_channel_id")
 
 # Remove the existing logger
 logger.remove()

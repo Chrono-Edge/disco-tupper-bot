@@ -143,7 +143,6 @@ for key in dict(TUPPER_COMMANDS):
 
 
 async def handle_tupper_command(ctx, tupper, message_content):
-    print(ctx, tupper, message_content)
     command = parse_tupper_command(message_content)
     if not command:
         return
