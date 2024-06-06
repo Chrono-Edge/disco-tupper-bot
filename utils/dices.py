@@ -2,6 +2,7 @@ import re
 import random
 import operator
 
+
 from localization import locale
 
 OPS = {
@@ -14,7 +15,7 @@ OPS = {
 }
 OPS_KEYS = "".join(OPS.keys()).replace("-", r"\-")
 
-T_NAME = re.compile(r"([abce-zа-я]+)")
+T_NAME = re.compile(r"([abce-zа-яABCE-ZА-Я]+)")
 T_COLON = re.compile(r"(:)")
 T_DICE = re.compile(r"(d)")
 T_MINUS = re.compile(r"(-)")
@@ -52,6 +53,12 @@ class Value:
     def __repr__(self):
         return str(self.value[0] if len(self.value) == 1 else self.value)
 
+    def __iter__(self):
+        return iter(self.value)
+
+    def __next__(self):
+        return next(self.value)
+
     def apply(self, what, *args):
         args = list(map(int, args))
 
@@ -60,7 +67,7 @@ class Value:
 
 class Dices:
     def __init__(self, text):
-        self.text = text.strip().lower()
+        self.text = text.strip()
         self.position = 0
 
         self.names = {}
@@ -70,9 +77,24 @@ class Dices:
 
     def __repr__(self):
         if self.result:
-            return (
-                f"`{self.text}`: `{self.rolls}`; `{self.result}` (`{int(self.result)}`)"
-            )
+            buffer = ""
+
+            for roll, result in zip(self.rolls, self.result):
+                count, sides, roll = roll
+
+                results = ", ".join(
+                    map(
+                        lambda t: f"{t[0]}+{t[1]}" if t[1] != 0 else str(t[0]),
+                        zip(roll, map(lambda t: t[1] - t[0], zip(roll, result))),
+                    )
+                )
+
+                if "," in results:
+                    results = f"[{results}]"
+
+                buffer += f"{'' if count == 1 else count}d{sides}: {roll} -> {results} ({int(result)})\n"
+
+            return f"```{self.text}\n{buffer}= {int(self.result)}```"
 
         return self.text
 
@@ -88,7 +110,7 @@ class Dices:
             rolls.append(random.randint(1, sides))
 
         if not dont_save:
-            self.rolls.append(Value(rolls))
+            self.rolls.append((count, sides, Value(rolls)))
 
         if not self.has_rolls:
             self.has_rolls = True
@@ -142,7 +164,7 @@ class Dices:
         left = int(left)
         right = int(right)
 
-        return Value(self._roll(left, right, dont_save=dont_save))
+        return Value(self._roll(left, right, dont_save=bool(dont_save)))
 
     def _parse_atom(self):
         if self._match(T_OPEN_PAREN):
@@ -168,10 +190,10 @@ class Dices:
         elif self._match(T_DICE):
             return self._parse_dice()
         elif match := self._match(T_NAME):
-            name = match[0]
+            name = match[0].lower()
 
             if name not in self.names:
-                raise NameError(locale.format("undefined_variable", name=name))
+                raise NameError(locale.format("undefined_variable", name=match[0]))
 
             expr = self.names[name]
 
@@ -262,3 +284,4 @@ if __name__ == "__main__":
     print(Dices("d20+ЛВК").roll({"ЛВК": 5}))
     print(Dices("ЛВКd5").roll({"ЛВК": 5}))
     print(Dices("ЛВК d5").roll({"ЛВК": 5}))
+    print(Dices("d(d5 * d(3d20^5))").roll())
