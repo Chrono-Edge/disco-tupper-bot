@@ -7,6 +7,7 @@ from builtins import str
 from typing import TYPE_CHECKING
 
 import config
+from database.models.tupper import Tupper
 from database.models.user import User
 from utils.encoding.non_printable import NonPrintableEncoder
 from utils.encoding.non_printable import HEADER
@@ -29,8 +30,9 @@ class TupperMessageCog(commands.Cog):
         return await get_webhook(self.bot, channel_id)
 
     async def _remove_message(
-        self, payload: discord.RawReactionActionEvent, db_user: User, metadata_dict
+            self, payload: discord.RawReactionActionEvent, db_user: User, metadata_dict
     ):
+        """Remove message on reaction"""
         if str(payload.emoji) != self.reaction_to_remove:
             return
         tupper = await db_user.tuppers.filter(id=metadata_dict["tupper_id"]).first()
@@ -40,8 +42,9 @@ class TupperMessageCog(commands.Cog):
         await webhook.delete_message(payload.message_id)
 
     async def _create_edit_message(
-        self, payload: discord.RawReactionActionEvent, db_user: User, metadata_dict
+            self, payload: discord.RawReactionActionEvent, db_user: User, metadata_dict
     ):
+        """Create message in personal chat to edit message"""
         if str(payload.emoji) != self.reaction_to_edit:
             return
         tupper = await db_user.tuppers.filter(id=metadata_dict["tupper_id"]).first()
@@ -53,11 +56,13 @@ class TupperMessageCog(commands.Cog):
         message = await channel.fetch_message(payload.message_id)
         await message.remove_reaction(payload.emoji, user)
 
-        message_content, _ = NonPrintableEncoder.decode(message.content)
+        message_content, ___ = NonPrintableEncoder.decode(message.content)
 
-        await user.send(locale.format("editing_message", message=message_content))
+        await user.send(locale.format("editing_message"))
+        await user.send(f"```{message_content}```")
 
         second_message = locale.send_content_of_new_message
+
         hidden_dict = {
             "guild_id": payload.guild_id,
             "channel_id": payload.channel_id,
@@ -65,8 +70,8 @@ class TupperMessageCog(commands.Cog):
             "tupper_id": metadata_dict["tupper_id"],
         }
 
-        second_message_content = NonPrintableEncoder.encode(
-            second_message, json.dumps(hidden_dict).encode()
+        second_message_content = NonPrintableEncoder.encode_dict(
+            second_message, hidden_dict
         )
 
         await user.send(second_message_content)
@@ -78,7 +83,7 @@ class TupperMessageCog(commands.Cog):
 
         # TODO check this strange bruh moment. need support custom emoji
         if (str(payload.emoji) != self.reaction_to_edit) and (
-            str(payload.emoji) != self.reaction_to_remove
+                str(payload.emoji) != self.reaction_to_remove
         ):
             return
 
@@ -88,8 +93,7 @@ class TupperMessageCog(commands.Cog):
         if message.content.find(hidden_header) <= -1:
             return
 
-        message_content, hidden_bytes = NonPrintableEncoder.decode(message.content)
-        metadata_dict = json.loads(hidden_bytes.decode())
+        message_content, metadata_dict = NonPrintableEncoder.decode_dict(message.content)
 
         if "tupper_id" in metadata_dict:
             db_user = await User.get(discord_id=payload.user_id)
@@ -101,43 +105,45 @@ class TupperMessageCog(commands.Cog):
             return
 
     async def _edit_tupper_message(self, new_message: discord.Message):
+        """Edit message from personal chat"""
         message_with_metadata = None
+
         async for message in new_message.channel.history(
-            before=new_message, limit=10, oldest_first=False
+                before=new_message, limit=10, oldest_first=False
         ):
+            # find message with metadata to edit
             if message.content.find(hidden_header) > -1:
                 message_with_metadata = message
                 break
 
         if not message_with_metadata:
             await new_message.reply(locale.nothing_to_edit)
-
             return
 
-        _, hidden_bytes = NonPrintableEncoder.decode(message_with_metadata.content)
-        metadata_dict: dict = json.loads(hidden_bytes.decode())
+        _, metadata_dict = NonPrintableEncoder.decode_dict(message_with_metadata.content)
 
         if "nothing_to_edit" in metadata_dict:
+            # If message already edited
             await new_message.reply(locale.nothing_to_edit)
-
             return
+
         # TODO dict check
         # TODO exception handler
-        db_user = await User.get(discord_id=new_message.author.id)
+        db_user = await User.filter(discord_id=new_message.author.id).first()
         if not db_user:
             return
 
-        tupper = await db_user.tuppes.filter(id=metadata_dict.get("tupper_id")).first()
+        tupper = await db_user.tuppers.filter(id=metadata_dict.get("tupper_id")).first()
         if not tupper:
             return
 
-        hidden_data = {"tupper_id": tupper.id}
-        message_content = NonPrintableEncoder.encode(
-            new_message.content, json.dumps(hidden_data).encode()
-        )
+        message_hidden_data = {"tupper_id": tupper.id, "author_id": new_message.author.id}
+
+        message_content = NonPrintableEncoder.encode_dict(new_message.content, message_hidden_data)
 
         # TODO we need to edit files or not?
         webhook = await self._get_webhook(metadata_dict.get("channel_id"))
+
         await webhook.edit_message(
             metadata_dict.get("message_id"), content=message_content
         )
@@ -147,21 +153,20 @@ class TupperMessageCog(commands.Cog):
 
         hidden_data = {"nothing_to_edit": True}
         message_relpy = NonPrintableEncoder.encode(
-            locale.format("message_edited", jump_url=message.jump_url),
-            json.dumps(hidden_data).encode(),
+            locale.format("message_edited", jump_url=message.jump_url), json.dumps(hidden_data).encode()
         )
 
         await new_message.reply(message_relpy)
 
-    @commands.Cog.listener()
-    async def on_message(self, message: discord.Message):
+    async def _on_message(self, message: discord.Message):
+        """parse on message"""
         # cut off bots and selfmessages
 
         if (message.author.id == self.bot.user.id) or message.author.bot:
             return
 
         # take user form database by discord id
-        db_user = await User.get(discord_id=message.author.id)
+        db_user = await User.filter(discord_id=message.author.id).first()
         if not db_user:
             return
 
@@ -195,17 +200,33 @@ class TupperMessageCog(commands.Cog):
         webhook = await self._get_webhook(message.channel.id)
         hidden_data = {"tupper_id": tupper.id, "author_id": message.author.id}
 
-        new_content = await handle_tupper_command(webhook, tupper, message_content)
+        command_content = await handle_tupper_command(webhook, tupper, message_content)
 
-        if new_content is not None:
-            message_content = new_content
+        if command_content:
+            message_content = command_content
+            files_content = []
+        else:
+            relpy_string_header = None
+            if message.reference:
+                channel = await self.bot.fetch_channel(message.reference.channel_id)
+                relpy_message = await channel.fetch_message(message.reference.message_id)
+                ___, relpy_dict = NonPrintableEncoder.decode_dict(relpy_message.content)
+                if relpy_dict:
+                    if "tupper_id" in relpy_dict and "author_id" in relpy_dict:
+                        relpy_member = await self.bot.fetch_user(relpy_dict["author_id"])
+                        actor = await Tupper.filter(id=relpy_dict["tupper_id"]).first()
+                        relpy_string_header = f"> `{actor.name}` ({relpy_member.mention}) - {relpy_message.jump_url}\n"
+                else:
+                    relpy_string_header = f"> {relpy_message.author.mention} - {relpy_message.jump_url}\n"
 
-        message_content = NonPrintableEncoder.encode_dict(message_content, hidden_data)
+            message_content = NonPrintableEncoder.encode_dict(message_content, hidden_data)
+            if relpy_string_header:
+                message_content = relpy_string_header + message_content
 
-        files_content = [
-            await attachment.to_file(spoiler=attachment.is_spoiler())
-            for attachment in message.attachments
-        ]
+            files_content = [
+                await attachment.to_file(spoiler=attachment.is_spoiler())
+                for attachment in message.attachments
+            ]
 
         await webhook.send(
             message_content,
@@ -214,6 +235,14 @@ class TupperMessageCog(commands.Cog):
             files=files_content,
         )
         await message.delete()
+
+    @commands.Cog.listener()
+    async def on_message(self, message: discord.Message):
+        await self._on_message(message)
+
+    @commands.Cog.listener()
+    async def on_message_edit(self, before_message, after_message: discord.Message):
+        await self._on_message(after_message)
 
 
 async def setup(bot: "DiscoTupperBot"):
