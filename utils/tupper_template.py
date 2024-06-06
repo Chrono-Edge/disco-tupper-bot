@@ -1,3 +1,5 @@
+from localization import locale
+
 def parse_template(text):
     text = text.strip()
 
@@ -10,7 +12,7 @@ def parse_template(text):
         if not escape:
             if ch == '*' and not group:
                 if has_star:
-                    raise SyntaxError('Шаблон не должен содержать более одной звёздочки (`*`).')
+                    raise SyntaxError(locale.template_should_not_contain_more_than_one_placeholder)
                 
                 has_star = True
 
@@ -35,7 +37,7 @@ def parse_template(text):
         if group and not escape:
             if ch == ']':
                 if group_size == 0:
-                    raise SyntaxError('Пустые []-блоки запрещены.')
+                    raise SyntaxError(locale.empty_blocks_are_forbidden)
                 
                 group = False
                 group_size = 0
@@ -54,16 +56,16 @@ def parse_template(text):
         buffer += ch
 
     if group:
-        raise SyntaxError('Отсутствует закрывающая ]-скобка.')
+        raise SyntaxError(locale.missing_closing_bracket)
     
     if escape:
-        raise SyntaxError('Некорректное экранирование.')
+        raise SyntaxError(locale.incorrect_escape)
     
     if not has_star:
-        raise SyntaxError('Шаблон должен содержать хотя бу одну звёздочку (`*`).')
+        raise SyntaxError(locale.template_should_contain_at_least_one_placeholder)
     
     if len(buffer) <= 4:
-        raise SyntaxError('Шаблон должен содержать что-то помимо звёздочки (`*`).')
+        raise SyntaxError(locale.template_should_contain_something_aside_from_placeholder)
     
     return f'^{buffer}$'
 

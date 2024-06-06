@@ -7,7 +7,9 @@ from loguru import logger
 import config
 from utils.dices import roll_dices
 from database.models.user import User
+from database.models.tupper import Tupper
 from localization import locale
+from tortoise.expressions import F
 
 Command = namedtuple("Command", ["name", "args", "argc"])
 
@@ -84,7 +86,7 @@ async def _command_send(ctx, tupper, command):
         return
 
     if command.argc == 2:
-        to_tupper = await user.tuppers.first()
+        to_tupper = await user.tuppers.all().first()
         amount = command.args[1]
     else:
         to_tupper = await user.tuppers.filter(name=command.args[1]).first()
@@ -101,25 +103,29 @@ async def _command_send(ctx, tupper, command):
     if amount > tupper.balance:
         return locale.format("balance_is_too_low", need=amount, have=tupper.balance)
 
-    balance = tupper.balance - amount
-    await tupper.update(balance=balance)
-    await to_tupper.update(balance=to_tupper.balance + amount)
+    new_balance = tupper.balance - amount
+    await Tupper.filter(id=tupper.id).update(balance=new_balance)
+    await Tupper.filter(id=to_tupper).update(balance=F("balance") + amount)
 
-    return locale.format("current_balance", balance=balance)
+    return locale.format("current_balance", balance=new_balance)
 
+async def _command_attributes(ctx, tupper, command):
+    buffer = ""
+
+    async for attr in tupper.attrs:
+        buffer += f"`{attr.name}`: `{attr.value}`\n"
+
+    return buffer
 
 TUPPER_COMMANDS = {
     "roll": _command_roll,
     "balance": _command_balance,
     "send": _command_send,
+    "attributes": _command_attributes,
 }
 
-ALIES_TUPPER_COMMANDS = {}
-for key in TUPPER_COMMANDS.keys():
-    ALIES_TUPPER_COMMANDS[key[0]] = TUPPER_COMMANDS[key]
-
-TUPPER_COMMANDS.update(ALIES_TUPPER_COMMANDS)
-
+for key in dict(TUPPER_COMMANDS):
+    TUPPER_COMMANDS[key[0]] = TUPPER_COMMANDS[key]
 
 async def handle_tupper_command(ctx, tupper, message_content):
     print(ctx, tupper, message_content)

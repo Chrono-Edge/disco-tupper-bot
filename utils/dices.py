@@ -1,9 +1,22 @@
 import re
 import random
 import operator
-
-
 from localization import locale
+
+
+def _roll(count, sides):
+    if count <= 0:
+        raise ValueError(locale.number_of_dices_should_be_gtz)
+
+    if sides <= 0:
+        raise ValueError(locale.number_of_sides_should_be_gtz)
+
+    rolls = []
+    for _ in range(count):
+        rolls.append(random.randint(1, sides))
+
+    return rolls
+
 
 OPS = {
     "+": operator.add,
@@ -19,8 +32,6 @@ T_NAME = re.compile(r"([abce-zа-яABCE-ZА-Я]+)")
 T_COLON = re.compile(r"(:)")
 T_DICE = re.compile(r"(d)")
 T_MINUS = re.compile(r"(-)")
-T_TILDE = re.compile(r"(~)")
-T_EXCL = re.compile(r"(!)")
 T_OP = re.compile(f"([{OPS_KEYS}])")
 T_DIGIT = re.compile(r"(\d+)")
 T_OPEN_PAREN = re.compile(r"(\()")
@@ -30,8 +41,6 @@ T_WS = re.compile(r"([ \t\r\n]+)")
 TOKEN_NAMES = {
     T_NAME: locale.T_NAME,
     T_COLON: locale.T_COLON,
-    T_TILDE: locale.T_TILDE,
-    T_EXCL: locale.T_EXCL,
     T_DICE: locale.T_DICE,
     T_OP: locale.T_OP,
     T_DIGIT: locale.T_DIGIT,
@@ -59,6 +68,9 @@ class Value:
     def __next__(self):
         return next(self.value)
 
+    def __index__(self, index):
+        return self.value[index]
+
     def apply(self, what, *args):
         args = list(map(int, args))
 
@@ -72,12 +84,16 @@ class Dices:
 
         self.names = {}
         self.rolls = []
-        self.has_rolls = False
         self.result = None
+
+        self._rolls = []
 
     def __repr__(self):
         if self.result:
             buffer = ""
+
+            for count, sides, roll in self._rolls:
+                buffer += f"{'' if count == 1 else count}d{sides}: {roll}\n"
 
             for roll, result in zip(self.rolls, self.result):
                 count, sides, roll = roll
@@ -97,25 +113,6 @@ class Dices:
             return f"```{self.text}\n{buffer}= {int(self.result)}```"
 
         return self.text
-
-    def _roll(self, count, sides, dont_save=False):
-        if count <= 0:
-            raise ValueError(locale.number_of_dices_should_be_gte)
-
-        if sides <= 0:
-            raise ValueError(locale.number_of_sides_should_be_gte)
-
-        rolls = []
-        for _ in range(count):
-            rolls.append(random.randint(1, sides))
-
-        if not dont_save:
-            self.rolls.append((count, sides, Value(rolls)))
-
-        if not self.has_rolls:
-            self.has_rolls = True
-
-        return rolls
 
     def _skip_ws(self):
         match = T_WS.match(self.text, self.position)
@@ -159,12 +156,14 @@ class Dices:
         else:
             right = self._parse_atom()
 
-        dont_save = self._match(T_EXCL)
-
         left = int(left)
         right = int(right)
 
-        return Value(self._roll(left, right, dont_save=bool(dont_save)))
+        roll = Value(_roll(left, right))
+
+        self._rolls.append((left, right, roll))
+
+        return roll
 
     def _parse_atom(self):
         if self._match(T_OPEN_PAREN):
@@ -178,8 +177,6 @@ class Dices:
             return expr
         elif self._match(T_MINUS):
             return self._parse_atom().apply(operator.neg)
-        elif self._match(T_TILDE):
-            return Value(int(self._parse_atom()))
         elif match := self._match(T_DIGIT):
             left = int(match[0])
 
@@ -217,17 +214,21 @@ class Dices:
 
             self.names[right] = left
 
-            return
-
         return left
 
     def _parse_exprs(self):
         exprs = []
         while not self._done():
+            rolls_count = len(self._rolls)
+
             expr = self._parse_expr()
 
-            if expr is not None:
-                exprs.append(expr)
+            if len(self._rolls) == rolls_count:
+                raise SyntaxError(locale.expression_does_not_contain_rolls)
+
+            self.rolls.append(self._rolls.pop(-1))
+
+            exprs.append(expr)
 
         if not exprs:
             raise SyntaxError(locale.expression_should_not_be_empty)
@@ -238,12 +239,9 @@ class Dices:
         self.names = {str(k).lower(): Value(vars[k]) for k in vars}
         self.position = 0
         self.rolls = []
-        self.has_rolls = False
+        self._rolls = []
 
         self.result = self._parse_exprs()
-
-        if not self.has_rolls:
-            raise ValueError(locale.expression_does_not_contain_rolls)
 
         return self
 
@@ -262,26 +260,10 @@ def roll_dices(dices, vars={}):
 
 
 if __name__ == "__main__":
-    print(Dices("d20").roll())
-    print(Dices("1d20").roll())
-    print(Dices("2d20").roll())
-    print(Dices("2d20+3").roll())
-    print(Dices("2d20 + 2d20").roll())
-    print(Dices("d20 d20+3").roll())
-    print(Dices("5d20").roll())
-    print(Dices("d20 + (d5 * 5)").roll())
-    print(Dices("-d5").roll())
-    print(Dices("-d5 + -d5").roll())
-    print(Dices("d20+5 d20+3").roll())
-    print(Dices("(5d20) * 2 d20").roll())
-    print(Dices("d(5*2)").roll())
-    print(Dices("d20:x x*2").roll())
-    print(Dices("2d5:x x+1").roll())
-    print(Dices("2d5:x ~(x+1)").roll())
-    print(Dices("2d5!:x dx").roll())
-    print(Dices("4d4:x x*2").roll())
-    print(Dices("4d4:x ~x*2").roll())
-    print(Dices("d20+ЛВК").roll({"ЛВК": 5}))
-    print(Dices("ЛВКd5").roll({"ЛВК": 5}))
-    print(Dices("ЛВК d5").roll({"ЛВК": 5}))
+    print(Dices("d20 d20").roll())
     print(Dices("d(d5 * d(3d20^5))").roll())
+    print(Dices("d20+3").roll())
+    print(Dices("d20 + d20").roll())
+    print(Dices("d20:x dx").roll())
+    print(Dices("d20+ЛВК").roll({"ЛВК": 5}))
+    print(Dices("2d5:x d4+x").roll())
