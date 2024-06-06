@@ -15,16 +15,14 @@
 
     "T_NAME": "name",
     "T_COLON" : "colon",
-    "T_TILDE": "tilde",
-    "T_EXCL": "exclamation mark",
     "T_DICE": "dice",
     "T_OP": "operator",
     "T_DIGIT": "number",
     "T_OPEN_PAREN": "open parenthesis",
     "T_CLOSE_PAREN": "closing parenthesis",
 
-    "number_of_dices_should_be_gte": "The number of dices should be greater than zero.",
-    "number_of_sides_should_be_gte": "The number of sides should be greater than zero.",
+    "number_of_dices_should_be_gtz": "The number of dices should be greater than zero.",
+    "number_of_sides_should_be_gtz": "The number of sides should be greater than zero.",
     "unexpected_input": "Unexpected input on position `#{position}`: expected `{expected}`.",
     "undefined_variable": "Undefined variable: `{name}`.",
     "number_dice_or_a_variable": "number, dice or a variable",
@@ -35,5 +33,12 @@
     "user_already_exists": "User already exists.",
     "user_was_successfully_created": "User was successfully created.",
     "user_was_successfully_removed": "User was successfully removed.",
-    "user_does_not_exist": "User doesn't exist."
+    "user_does_not_exist": "User doesn't exist.",
+
+    "template_should_not_contain_more_than_one_placeholder": "Template shouldn't contain more than one placeholder (`*`).",
+    "empty_blocks_are_forbidden": "Empty blocks (`[...]`) are forbidden.",
+    "missing_closing_bracket": "Missing closing square bracket (`]`).",
+    "incorrect_escape": "Incorrect escape.",
+    "template_should_contain_at_least_one_placeholder": "Template should contain at least one placeholder (`*`).",
+    "template_should_contain_something_aside_from_placeholder": "Template should contain something aside from placeholder (`*`)."
 }
