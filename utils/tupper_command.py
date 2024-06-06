@@ -4,6 +4,7 @@ from collections import namedtuple
 import discord
 from loguru import logger
 
+import config
 from utils.dices import roll_dices
 from database.models.user import User
 from localization import locale
@@ -44,7 +45,7 @@ async def get_webhook(bot, channel_id: int):
 def parse_tupper_command(text):
     text = text.strip()
 
-    if not text or not text.startswith("!"):
+    if not text or not text.startswith(config.prefixes):
         return None
 
     parts = shlex.split(text[1:])

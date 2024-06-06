@@ -29,7 +29,7 @@ class TupperMessageCog(commands.Cog):
         return await get_webhook(self.bot, channel_id)
 
     async def _remove_message(
-            self, payload: discord.RawReactionActionEvent, db_user: User, metadata_dict
+        self, payload: discord.RawReactionActionEvent, db_user: User, metadata_dict
     ):
         if str(payload.emoji) != self.reaction_to_remove:
             return
@@ -40,7 +40,7 @@ class TupperMessageCog(commands.Cog):
         await webhook.delete_message(payload.message_id)
 
     async def _create_edit_message(
-            self, payload: discord.RawReactionActionEvent, db_user: User, metadata_dict
+        self, payload: discord.RawReactionActionEvent, db_user: User, metadata_dict
     ):
         if str(payload.emoji) != self.reaction_to_edit:
             return
@@ -78,7 +78,7 @@ class TupperMessageCog(commands.Cog):
 
         # TODO check this strange bruh moment. need support custom emoji
         if (str(payload.emoji) != self.reaction_to_edit) and (
-                str(payload.emoji) != self.reaction_to_remove
+            str(payload.emoji) != self.reaction_to_remove
         ):
             return
 
@@ -103,9 +103,8 @@ class TupperMessageCog(commands.Cog):
     async def _edit_tupper_message(self, new_message: discord.Message):
         message_with_metadata = None
         async for message in new_message.channel.history(
-                before=new_message, limit=10, oldest_first=False
+            before=new_message, limit=10, oldest_first=False
         ):
-
             if message.content.find(hidden_header) > -1:
                 message_with_metadata = message
                 break
@@ -148,7 +147,8 @@ class TupperMessageCog(commands.Cog):
 
         hidden_data = {"nothing_to_edit": True}
         message_relpy = NonPrintableEncoder.encode(
-            locale.format("message_edited", jump_url=message.jump_url), json.dumps(hidden_data).encode()
+            locale.format("message_edited", jump_url=message.jump_url),
+            json.dumps(hidden_data).encode(),
         )
 
         await new_message.reply(message_relpy)
@@ -177,7 +177,7 @@ class TupperMessageCog(commands.Cog):
         async for other_tupper in db_user.tuppers:
             if match := re.match(other_tupper.call_pattern, message_content):
                 tupper = other_tupper
-                message_content = match.groups(1)[0]
+                message_content = match.group(1)
                 break
 
         if not tupper:

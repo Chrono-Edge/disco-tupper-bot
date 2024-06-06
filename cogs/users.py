@@ -11,7 +11,7 @@ import discord
 from discord.ext import commands
 from config import logger
 from database.models.user import User
-
+from localization import locale
 
 class UserCog(commands.Cog):
     def __init__(self, bot: discord.ext.commands.Bot):
@@ -22,10 +22,10 @@ class UserCog(commands.Cog):
     async def create_user(self, ctx: discord.ext.commands.Context, member: discord.Member):
         local_user = await User.get(discord_id=member.id)
         if not local_user:
-            await ctx.send(f"User already exist")
+            await ctx.send(locale.user_already_exists)
             return
         await User.create(discord_id=member.id)
-        await ctx.send(f"Create user {member.mention} in database")
+        await ctx.send(locale.user_was_successfully_created)
 
     @commands.hybrid_command(name="admin_remove_user")
     @commands.has_any_role(*config.admin_roles)
@@ -33,10 +33,10 @@ class UserCog(commands.Cog):
         local_user = await User.get(discord_id=member.id)
         if not local_user:
             await local_user.delete()
-            await ctx.send(f"User {member.mention} removed")
+            await ctx.send(locale.user_was_successfully_removed)
             return
 
-        await ctx.send(f"User {member.mention} not exist in database")
+        await ctx.send(locale.user_does_not_exist)
 
     @commands.hybrid_command(name="sync_commands")
     @commands.has_any_role(*config.admin_roles)
