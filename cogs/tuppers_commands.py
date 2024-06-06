@@ -1,3 +1,4 @@
+import math
 import re
 from database.models.user import User
 from database.models.tupper import Tupper
@@ -32,25 +33,35 @@ class ListMenu(discord.ui.View):
         self.value = None
 
     @staticmethod
-    async def tupper_list_page(discord_user: discord.Member, page=0):
-        user = await User.get_or_create(discord_id=discord_user.id)
-        embed = discord.Embed(colour=0x00B0F4, timestamp=datetime.now())
+    async def tupper_list_page(client: discord.Client, discord_user: [discord.User, discord.Member], page=0):
+        user, ___ = await User.get_or_create(discord_id=discord_user.id)
 
-        embed.set_author(name=f"Тапперы {discord_user.display_name}:")
-        for tupper in await user.tuppers.offset(page * 25).limit(25).all():
+        embeds_list = []
+
+        hidden_data = {"member_id": discord_user.id, "page": page}
+        hidden_text = NonPrintableEncoder.encode_dict(
+            "", hidden_data
+        )
+
+        for tupper in await user.tuppers.offset(page * 10).limit(10).all():
+            embed = discord.Embed(colour=0x00B0F4, timestamp=datetime.now())
+            embed.set_author(name=f"{tupper.name}")
+            # TODO locale.format
+            human_like_call_pattern = tupper.call_pattern.replace("^", "")
+            human_like_call_pattern = human_like_call_pattern.replace("(.*)$", "")
+
+            human_like_owners = [await client.fetch_user(user.discord_id) for user in await tupper.owners.all()]
+            human_like_owners = [f"`{user.name}`" for user in human_like_owners]
+
             embed.add_field(
-                name=tupper.name,
-                value=locale.format(
-                    "tupper_call_pattern", call_pattern=tupper.call_pattern
-                ),
+                name="Info",
+                value=f"Call pattern: `{human_like_call_pattern}`\n Owners: {' '.join(human_like_owners)}",
                 inline=False,
             )
-        hidden_data = {"member_id": discord_user.id, "page": page}
-        hidden_text = NonPrintableEncoder.encode(
-            "Meta info", json.dumps(hidden_data).encode()
-        )
-        embed.set_footer(text=hidden_text)
-        return embed
+            embed.set_thumbnail(url=tupper.image)
+            embeds_list.append(embed)
+
+        return hidden_text, embeds_list
 
     @discord.ui.button(
         label="Left",
@@ -60,13 +71,27 @@ class ListMenu(discord.ui.View):
     async def left_step(
             self, interaction: discord.Interaction, button: discord.ui.Button
     ):
-        embed = interaction.message.embeds[0]
-        interaction.user.roles
+        client = interaction.client
+        _, meta_dict = NonPrintableEncoder.decode_dict(interaction.message.content)
 
-        _, hidden_data = NonPrintableEncoder.decode(embed.footer.text)
-        meta_dict = json.loads(hidden_data)
-        print()
-        pass
+        if ("member_id" not in meta_dict) and ("page" not in meta_dict):
+            return
+
+        member_id = meta_dict.get("member_id")
+        page = meta_dict.get("page")
+
+        page = page - 1
+        if page < 0:
+            page = 0
+
+        member = await interaction.guild.fetch_member(member_id)
+        is_user_admin = await Permissions.is_user_admin(config.admin_roles, member, interaction.guild)
+
+        if (interaction.user.id != member_id) and not is_user_admin:
+            return
+
+        message, embeds = await ListMenu.tupper_list_page(client, member, page)
+        await interaction.response.edit_message(content=message, embeds=embeds)
 
     @discord.ui.button(
         label="Right",
@@ -76,14 +101,32 @@ class ListMenu(discord.ui.View):
     async def right_step(
             self, interaction: discord.Interaction, button: discord.ui.Button
     ):
-        embed = interaction.message.embeds[0]
-        _, hidden_data = NonPrintableEncoder.decode(embed.footer.text)
-        meta_dict = json.loads(hidden_data)
+        client = interaction.client
+        _, meta_dict = NonPrintableEncoder.decode_dict(interaction.message.content)
 
-        user = await User.get_or_create(discord_id=meta_dict["member_id"])
+        if ("member_id" not in meta_dict) and ("page" not in meta_dict):
+            return
 
-        print(hidden_data.decode())
-        pass
+        member_id = meta_dict.get("member_id")
+        page = meta_dict.get("page")
+        if interaction.user.id != member_id:
+            return
+
+        user, ___ = await User.get_or_create(discord_id=member_id)
+
+        page = page + 1
+        max_page = math.ceil(await user.tuppers.all().count() / 10) - 1
+        if page > max_page:
+            page = max_page
+
+        member = await interaction.guild.fetch_member(member_id)
+        is_user_admin = await Permissions.is_user_admin(config.admin_roles, member, interaction.guild)
+
+        if (interaction.user.id != member_id) and not is_user_admin:
+            return
+
+        message, embeds = await ListMenu.tupper_list_page(client, member, page)
+        await interaction.response.edit_message(content=message, embeds=embeds)
 
 
 class TupperCommandsCog(commands.Cog):
@@ -258,11 +301,16 @@ class TupperCommandsCog(commands.Cog):
     @commands.hybrid_command(name="tupper_list")
     @commands.has_any_role(*config.player_roles)
     async def tupper_list(self, ctx, member: typing.Optional[discord.Member]):
-        view = ListMenu()
+        view = None
         discord_user, _ = await self._get_user_to_edit_tupper(ctx, member)
-        embed = await ListMenu.tupper_list_page(discord_user, 0)
+        message, embeds = await ListMenu.tupper_list_page(self.bot, discord_user, 0)
+        user = await User.filter(discord_id=discord_user.id).first()
 
-        await ctx.reply(embed=embed, view=view)
+        count_tuppers = await user.tuppers.all().count()
+        if count_tuppers > 10:
+            view = ListMenu()
+
+        await ctx.reply(content=message, embeds=embeds, view=view)
 
     @commands.hybrid_command(name="set_attribute")
     @commands.has_any_role(*config.player_roles)
