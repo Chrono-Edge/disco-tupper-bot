@@ -109,7 +109,9 @@ async def _command_send(ctx, tupper, command):
 
     return locale.format("current_balance", balance=new_balance)
 
+
 async def _command_attributes(ctx, tupper, command):
+    # TODO info text from localization
     buffer = ""
 
     async for attr in tupper.attrs:
@@ -117,15 +119,28 @@ async def _command_attributes(ctx, tupper, command):
 
     return buffer
 
+
+async def _command_inventory(ctx, tupper, command):
+    # TODO info text from localization
+    buffer = ""
+
+    async for item in tupper.items:
+        buffer += f"`{item.name}` ({item.quantity})\n `{item.description}`\n"
+
+    return buffer
+
+
 TUPPER_COMMANDS = {
     "roll": _command_roll,
     "balance": _command_balance,
     "send": _command_send,
     "attributes": _command_attributes,
+    "inventory": _command_inventory
 }
 
 for key in dict(TUPPER_COMMANDS):
     TUPPER_COMMANDS[key[0]] = TUPPER_COMMANDS[key]
+
 
 async def handle_tupper_command(ctx, tupper, message_content):
     print(ctx, tupper, message_content)
