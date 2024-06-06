@@ -109,6 +109,7 @@ async def _command_send(ctx, tupper, command):
 
     return locale.format("current_balance", balance=new_balance)
 
+
 async def _command_attributes(ctx, tupper, command):
     buffer = ""
 
@@ -116,6 +117,7 @@ async def _command_attributes(ctx, tupper, command):
         buffer += f"`{attr.name}`: `{attr.value}`\n"
 
     return buffer
+
 
 TUPPER_COMMANDS = {
     "roll": _command_roll,
@@ -127,8 +129,8 @@ TUPPER_COMMANDS = {
 for key in dict(TUPPER_COMMANDS):
     TUPPER_COMMANDS[key[0]] = TUPPER_COMMANDS[key]
 
+
 async def handle_tupper_command(ctx, tupper, message_content):
-    print(ctx, tupper, message_content)
     command = parse_tupper_command(message_content)
     if not command:
         return

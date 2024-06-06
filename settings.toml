@@ -17,6 +17,7 @@ player_roles = ['test_player_role']
 reaction_to_edit = "📝"
 reaction_to_remove = "❌"
 language = "en"
+log_channel_id = 0
 
 [actor]
 default_avatar_url = "https://chrono-edge.taruu.ru/images/c/c9/Logo.png"
