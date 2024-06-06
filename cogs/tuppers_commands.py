@@ -105,19 +105,6 @@ class TupperCommandsCog(commands.Cog):
     async def _get_webhook(self, channel_id: int):
         return get_webhook(self.bot, channel_id)
 
-    @commands.command(name="test")
-    async def test(self, ctx: discord.ext.commands.Context):
-        await ctx.send("99 responce")
-
-    @commands.command(name="get_info")
-    async def get_mess_info(self, ctx, ch_id: int, mess_id: int):
-        channel = await self.bot.fetch_channel(ch_id)
-        message = await channel.fetch_message(mess_id)
-        decode_text = NonPrintableEncoder.decode(message.content)
-        logger.info(message.content)
-        logger.info(decode_text.decode())
-        await ctx.send(f"Hidden text {decode_text}")
-
     @commands.hybrid_command(name="create_tupper")
     @commands.has_any_role(*config.player_roles)
     async def create_tupper(
@@ -166,7 +153,6 @@ class TupperCommandsCog(commands.Cog):
 
         if not tupper:
             await ctx.reply(locale.format("no_such_tupper", tupper_name=name))
-
             return
 
         name = tupper.name
@@ -243,13 +229,30 @@ class TupperCommandsCog(commands.Cog):
 
     @commands.hybrid_command(name="add_user_to_tupper")
     @commands.has_any_role(*config.player_roles)
-    async def add_user_to_tupper(self, ctx):
-        pass
+    async def add_user_to_tupper(self, ctx: discord.ext.commands.Context,
+                                 tupper_name: str,
+                                 user_add: discord.Member,
+                                 tupper_owner: typing.Optional[discord.Member]):
+        _, target_user = await self._get_user_to_edit_tupper(ctx, tupper_owner)
+        user_to_add = await User.get(discord_id=user_add.id)
+
+        tupper: Tupper = await target_user.tuppers.filter(name=tupper_name).first()
+        await user_to_add.tuppers.add(tupper)
+        await ctx.reply("Add tupper {name} ({owner}) to user {user_add}")
 
     @commands.hybrid_command(name="remove_user_to_tupper")
     @commands.has_any_role(*config.player_roles)
-    async def remove_user_from_tupper(self, ctx):
-        pass
+    async def remove_user_from_tupper(self, ctx: discord.ext.commands.Context,
+                                      tupper_name: str,
+                                      user_add: discord.Member,
+                                      tupper_owner: typing.Optional[discord.Member]):
+        _, target_user = await self._get_user_to_edit_tupper(ctx, tupper_owner)
+        user_to_add = await User.get(discord_id=user_add.id)
+
+        tupper: Tupper = await target_user.tuppers.filter(name=tupper_name).first()
+        await user_to_add.tuppers.remove(tupper)
+
+        await ctx.reply("Add tupper {name} ({owner}) to user {user_add}")
 
     @commands.hybrid_command(name="tupper_list")
     @commands.has_any_role(*config.player_roles)
@@ -302,7 +305,6 @@ class TupperCommandsCog(commands.Cog):
 
         if not tupper:
             await ctx.reply(locale.no_such_tupper)
-
             return
 
         await ctx.reply(locale.format("current_balance", tupper.balance))
