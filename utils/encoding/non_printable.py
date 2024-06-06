@@ -41,10 +41,12 @@ class NonPrintableEncoder:
         Raises:
             ValueError: If the encoded string is in an incorrect format.
         """
-
-        text, dict_bytes = NonPrintableEncoder.decode(encoded_string)
+        try:
+            text, dict_bytes = NonPrintableEncoder.decode(encoded_string)
+            dict_data = json.loads(dict_bytes.decode())
+        except ValueError:
+            text, dict_data = encoded_string, None
         # TODO need get error catch
-        dict_data = json.loads(dict_bytes.decode())
 
         return text, dict_data
 

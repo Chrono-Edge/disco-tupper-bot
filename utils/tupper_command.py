@@ -44,18 +44,18 @@ async def get_webhook(bot, channel_id: int):
 def parse_tupper_command(text):
     text = text.strip()
 
-    if not text or not text.startswith("!"):
+    if not text and not text.startswith("!"):
         return None
 
     parts = shlex.split(text[1:])
-
     if len(parts) < 1:
         return None
 
-    return Command(name=parts[0].lower(), args=parts[1:], argc=len(parts) - 1)
+    return Command(name=parts[0].lower().strip(), args=parts[1:], argc=len(parts) - 1)
 
 
 async def _command_roll(ctx, tupper, command):
+    print("_command_roll", tupper, command)
     if command.argc < 1:
         return
 
@@ -83,7 +83,8 @@ async def _command_send(ctx, tupper, command):
         return
 
     if command.argc == 2:
-        to_tupper = await user.tuppers.first()
+        #TODO not docuemted
+        to_tupper = await user.tuppers.all().first()
         amount = command.args[1]
     else:
         to_tupper = await user.tuppers.filter(name=command.args[1]).first()
@@ -121,12 +122,11 @@ TUPPER_COMMANDS.update(ALIES_TUPPER_COMMANDS)
 
 
 async def handle_tupper_command(ctx, tupper, message_content):
-    print(ctx, tupper, message_content)
     command = parse_tupper_command(message_content)
     if not command:
-        return
+        return None
 
-    if command.name not in TUPPER_COMMANDS:
-        return
+    if command.name.strip() not in TUPPER_COMMANDS:
+        return None
 
-    await TUPPER_COMMANDS[command.name](ctx, tupper, command)
+    return await TUPPER_COMMANDS[command.name](ctx, tupper, command)
