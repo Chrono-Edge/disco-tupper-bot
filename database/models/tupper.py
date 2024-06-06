@@ -3,6 +3,7 @@
 from database.validators import url, integers
 
 
+
 class Tupper(Model):
     id = fields.BigIntField(pk=True)
     name = fields.CharField(max_length=255)
@@ -12,7 +13,7 @@ class Tupper(Model):
     inventory_chat_id = fields.IntField(default=0)
     created_at = fields.DatetimeField(auto_now_add=True)
 
-    owners: fields.ReverseRelation["Tupper"]
+    owners: fields.ManyToManyRelation["models.User"]
     items: fields.ReverseRelation["models.Item"]
     attrs: fields.ReverseRelation["models.Attribute"]
 

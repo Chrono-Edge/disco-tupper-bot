@@ -8,7 +8,7 @@ class User(Model):
     id = fields.IntField(pk=True)
     discord_id = fields.IntField(unique=True)
     tuppers: fields.ManyToManyRelation["models.Tupper"] = fields.ManyToManyField(
-        "models.Tupper", related_name="user", through="user_tuppers"
+        "models.Tupper", related_name="owners", through="user_tuppers"
     )
 
     class Meta:
