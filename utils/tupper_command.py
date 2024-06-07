@@ -203,14 +203,14 @@ async def _command_give(ctx, tupper, command):
     item = await Item.filter(name=name, tupper_owner=tupper).first()
     if not item:
         return locale.not_enough_items
-    
+
     if item.quantity < quantity:
         return locale.not_enough_items
-    
+
     if quantity == item.quantity:
         await Item.filter(id=item.id).delete()
     else:
-        await Item.filter(id=item.id).update(quantity=F('quantity') - quantity)
+        await Item.filter(id=item.id).update(quantity=F("quantity") - quantity)
 
     item = await Item.filter(name=name, tupper_owner=to_tupper).first()
     if not item:
