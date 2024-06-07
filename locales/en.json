@@ -1,17 +1,28 @@
 {
     "tupper_call_pattern": "Tupper call pattern: `{call_pattern}`.",
     "tupper_already_exists": "Tupper with such name or/and call pattern already exists.",
-    "tupper_was_successfully_created": "Tupper was successfully created.",
+
     "no_such_tupper": "No such tupper: `{tupper_name}`",
     "tupper_was_successfully_removed": "Tupper was successfully removed.",
+    "tupper_not_used_and_remove" :  "Tapper {tupper_name} was removed because it is not used",
+    "remove_owner_from_tupper" : "Tapper {tupper_name} owner {user_mention} was removed",
+    "add_owner_form_tupper" : "Tapper {tupper_name} owner {user_mention} has been added",
+    "set_inventory_chat" : "Tapper {tupper_name} had a chat inventory installed.",
     "illegal_attribute_name": "Illegal attribute name.",
     "attribute_was_successfully_changed": "Attribute value was successfully changed.",
+    "admin_balance_add" : "Tupper {tupper_name} has added {balance} to balance.",
     "current_balance": "Current balance: `{balance}`.",
     "balance_is_too_low": "Your balance is too low: need `{need}`, have: `{have}`.",
     "editing_message": "Editing message ```{message}```:",
     "send_content_of_new_message": "Please send me the new content of the message here:",
     "nothing_to_edit": "Nothing to edit.",
     "message_edited": "Messaged edited: {jump_url}",
+
+
+    "successful_edit_tupper": "Successfully changed {tupper_name} tapper data",
+    "tupper_was_successfully_created": "Tupper was successfully created.",
+    "edit_tupper_test_message" :  "-- I am foxgirl now?",
+    "create_tupper_test_message" : "-- Hello world!",
 
     "T_NAME": "name",
     "T_COLON" : "colon",

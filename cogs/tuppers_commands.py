@@ -191,7 +191,7 @@ class TupperCommandsCog(commands.Cog):
 
         webhook, thread = await self._get_webhook(ctx.channel.id)
         await webhook.send(
-            "-- Hello world!",
+            locale.create_tupper_test_message,
             username=tupper.name,
             avatar_url=tupper.image,
             thread=thread
@@ -258,11 +258,11 @@ class TupperCommandsCog(commands.Cog):
             tupper.image = avatar.url
 
         await tupper.save()
-        await ctx.reply(f"Successful edit tupper: {tupper.name}")
+        await ctx.reply(locale.format("successful_edit_tupper", tupper_name=tupper_name))
         webhook, thread = await self._get_webhook(ctx.channel.id)
 
         await webhook.send(
-            "-- I am foxgirl now?",
+            locale.edit_tupper_test_message,
             username=tupper.name,
             avatar_url=tupper.image,
             thread=thread
@@ -286,7 +286,7 @@ class TupperCommandsCog(commands.Cog):
         tupper.inventory_chat_id = ctx.channel.id
         await tupper.save()
 
-        await ctx.reply("Inventory set chat")
+        await ctx.reply(locale.format("set_inventory_chat", tupper_name=tupper_name))
 
     @commands.hybrid_command(name="add_user_to_tupper")
     @commands.has_any_role(*config.player_roles)
@@ -307,7 +307,7 @@ class TupperCommandsCog(commands.Cog):
             return
 
         await user_to_add.tuppers.add(tupper)
-        await ctx.reply(f"Add tupper {tupper.name} to user {user_add.mention}")
+        await ctx.reply(locale.format("add_owner_form_tupper", tupper_name=tupper_name, user_mention=user_add.mention))
 
     @commands.hybrid_command(name="remove_user_to_tupper")
     @commands.has_any_role(*config.player_roles)
@@ -331,9 +331,10 @@ class TupperCommandsCog(commands.Cog):
 
         if tupper.owners.all().count() == 0:
             await tupper.delete()
-            await ctx.reply(f"Tupper {tupper_name} removed because not exist users")
+            await ctx.reply(locale.format("tupper_not_used_and_remove", tupper_name=tupper_name))
 
-        await ctx.reply(f"Remove tupper {tupper.name} from user {user_remove.mention}")
+        await ctx.reply(
+            locale.format("remove_owner_from_tupper", tupper_name=tupper_name, user_mention=user_remove.mention))
 
     @commands.hybrid_command(name="tupper_list")
     @commands.has_any_role(*config.player_roles)
@@ -349,6 +350,21 @@ class TupperCommandsCog(commands.Cog):
             view = ListMenu()
 
         await ctx.reply(content=message, embeds=embeds, view=view)
+
+    @commands.hybrid_command(name="admin_balance_set")
+    @commands.has_any_role(*config.admin_roles)
+    async def admin_balance_set(self, ctx, tupper_name: str, balance: int,
+                                tupper_owner: typing.Optional[discord.Member]):
+        _, target_user = await self._get_user_to_edit_tupper(ctx, tupper_owner)
+
+        tupper: Tupper = await target_user.tuppers.filter(name=tupper_name).first()
+        if not tupper:
+            await ctx.reply(locale.no_such_tupper)
+            return
+
+        tupper.balance = tupper.balance + balance
+        await tupper.save()
+        await ctx.reply(locale.format("admin_balance_add", tupper_name=tupper_name, balance=balance))
 
 
 async def setup(bot: "DiscoTupperBot"):

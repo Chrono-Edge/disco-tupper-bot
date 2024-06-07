@@ -97,6 +97,7 @@ def parse_tupper_command(text):
 
 
 async def _command_roll(call_message, tupper, command):
+    """Dice roll"""
     if command.argc < 1:
         return
 
@@ -112,6 +113,7 @@ async def _command_balance(call_message, tupper, command):
 
 
 async def _command_send(call_message, tupper, command):
+    """Send money to another tupper"""
     if command.argc != 1:
         return None
 
@@ -144,12 +146,13 @@ async def _command_send(call_message, tupper, command):
 
 
 async def _command_attributes(call_message, tupper, command):
+    """command attributes set"""
     # TODO info text from localization
     if command.argc == 2:
         name = command.args[0].strip().lower()
         if not re.match(r"^[а-яa-z]{2,3}$", name):
             return locale.illegal_attribute_name
-        
+
         try:
             value = int(command.args[1])
         except ValueError:
@@ -174,6 +177,7 @@ async def _command_attributes(call_message, tupper, command):
 
 
 async def _command_inventory(call_message, tupper, command):
+    """inventory commands"""
     # TODO info text from localization
     buffer = f"Inventory of `{tupper.name}`:"
 
@@ -187,6 +191,7 @@ async def _command_inventory(call_message, tupper, command):
 
 
 async def _command_take(call_message, tupper, command):
+    """Take item"""
     if command.argc not in (1, 2):
         return None
 
@@ -211,6 +216,7 @@ async def _command_take(call_message, tupper, command):
 
 
 async def _command_give(call_message, tupper, command):
+    """give out item"""
     if command.argc not in (1, 2):
         return None
 
