@@ -3,6 +3,9 @@ import shlex
 import importlib
 from collections import namedtuple
 
+import discord
+from loguru import logger
+
 import config
 
 
@@ -14,9 +17,17 @@ class Context:
         self.command = command
 
     async def log(self, text, **kwargs):
-        channel = await self.bot.fetch_channel(self.tupper.inventory_chat_id)
-        if channel:
+        try:
+            channel = await self.bot.fetch_channel(self.tupper.inventory_chat_id)
+
             await channel.send(text.format(**kwargs))
+        except (
+            discord.InvalidData,
+            discord.HTTPException,
+            discord.NotFound,
+            discord.Forbidden,
+        ) as e:
+            logger.warning(f"Failed to log: {e}")
 
 
 Command = namedtuple("Command", ["name", "args", "argc"])
@@ -50,14 +61,14 @@ class TupperCommands:
                 params, desc = self.help_lines[command]
 
                 command = "[" + command[0] + "]" + command[1:]
-                
+
                 if not params:
                     buffer += f"{command}: {desc}\n"
                 else:
                     buffer += f"{command} {params}: {desc}\n"
 
             return f"```{buffer.strip()}```"
-        
+
         self.register_command("help", help)
 
     async def handle_command(self, tupper, message, text):
