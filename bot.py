@@ -46,7 +46,7 @@ class DiscoTupperBot(commands.Bot):
         # This copies the global commands over to your guild.
 
     async def on_ready(self):
-        self.log_channel = self.get_channel(config.log_channel_id)
+        self.log_channel = self.fetch_channel(config.log_channel_id)
         self.remove_command("help")
         logger.info(
             f"Logged in as: {self.user.name} - {self.user.id} Version: {discord.__version__}\n"
