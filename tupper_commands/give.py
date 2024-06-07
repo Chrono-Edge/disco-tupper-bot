@@ -52,7 +52,7 @@ async def handle(ctx):
         await Item.filter(id=item.id).update(quantity=F("quantity") + quantity)
 
     await ctx.log(
-        "- `{quantity}` `{name}` {jump_url}",
+        "− `{quantity}` `{name}` {jump_url}",
         quantity=quantity,
         name=name,
         jump_url=ctx.message.reference.jump_url
