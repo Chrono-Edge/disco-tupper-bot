@@ -3,7 +3,6 @@ import random
 import operator
 from localization import locale
 
-
 def _roll(count, sides):
     if count <= 0:
         raise ValueError(locale.number_of_dices_should_be_gtz)
@@ -70,6 +69,12 @@ class Value:
 
     def __index__(self, index):
         return self.value[index]
+    
+    def __eq__(self, other):
+        if not isinstance(other, Value):
+            return False
+        
+        return self.value == other.value
 
     def apply(self, what, *args):
         args = list(map(int, args))
@@ -100,13 +105,16 @@ class Dices:
 
                 results = ", ".join(
                     map(
-                        lambda t: f"{t[0]}+{t[1]}" if t[1] != 0 else str(t[0]),
+                        lambda t: f"{t[0]}{'' if t[1] < 0 else '+'}{t[1]}" if t[1] != 0 else str(t[0]),
                         zip(roll, map(lambda t: t[1] - t[0], zip(roll, result))),
                     )
                 )
 
                 if "," in results:
                     results = f"[{results}]"
+
+                if roll != result:
+                    results += f" -> {result}"
 
                 buffer += f"{'' if count == 1 else count}d{sides}: {roll} -> {results} ({int(result)})\n"
 
@@ -267,3 +275,4 @@ if __name__ == "__main__":
     print(Dices("d20:x dx").roll())
     print(Dices("d20+ЛВК").roll({"ЛВК": 5}))
     print(Dices("2d5:x d4+x").roll())
+    print(Dices("2d20+РАЗ").roll({"РАЗ": -5}))
