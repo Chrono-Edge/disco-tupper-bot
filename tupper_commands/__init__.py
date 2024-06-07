@@ -27,15 +27,11 @@ class TupperCommands:
         self.bot = bot
 
         self.commands = {}
+        self.help_lines = {}
 
-    def register_command(self, name, handler, aliases=None):
+    def register_command(self, name, handler):
         self.commands[name] = handler
-
-        if not aliases:
-            aliases = [name[0]]
-
-        for name in aliases:
-            self.commands[name] = handler
+        self.commands[name[0]] = handler
 
     def register_commands(self, path="tupper_commands"):
         for module in filter(lambda name: not name.startswith("__"), os.listdir(path)):
@@ -43,6 +39,21 @@ class TupperCommands:
             module = importlib.import_module(f"tupper_commands.{module}")
 
             self.register_command(module, module.handle)
+
+            self.help_lines[module] = getattr(module, "HELP", "N/A")
+
+        async def help(ctx):
+            buffer = ""
+
+            for command in self.help_lines:
+                command = "[" + command[0] + "]" + command[1:]
+
+                params, desc = self.help_lines[command]
+                buffer += f"{command} {params}: {desc}\n"
+
+            return f"```{buffer.strip()}```"
+        
+        self.register_command("help", help)
 
     async def handle_command(self, tupper, message, text):
         text = text.strip()

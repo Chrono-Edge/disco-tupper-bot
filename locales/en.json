@@ -59,5 +59,27 @@
     "successfully_gived": "Successfully gived away `{quantity}` `{name}`.",
     "successfully_used": "Successfully used `{quantity}` `{name}`.",
     "inventory_of": "Inventory of `{tupper_name}`:",
-    "empty": "```Empty```"
+    "empty": "```Empty```",
+
+    "attributes_params": "[name value]",
+    "attributes_desc": "See or set attributes.",
+
+    "balance_desc": "See balance.",
+
+    "give_params": "<item> [quantity]",
+    "give_desc": "Give an item.",
+
+    "inventory_desc": "See list of items.",
+
+    "roll_params": "<dices...>",
+    "roll_desc": "Roll a dice or dices.",
+
+    "send_params": "<amount>",
+    "send_desc": "Send some money.",
+
+    "take_params": "<item> [quantity]",
+    "take_desc": "Take an item.",
+
+    "use_params": "<item> [quantity]",
+    "use_desc": "Use an item."
 }

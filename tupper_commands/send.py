@@ -4,6 +4,8 @@ from database.models.tupper import Tupper
 
 from tortoise.expressions import F
 
+HELP = (locale.send_params, locale.send_desc)
+
 
 async def handle(ctx):
     if ctx.command.argc != 1:

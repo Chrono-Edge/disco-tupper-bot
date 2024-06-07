@@ -3,6 +3,8 @@ import re
 from localization import locale
 from database.models.attribute import Attribute
 
+HELP = (locale.attributes_params, locale.attributes_desc)
+
 
 async def handle(ctx):
     if ctx.command.argc == 2:

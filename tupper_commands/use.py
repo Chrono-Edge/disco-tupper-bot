@@ -3,6 +3,8 @@ from database.models.item import Item
 
 from tortoise.expressions import F
 
+HELP = (locale.use_params, locale.use_desc)
+
 
 async def handle(ctx):
     if ctx.command.argc not in (1, 2):

@@ -1,4 +1,7 @@
 from utils.dices import roll_dices
+from localization import locale
+
+HELP = (locale.roll_params, locale.roll_desc)
 
 
 async def handle(ctx):

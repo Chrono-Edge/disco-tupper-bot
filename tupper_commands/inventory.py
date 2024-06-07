@@ -1,5 +1,7 @@
 from localization import locale
 
+HELP = ("", locale.inventory_desc)
+
 
 async def handle(ctx):
     buffer = locale.format("inventory_of", tupper_name=ctx.tupper.name)
