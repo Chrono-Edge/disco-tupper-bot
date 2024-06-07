@@ -18,11 +18,16 @@ from tortoise.expressions import F
 Command = namedtuple("Command", ["name", "args", "argc"])
 
 
-async def get_webhook(bot, channel_id: int):
+async def get_webhook(bot: discord.Client, channel_id: int) -> (discord.Webhook, discord.Thread):
     """Get our webhook"""
     # TODO exception if limit of used webhooks
     try:
         channel = await bot.fetch_channel(channel_id)
+        thread = discord.utils.MISSING
+        if channel.type == discord.ChannelType.public_thread:
+            thread = channel
+            channel = channel.parent
+
         webhooks_list = await channel.webhooks()
         bot_webhook_name = str(bot.user.id)
 
@@ -35,7 +40,7 @@ async def get_webhook(bot, channel_id: int):
             webhook = await channel.create_webhook(name=bot_webhook_name)
             logger.info(f"Created new webhook in channel {channel_id}")
 
-        return webhook
+        return webhook, thread
     except discord.Forbidden:
         logger.error(
             f"Bot does not have permissions to fetch/create webhooks in channel {channel_id}"
@@ -51,7 +56,7 @@ async def get_webhook(bot, channel_id: int):
 def parse_tupper_command(text):
     text = text.strip()
 
-    if not text or not text.startswith(config.prefixes):
+    if not text or not text.startswith(tuple(config.prefixes)):
         return None
 
     try:
@@ -131,10 +136,13 @@ async def _command_attributes(ctx, tupper, command):
 
 async def _command_inventory(ctx, tupper, command):
     # TODO info text from localization
-    buffer = ""
+    buffer = f"Inventory of `{tupper.name}`:"
 
     async for item in tupper.items:
         buffer += f"`{item.name}` ({item.quantity})\n"
+
+    if len(tupper.items) == 0:
+        buffer += f"```Empty```"
 
     return buffer
 
