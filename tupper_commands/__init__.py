@@ -47,9 +47,9 @@ class TupperCommands:
             buffer = ""
 
             for command in self.help_lines:
-                command = "[" + command[0] + "]" + command[1:]
-
                 params, desc = self.help_lines[command]
+                
+                command = "[" + command[0] + "]" + command[1:]
                 buffer += f"{command} {params}: {desc}\n"
 
             return f"```{buffer.strip()}```"
