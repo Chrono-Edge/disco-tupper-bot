@@ -34,13 +34,14 @@ class TupperCommands:
         self.commands[name[0]] = handler
 
     def register_commands(self, path="tupper_commands"):
-        for module in filter(lambda name: not name.startswith("__"), os.listdir(path)):
-            module = module.split(".")[0]
-            module = importlib.import_module(f"tupper_commands.{module}")
+        for name in filter(lambda name: not name.startswith("__"), os.listdir(path)):
+            name = name.split(".")[0]
 
-            self.register_command(module, module.handle)
+            module = importlib.import_module(f"tupper_commands.{name}")
 
-            self.help_lines[module] = getattr(module, "HELP", "N/A")
+            self.register_command(name, module.handle)
+
+            self.help_lines[name] = getattr(module, "HELP", "N/A")
 
         async def help(ctx):
             buffer = ""
