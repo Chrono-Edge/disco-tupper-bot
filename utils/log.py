@@ -1,6 +1,9 @@
 from bot import bot
 
-async def log(text, **kwargs):
+async def log(text, channel=bot.log_channel, **kwargs):
     text = text.format(**kwargs)
 
-    await bot.log_channel.send(text)
+    if isinstance(channel, int):
+        channel = await bot.fetch_channel(channel)
+
+    await channel.send(text)
