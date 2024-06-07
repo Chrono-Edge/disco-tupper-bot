@@ -19,6 +19,9 @@ async def handle(ctx):
     to_tupper = await Tupper.get(id=tupper_id)
     if not to_tupper:
         return locale.no_such_tupper
+    
+    if to_tupper.id == ctx.tupper.id:
+        return locale.cannot_give_to_yourself
 
     if ctx.command.argc == 1:
         name = ctx.command.args[0].strip().lower()
