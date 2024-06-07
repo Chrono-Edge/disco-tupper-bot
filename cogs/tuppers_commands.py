@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING
 import config
 
 import database.models.user
+from utils.discord.action_logger import DiscordLogger
 from utils.encoding.non_printable import NonPrintableEncoder, HEADER
 from utils.tupper_command import get_webhook
 from utils.tupper_template import parse_template
@@ -136,6 +137,7 @@ class ListMenu(discord.ui.View):
 class TupperCommandsCog(commands.Cog):
     def __init__(self, bot: discord.ext.commands.Bot):
         self.bot = bot
+        self.discord_logger = DiscordLogger(self.bot)
         self.reaction_to_edit = config.values.get("bot.reaction_to_edit")
         self.reaction_to_remove = config.values.get("bot.reaction_to_remove")
         self.admin_roles = config.values.get("bot.admin_roles")
@@ -196,6 +198,8 @@ class TupperCommandsCog(commands.Cog):
             avatar_url=tupper.image,
             thread=thread
         )
+        await self.discord_logger.send_log(f"Create tupper {tupper.id}|{tupper.name}|{call_pattern}")
+        logger.info(f"Create tupper {tupper.id}|{tupper.name}|{call_pattern}")
 
     @commands.hybrid_command(name="remove_tupper")
     @commands.has_any_role(*config.player_roles)
