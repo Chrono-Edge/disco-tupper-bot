@@ -22,7 +22,9 @@ async def handle(ctx):
         except ValueError:
             return None
 
-        if not await ctx.tupper.attrs.filter(name=name).exists():
+        old_attr = await ctx.tupper.attrs.filter(name=name).first()
+
+        if not old_attr:
             await ctx.log(
                 "`{name}`: `{value}` {jump_url}",
                 name=name,
@@ -34,8 +36,6 @@ async def handle(ctx):
 
             await Attribute.create(owner=ctx.tupper, name=name, value=value)
         else:
-            old_attr = await ctx.tupper.attrs.get(name=name)
-
             await ctx.log(
                 "`{name}`: `{old_value}` -> `{value}` {jump_url}",
                 name=name,
@@ -46,7 +46,7 @@ async def handle(ctx):
                 else ctx.message.jump_url,
             )
 
-            await ctx.tupper.attrs.filter(name=name).update(value=value)
+            await ctx.tupper.attrs.filter(id=old_attr.id).update(value=value)
 
         return locale.attribute_was_successfully_changed
 
