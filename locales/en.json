@@ -45,5 +45,5 @@
     "reference_message_not_found": "Reference message not found.",
     "successfully_obtained": "Successfully obtained `{quantity}` `{name}`.",
     "not_enough_items": "You don't have enough items to give.",
-    "successfully_gived": "Successfully gived away `{quantity}` `{name}`.",
+    "successfully_gived": "Successfully gived away `{quantity}` `{name}`."
 }

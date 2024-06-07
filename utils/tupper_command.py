@@ -9,7 +9,7 @@ from utils.dices import roll_dices
 from database.models.user import User
 from database.models.tupper import Tupper
 from database.models.item import Item
-from bot import bot
+
 from utils.encoding.non_printable import NonPrintableEncoder
 from utils.encoding.non_printable import HEADER
 from localization import locale
@@ -70,7 +70,7 @@ def parse_tupper_command(text):
     return Command(name=parts[0].lower(), args=parts[1:], argc=len(parts) - 1)
 
 
-async def _command_roll(ctx, tupper, command):
+async def _command_roll(call_message, tupper, command):
     if command.argc < 1:
         return
 
@@ -81,15 +81,16 @@ async def _command_roll(ctx, tupper, command):
     return roll_dices(" ".join(command.args), vars=vars)
 
 
-async def _command_balance(ctx, tupper, command):
+async def _command_balance(call_message, tupper, command):
     return locale.format("current_balance", balance=tupper.balance)
 
 
-async def _command_send(ctx, tupper, command):
+async def _command_send(call_message, tupper, command):
+    """Send money to another "tupper"""
     if command.argc not in (2, 3):
         return
 
-    member = ctx.guild.get_member_named(command.args[0].strip())
+    member = call_message.guild.get_member_named(command.args[0].strip())
     if not member:
         return locale.user_does_not_exist
 
@@ -134,7 +135,7 @@ async def _command_attributes(ctx, tupper, command):
     return buffer
 
 
-async def _command_inventory(ctx, tupper, command):
+async def _command_inventory(call_message, tupper, command):
     # TODO info text from localization
     buffer = f"Inventory of `{tupper.name}`:"
 
@@ -147,7 +148,7 @@ async def _command_inventory(ctx, tupper, command):
     return buffer
 
 
-async def _command_take(ctx, tupper, command):
+async def _command_take(call_message, tupper, command):
     if command.argc not in (1, 2):
         return None
 
@@ -171,18 +172,18 @@ async def _command_take(ctx, tupper, command):
     return locale.format("successfully_obtained", name=name, quantity=quantity)
 
 
-async def _command_give(ctx, tupper, command):
+async def _command_give(call_message: discord.Message, tupper, command):
     if command.argc not in (1, 2):
         return None
 
-    if not ctx.message.reference:
+    if not call_message.reference:
         return locale.reference_message_not_found
 
-    channel = await bot.fetch_channel(ctx.message.reference.channel_id)
+    channel = await bot.fetch_channel(call_message.reference.channel_id)
     if not channel:
         return locale.reference_message_not_found
 
-    message = await channel.fetch_message(ctx.message.reference.message_id)
+    message = await channel.fetch_message(call_message.reference.message_id)
     if not message:
         return locale.reference_message_not_found
 
@@ -243,7 +244,7 @@ for key in dict(TUPPER_COMMANDS):
     TUPPER_COMMANDS[key[0]] = TUPPER_COMMANDS[key]
 
 
-async def handle_tupper_command(ctx, tupper, message_content):
+async def handle_tupper_command(message: discord.Message, tupper, message_content):
     command = parse_tupper_command(message_content)
     if not command:
         return
@@ -251,4 +252,4 @@ async def handle_tupper_command(ctx, tupper, message_content):
     if command.name not in TUPPER_COMMANDS:
         return
 
-    return await TUPPER_COMMANDS[command.name](ctx, tupper, command)
+    return await TUPPER_COMMANDS[command.name](message, tupper, command)

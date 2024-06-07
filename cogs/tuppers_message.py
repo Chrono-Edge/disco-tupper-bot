@@ -211,19 +211,22 @@ class TupperMessageCog(commands.Cog):
         webhook, thread = await self._get_webhook(message.channel.id)
         hidden_data = {"tupper_id": tupper.id, "author_id": message.author.id}
 
-        command_content = await handle_tupper_command(webhook, tupper, message_content)
+        command_content = await handle_tupper_command(message, tupper, message_content)
 
         if command_content:
             message_content = command_content
             files_content = []
         else:
             relpy_string_header = None
+
             if message.reference:
                 channel = await self.bot.fetch_channel(message.reference.channel_id)
                 relpy_message = await channel.fetch_message(
                     message.reference.message_id
                 )
                 ___, relpy_dict = NonPrintableEncoder.decode_dict(relpy_message.content)
+
+                # check tupper message or not
                 if relpy_dict:
                     if "tupper_id" in relpy_dict and "author_id" in relpy_dict:
                         relpy_member = await self.bot.fetch_user(
