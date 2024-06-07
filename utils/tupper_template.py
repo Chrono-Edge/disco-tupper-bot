@@ -1,5 +1,6 @@
 from localization import locale
 
+
 def parse_template(text):
     text = text.strip()
 
@@ -13,7 +14,7 @@ def parse_template(text):
             if ch == '*' and not group:
                 if has_star:
                     raise SyntaxError(locale.template_should_not_contain_more_than_one_placeholder)
-                
+
                 has_star = True
 
                 buffer += '(.*)'
@@ -25,7 +26,7 @@ def parse_template(text):
                 continue
             elif ch == '[' and not group:
                 group = True
-                
+
                 buffer += '['
 
                 continue
@@ -38,7 +39,7 @@ def parse_template(text):
             if ch == ']':
                 if group_size == 0:
                     raise SyntaxError(locale.empty_blocks_are_forbidden)
-                
+
                 group = False
                 group_size = 0
 
@@ -57,17 +58,18 @@ def parse_template(text):
 
     if group:
         raise SyntaxError(locale.missing_closing_bracket)
-    
+
     if escape:
         raise SyntaxError(locale.incorrect_escape)
-    
+
     if not has_star:
         raise SyntaxError(locale.template_should_contain_at_least_one_placeholder)
-    
+
     if len(buffer) <= 4:
         raise SyntaxError(locale.template_should_contain_something_aside_from_placeholder)
-    
+
     return f'^{buffer}$'
+
 
 if __name__ == '__main__':
     print(parse_template(r'99 *'))

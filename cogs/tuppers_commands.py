@@ -198,20 +198,28 @@ class TupperCommandsCog(commands.Cog):
 
         await ctx.reply(locale.tupper_was_successfully_created)
 
+        webhook, thread = await self._get_webhook(ctx.channel.id)
+        await webhook.send(
+            "-- Hello world!",
+            username=tupper.name,
+            avatar_url=tupper.image,
+            thread=thread
+        )
+
     @commands.hybrid_command(name="remove_tupper")
     @commands.has_any_role(*config.player_roles)
     async def remove_tupper(
-            self, ctx, name: str, member: typing.Optional[discord.Member]
+            self, ctx: discord.ext.commands.Context, tupper_name: str, member: typing.Optional[discord.Member]
     ):
         _, user = await self._get_user_to_edit_tupper(ctx, member)
 
-        tupper = await user.tuppers.filter(name=name).first()
+        tupper = await user.tuppers.filter(name=tupper_name).first()
 
         if not tupper:
-            await ctx.reply(locale.format("no_such_tupper", tupper_name=name))
+            await ctx.reply(locale.format("no_such_tupper", tupper_name=tupper_name))
             return
 
-        name = tupper.name
+        tupper_name = tupper.name
         await Tupper.filter(id=tupper.id).delete()
 
         await ctx.reply(locale.tupper_was_successfully_removed)
@@ -225,9 +233,9 @@ class TupperCommandsCog(commands.Cog):
             new_name: typing.Optional[str],
             new_call_pattern: typing.Optional[str],
             avatar: typing.Optional[discord.Attachment],
-            member: typing.Optional[discord.Member],
+            tupper_owner: typing.Optional[discord.Member],
     ):
-        _, user = await self._get_user_to_edit_tupper(ctx, member)
+        _, user = await self._get_user_to_edit_tupper(ctx, tupper_owner)
 
         tupper: Tupper = await user.tuppers.filter(name=tupper_name).first()
 
@@ -236,6 +244,10 @@ class TupperCommandsCog(commands.Cog):
             return
 
         if new_name:
+            tupper_with_name = await user.tuppers.filter(call_pattern=new_call_pattern).first()
+            if tupper_with_name:
+                await ctx.reply(locale.tupper_already_exists)
+                return
             tupper.name = new_name
 
         if new_call_pattern:
@@ -244,30 +256,26 @@ class TupperCommandsCog(commands.Cog):
             except SyntaxError as e:
                 await ctx.reply(str(e))
                 return
+
+            tupper_with_pattern = await user.tuppers.filter(call_pattern=new_call_pattern).first()
+            if tupper_with_pattern:
+                await ctx.reply(locale.tupper_already_exists)
+                return
             tupper.call_pattern = new_call_pattern
 
         if avatar:
             tupper.image = avatar.url
 
-        if member:
-            if await user.tuppers.filter(
-                    name=new_name if new_name else tupper.name
-            ).first():
-                await ctx.reply(locale.tupper_already_exists)
-                return
-
-            if await user.tuppers.filter(
-                    call_pattern=new_call_pattern
-                    if new_call_pattern
-                    else tupper.call_pattern
-            ).first():
-                await ctx.reply(locale.tupper_already_exists)
-                return
-
-            await user.tuppers.add(tupper)
-
         await tupper.save()
         await ctx.reply(f"Successful edit tupper: {tupper.name}")
+        webhook, thread = await self._get_webhook(ctx.channel.id)
+
+        await webhook.send(
+            "-- I am foxgirl now?",
+            username=tupper.name,
+            avatar_url=tupper.image,
+            thread=thread
+        )
 
     @commands.hybrid_command(name="set_inventory_chat")
     @commands.has_any_role(*config.player_roles)
@@ -298,6 +306,7 @@ class TupperCommandsCog(commands.Cog):
             user_add: discord.Member,
             tupper_owner: typing.Optional[discord.Member],
     ):
+        """Add user for tupper"""
         _, target_user = await self._get_user_to_edit_tupper(ctx, tupper_owner)
         user_to_add, _ = await User.get_or_create(discord_id=user_add.id)
         tupper: Tupper = await target_user.tuppers.filter(name=tupper_name).first()
@@ -318,6 +327,7 @@ class TupperCommandsCog(commands.Cog):
             user_remove: discord.Member,
             tupper_owner: typing.Optional[discord.Member],
     ):
+        """Remove user form tupper"""
         _, target_user = await self._get_user_to_edit_tupper(ctx, tupper_owner)
         user_to_add = await User.get(discord_id=user_remove.id)
 
@@ -328,11 +338,16 @@ class TupperCommandsCog(commands.Cog):
 
         await user_to_add.tuppers.remove(tupper)
 
+        if tupper.owners.all().count() == 0:
+            await tupper.delete()
+            await ctx.reply(f"Tupper {tupper_name} removed because not exist users")
+
         await ctx.reply(f"Remove tupper {tupper.name} from user {user_remove.mention}")
 
     @commands.hybrid_command(name="tupper_list")
     @commands.has_any_role(*config.player_roles)
     async def tupper_list(self, ctx, member: typing.Optional[discord.Member]):
+        """List all tuppers for user"""
         view = None
         discord_user, _ = await self._get_user_to_edit_tupper(ctx, member)
         message, embeds = await ListMenu.tupper_list_page(self.bot, discord_user, 0)
@@ -354,6 +369,7 @@ class TupperCommandsCog(commands.Cog):
             name: str,
             value: int,
     ):
+        """set attribute for tupper"""
         name = name.lower()
         if not re.match(r"^[а-яa-z]{2,3}$", name):
             await ctx.reply(locale.illegal_attribute_name)
@@ -368,6 +384,7 @@ class TupperCommandsCog(commands.Cog):
 
         if not await tupper.attrs.filter(name=name).exists():
             await Attribute.create(owner=tupper, name=name, value=value)
+            await ctx.reply(locale.attribute_was_successfully_changed)
             return
 
         await tupper.attrs.filter(name=name).update(value=value)
