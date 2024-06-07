@@ -11,6 +11,8 @@
     "illegal_attribute_name": "Illegal attribute name.",
     "attribute_was_successfully_changed": "Attribute value was successfully changed.",
     "attribute_was_successfully_removed": "Attribute value was successfully removed.",
+    "no_such_attribute": "No such attribute.",
+    "attribute_was_not_changed": "Attribute was not changed.",
     "admin_balance_add" : "Tupper {tupper_name} has added {balance} to balance.",
     "current_balance": "Current balance: `{balance}`.",
     "balance_is_too_low": "Your balance is too low: need `{need}`, have: `{have}`.",
