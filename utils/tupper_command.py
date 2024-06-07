@@ -9,9 +9,9 @@ from utils.dices import roll_dices
 from database.models.user import User
 from database.models.tupper import Tupper
 from database.models.item import Item
-
 from utils.encoding.non_printable import NonPrintableEncoder
 from utils.encoding.non_printable import HEADER
+from bot import bot
 from localization import locale
 from tortoise.expressions import F
 
@@ -85,28 +85,37 @@ async def _command_balance(call_message, tupper, command):
     return locale.format("current_balance", balance=tupper.balance)
 
 
+async def get_tupper_id(call_message):
+    if not call_message.reference:
+        return None
+
+    channel = await bot.fetch_channel(call_message.reference.channel_id)
+    if not channel:
+        return None
+
+    message = await channel.fetch_message(call_message.reference.message_id)
+    if not message:
+        return None
+
+    if message.content.find(HEADER) <= -1:
+        return None
+
+    _, metadata_dict = NonPrintableEncoder.decode_dict(message.content)
+
+    if "tupper_id" not in metadata_dict:
+        return None
+    
+    return int(metadata_dict["tupper_id"])
+    
 async def _command_send(call_message, tupper, command):
-    """Send money to another "tupper"""
-    if command.argc not in (2, 3):
+    if command.argc not in (1, 2):
         return
+    
+    tupper_id = await get_tupper_id(call_message)
+    if tupper_id is None:
+        return locale.reference_message_not_found
 
-    member = call_message.guild.get_member_named(command.args[0].strip())
-    if not member:
-        return locale.user_does_not_exist
-
-    user = await User.get(discord_id=member.id)
-    if not user:
-        return locale.user_does_not_exist
-
-    if command.argc == 2:
-        to_tupper = await user.tuppers.all().first()
-        amount = command.args[1]
-    else:
-        to_tupper = await user.tuppers.filter(
-            name=command.args[1].strip().lower()
-        ).first()
-        amount = command.args[2]
-
+    to_tupper = await Tupper.get(id=tupper_id)
     if not to_tupper:
         return locale.no_such_tupper
 
@@ -176,26 +185,11 @@ async def _command_give(call_message: discord.Message, tupper, command):
     if command.argc not in (1, 2):
         return None
 
-    if not call_message.reference:
+    tupper_id = await get_tupper_id(call_message)
+    if tupper_id is None:
         return locale.reference_message_not_found
 
-    channel = await bot.fetch_channel(call_message.reference.channel_id)
-    if not channel:
-        return locale.reference_message_not_found
-
-    message = await channel.fetch_message(call_message.reference.message_id)
-    if not message:
-        return locale.reference_message_not_found
-
-    if message.content.find(HEADER) <= -1:
-        return locale.reference_message_not_found
-
-    _, metadata_dict = NonPrintableEncoder.decode_dict(message.content)
-
-    if "tupper_id" not in metadata_dict:
-        return locale.reference_message_not_found
-
-    to_tupper = await Tupper.get(id=metadata_dict["tupper_id"])
+    to_tupper = await Tupper.get(id=tupper_id)
     if not to_tupper:
         return locale.no_such_tupper
 
