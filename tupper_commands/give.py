@@ -23,11 +23,11 @@ async def handle(ctx):
     if to_tupper.id == ctx.tupper.id:
         return locale.cannot_give_to_yourself
 
+    name = ctx.command.args[0].strip().lower()
+
     if ctx.command.argc == 1:
-        name = ctx.command.args[0].strip().lower()
         quantity = 1
     elif ctx.command.argc == 2:
-        name = ctx.command.args[0].strip().lower()
         try:
             quantity = abs(int(ctx.command.args[1]))
         except ValueError:
