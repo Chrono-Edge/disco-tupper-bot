@@ -13,8 +13,20 @@ async def handle(ctx):
             return locale.illegal_attribute_name
 
         if ctx.command.args[1] == "-":
+            if not await ctx.tupper.attrs.filter(name=name).exists():
+                return locale.no_such_attribute
+
             await ctx.tupper.attrs.filter(name=name).delete()
 
+            await ctx.log(
+                "X `{name}`: `{value}` {jump_url}",
+                name=name,
+                value=value,
+                jump_url=ctx.message.reference.jump_url
+                if ctx.message.reference
+                else ctx.message.jump_url,
+            )
+           
             return locale.attribute_was_successfully_removed
 
         try:
@@ -36,6 +48,9 @@ async def handle(ctx):
 
             await Attribute.create(owner=ctx.tupper, name=name, value=value)
         else:
+            if old_attr.value == value:
+                return locale.attribute_was_not_changed
+
             await ctx.log(
                 "`{name}`: `{old_value}` -> `{value}` {jump_url}",
                 name=name,
