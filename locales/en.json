@@ -19,7 +19,6 @@
     "nothing_to_edit": "Nothing to edit.",
     "message_edited": "Messaged edited: {jump_url}",
 
-
     "successful_edit_tupper": "Successfully changed {tupper_name} tapper data",
     "tupper_was_successfully_created": "Tupper was successfully created.",
     "edit_tupper_test_message" :  "-- I am foxgirl now?",

@@ -25,6 +25,7 @@ class DiscoTupperBot(commands.Bot):
             self.debug_guild = discord.Object(config.guild)
 
         self.tupper_commands = TupperCommands(self)
+        self.log_channel = None
 
     @staticmethod
     def setup_intents():
@@ -49,7 +50,7 @@ class DiscoTupperBot(commands.Bot):
         # This copies the global commands over to your guild.
 
     async def on_ready(self):
-        self.log_channel = self.fetch_channel(config.log_channel_id)
+        self.log_channel = await self.fetch_channel(config.log_channel_id)
         self.tupper_commands.register_commands()
 
         self.remove_command("help")

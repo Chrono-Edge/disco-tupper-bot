@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 import config
 from database.models.tupper import Tupper
 from database.models.user import User
+from utils.discord.message_split import TextFormatterSplit
 from utils.encoding.non_printable import NonPrintableEncoder
 from utils.encoding.non_printable import HEADER
 from utils.get_webhook import get_webhook
@@ -24,14 +25,18 @@ class TupperMessageCog(commands.Cog):
         self.bot = bot
         self.reaction_to_edit = config.values.get("bot.reaction_to_edit")
         self.reaction_to_remove = config.values.get("bot.reaction_to_remove")
+        self.text_splitter = TextFormatterSplit({
+            'general': {'byNewlines': True},
+            'amounts': {'splitCounter': 300, 'maxMessageLength': 1200, 'maxMessages': 100}
+        })
 
     async def _get_webhook(
-        self, channel_id: int
+            self, channel_id: int
     ) -> tuple[discord.Webhook, discord.Thread]:
         return await get_webhook(self.bot, channel_id)
 
     async def _remove_message(
-        self, payload: discord.RawReactionActionEvent, db_user: User, metadata_dict
+            self, payload: discord.RawReactionActionEvent, db_user: User, metadata_dict
     ):
         """Remove message on reaction"""
         if str(payload.emoji) != self.reaction_to_remove:
@@ -43,7 +48,7 @@ class TupperMessageCog(commands.Cog):
         await webhook.delete_message(payload.message_id, thread=thread)
 
     async def _create_edit_message(
-        self, payload: discord.RawReactionActionEvent, db_user: User, metadata_dict
+            self, payload: discord.RawReactionActionEvent, db_user: User, metadata_dict
     ):
         """Create message in personal chat to edit message"""
         if str(payload.emoji) != self.reaction_to_edit:
@@ -83,7 +88,7 @@ class TupperMessageCog(commands.Cog):
 
         # TODO check this strange bruh moment. need support custom emoji
         if (str(payload.emoji) != self.reaction_to_edit) and (
-            str(payload.emoji) != self.reaction_to_remove
+                str(payload.emoji) != self.reaction_to_remove
         ):
             return
 
@@ -111,7 +116,7 @@ class TupperMessageCog(commands.Cog):
         message_with_metadata = None
 
         async for message in new_message.channel.history(
-            before=new_message, limit=10, oldest_first=False
+                before=new_message, limit=10, oldest_first=False
         ):
             # find message with metadata to edit
             if message.content.find(hidden_header) > -1:
@@ -221,6 +226,9 @@ class TupperMessageCog(commands.Cog):
         if command_content:
             message_content = command_content
             files_content = []
+            message_content = NonPrintableEncoder.encode_dict(
+                message_content, hidden_data
+            )
         else:
             relpy_string_header = None
 
@@ -247,6 +255,7 @@ class TupperMessageCog(commands.Cog):
             message_content = NonPrintableEncoder.encode_dict(
                 message_content, hidden_data
             )
+
             if relpy_string_header:
                 message_content = relpy_string_header + message_content
 
@@ -255,13 +264,27 @@ class TupperMessageCog(commands.Cog):
                 for attachment in message.attachments
             ]
 
-        await webhook.send(
-            message_content,
-            username=tupper.name,
-            avatar_url=tupper.image,
-            files=files_content,
-            thread=thread,
-        )
+        if len(message_content) > 2000:
+            original_message, _ = NonPrintableEncoder.decode_dict(message_content)
+            list_messages = self.text_splitter.format_text(original_message)
+            list_messages = [NonPrintableEncoder.encode_dict(splited_message, hidden_data) for splited_message in
+                             list_messages]
+            for message_to_send in list_messages:
+                await webhook.send(
+                    message_to_send,
+                    username=tupper.name,
+                    avatar_url=tupper.image,
+                    files=files_content,
+                    thread=thread,
+                )
+        else:
+            await webhook.send(
+                message_content,
+                username=tupper.name,
+                avatar_url=tupper.image,
+                files=files_content,
+                thread=thread,
+            )
 
         await message.delete()
 
