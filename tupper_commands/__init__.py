@@ -5,7 +5,20 @@ from collections import namedtuple
 
 import config
 
-Context = namedtuple("Context", ["bot", "tupper", "message", "command"])
+
+class Context:
+    def __init__(self, bot, tupper, message, command):
+        self.bot = bot
+        self.tupper = tupper
+        self.message = message
+        self.command = command
+
+    async def log(self, text, **kwargs):
+        channel = await self.bot.fetch_channel(self.tupper.inventory_chat_id)
+        if channel:
+            await channel.send(text.format(**kwargs))
+
+
 Command = namedtuple("Command", ["name", "args", "argc"])
 
 
@@ -26,7 +39,7 @@ class TupperCommands:
 
     def register_commands(self, path="tupper_commands"):
         for module in filter(lambda name: not name.startswith("__"), os.listdir(path)):
-            module = module.split('.')[0]
+            module = module.split(".")[0]
             module = importlib.import_module(f"tupper_commands.{module}")
 
             self.register_command(module, module.handle)

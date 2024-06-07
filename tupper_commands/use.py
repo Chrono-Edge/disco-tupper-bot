@@ -30,4 +30,6 @@ async def handle(ctx):
     else:
         await Item.filter(id=item.id).update(quantity=F("quantity") - quantity)
 
+    await ctx.log("X `{quantity}` `{name}`", quantity=quantity, name=name)
+
     return locale.format("successfully_used", name=name, quantity=quantity)

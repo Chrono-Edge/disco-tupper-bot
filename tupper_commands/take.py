@@ -7,7 +7,7 @@ from tortoise.expressions import F
 async def handle(ctx):
     if not ctx.message.reference:
         return locale.reference_message_not_found
-    
+
     if ctx.command.argc not in (1, 2):
         return None
 
@@ -28,6 +28,6 @@ async def handle(ctx):
     else:
         await Item.filter(id=item.id).update(quantity=F("quantity") + quantity)
 
-    # TODO: log this to tupper.inventory_chat_id.
-    
+    await ctx.log("--> `{quantity}` `{name}`", quantity=quantity, name=name)
+
     return locale.format("successfully_obtained", name=name, quantity=quantity)
