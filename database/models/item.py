@@ -5,7 +5,6 @@ from tortoise.models import Model
 class Item(Model):
     id = fields.BigIntField(pk=True)
     name = fields.TextField()
-    description = fields.TextField()
     quantity = fields.IntField()
 
     tupper_owner = fields.ForeignKeyField(

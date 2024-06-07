@@ -40,5 +40,10 @@
     "missing_closing_bracket": "Missing closing square bracket (`]`).",
     "incorrect_escape": "Incorrect escape.",
     "template_should_contain_at_least_one_placeholder": "Template should contain at least one placeholder (`*`).",
-    "template_should_contain_something_aside_from_placeholder": "Template should contain something aside from placeholder (`*`)."
+    "template_should_contain_something_aside_from_placeholder": "Template should contain something aside from placeholder (`*`).",
+
+    "reference_message_not_found": "Reference message not found.",
+    "successfully_obtained": "Successfully obtained `{quantity}` `{name}`.",
+    "not_enough_items": "You don't have enough items to give.",
+    "successfully_gived": "Successfully gived away `{quantity}` `{name}`.",
 }
