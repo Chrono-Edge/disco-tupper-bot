@@ -219,7 +219,7 @@ async def _command_give(call_message: discord.Message, tupper, command):
     if quantity == item.quantity:
         await Item.filter(id=item.id).delete()
     else:
-        await Item.filter(id=item.id).update(quantity=F('quantity') - quantity)
+        await Item.filter(id=item.id).update(quantity=F("quantity") - quantity)
 
     item = await Item.filter(name=name, tupper_owner=to_tupper).first()
     if not item:
