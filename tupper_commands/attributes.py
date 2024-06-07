@@ -9,7 +9,7 @@ HELP = (locale.attributes_params, locale.attributes_desc)
 async def handle(ctx):
     if ctx.command.argc == 2:
         name = ctx.command.args[0].strip().upper()
-        if not re.match(r"^[а-яa-z]{2,3}$", name):
+        if not re.match(r"^[А-ЯA-Z]{2,3}$", name):
             return locale.illegal_attribute_name
 
         if ctx.command.args[1] == "-":
