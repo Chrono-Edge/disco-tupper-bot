@@ -260,6 +260,7 @@ class TupperCommandsCog(commands.Cog):
             await user.tuppers.add(tupper)
 
         await tupper.save()
+        await ctx.reply(f"Successful edit tupper: {tupper.name}", delete_after=10)
 
     @commands.hybrid_command(name="set_inventory_chat")
     @commands.has_any_role(*config.player_roles)
@@ -270,11 +271,14 @@ class TupperCommandsCog(commands.Cog):
         _, user = await self._get_user_to_edit_tupper(ctx, member)
 
         tupper: Tupper = await user.tuppers.filter(name=tupper_name).first()
+        if not tupper:
+            await ctx.reply(locale.no_such_tupper)
+            return
 
         tupper.inventory_chat_id = ctx.channel.id
         await tupper.save()
 
-        await ctx.reply("Inventory set chat")
+        await ctx.reply("Inventory set chat", delete_after=10)
 
     @commands.hybrid_command(name="add_user_to_tupper")
     @commands.has_any_role(*config.player_roles)
@@ -282,12 +286,17 @@ class TupperCommandsCog(commands.Cog):
                                  tupper_name: str,
                                  user_add: discord.Member,
                                  tupper_owner: typing.Optional[discord.Member]):
-        _, target_user = await self._get_user_to_edit_tupper(ctx, tupper_owner)
-        user_to_add = await User.get(discord_id=user_add.id)
 
+        _, target_user = await self._get_user_to_edit_tupper(ctx, tupper_owner)
+        user_to_add, _ = await User.get_or_create(discord_id=user_add.id)
         tupper: Tupper = await target_user.tuppers.filter(name=tupper_name).first()
+
+        if not tupper:
+            await ctx.reply(locale.no_such_tupper)
+            return
+
         await user_to_add.tuppers.add(tupper)
-        await ctx.reply("Add tupper {name} ({owner}) to user {user_add}")
+        await ctx.reply(f"Add tupper {tupper.name} to user {user_add.mention}")
 
     @commands.hybrid_command(name="remove_user_to_tupper")
     @commands.has_any_role(*config.player_roles)
