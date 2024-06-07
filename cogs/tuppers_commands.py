@@ -1,6 +1,7 @@
 import math
 import re
 
+from discord import app_commands, ui
 from tortoise.functions import Lower
 
 from database.models.item import Item
@@ -150,7 +151,7 @@ class TupperCommandsCog(commands.Cog):
         user, ___ = await User.get_or_create(discord_id=ctx.author.id)
         return ctx.author, user
 
-    async def _get_webhook(self, channel_id: int):
+    async def _get_webhook(self, channel_id: int) -> [discord.Webhook, discord.Thread]:
         return await get_webhook(self.bot, channel_id)
 
     @commands.hybrid_command(name="create_tupper")
@@ -430,13 +431,12 @@ class TupperCommandsCog(commands.Cog):
                         tupper_name: str,
                         item_name: str,
                         item_quantity: int,
-                        item_description: typing.Optional[str],
+                        message: discord.Message,
                         member: typing.Optional[discord.Member]):
+
         _, user = await self._get_user_to_edit_tupper(ctx, member)
 
-        print(ctx.message.reference)
-
-        if not ctx.message.reference:
+        if not message:
             await ctx.reply("Not set message where u receive item ")
             return
 
@@ -451,12 +451,14 @@ class TupperCommandsCog(commands.Cog):
             await ctx.reply(f"{tupper_name} does not exist!")
             return
 
-        item = await Item.annotate(name=Lower(item_name)).filter(name=item_name.lower(), tupper_owner=user).first()
+        item = await Item.filter(name=item_name.lower(), tupper_owner=user).annotate(name=Lower("name")).first()
+
         if not item:
             if item_quantity < 0:
                 await ctx.reply(f"Item {item_name} does not exist")
                 return
-            item = await Item.create(tupper_owner=user, name=tupper_name, description=item_description,
+
+            item = await Item.create(tupper_owner=user, name=item_name,
                                      quantity=item_quantity)
             await item.save()
         elif item:
@@ -466,14 +468,21 @@ class TupperCommandsCog(commands.Cog):
                 return
 
             item.quantity = new_quantity
-            if item_description:
-                item.description = item_description
             await item.save()
 
-        await inventory_chat.send(
-            f"""Item log: `{item.name}` quantity: {item.quantity}
-             ```{item.description}``` 
-             Place: {ctx.message.reference.jump_url}""")
+        webhook = await self._get_webhook(inventory_chat.id)
+        hidden_data = {"tupper_id": tupper.id, "author_id": message.author.id}
+
+        message_content = f"Item log: `{item.name}` quantity: `{item.quantity}` place: {message.jump_url}"
+        message_content = NonPrintableEncoder.encode_dict(message_content, hidden_data)
+
+        await webhook.send(
+            message_content,
+            username=tupper.name,
+            avatar_url=tupper.image,
+        )
+
+        await ctx.send(f"Successful moved item: {item.name}", delete_after=10)
 
         if item.quantity <= 0:
             await item.delete()

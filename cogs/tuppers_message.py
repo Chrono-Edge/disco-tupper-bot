@@ -26,11 +26,11 @@ class TupperMessageCog(commands.Cog):
         self.reaction_to_edit = config.values.get("bot.reaction_to_edit")
         self.reaction_to_remove = config.values.get("bot.reaction_to_remove")
 
-    async def _get_webhook(self, channel_id: int):
+    async def _get_webhook(self, channel_id: int) -> [discord.Webhook, discord.Thread]:
         return await get_webhook(self.bot, channel_id)
 
     async def _remove_message(
-        self, payload: discord.RawReactionActionEvent, db_user: User, metadata_dict
+            self, payload: discord.RawReactionActionEvent, db_user: User, metadata_dict
     ):
         """Remove message on reaction"""
         if str(payload.emoji) != self.reaction_to_remove:
@@ -38,11 +38,11 @@ class TupperMessageCog(commands.Cog):
         tupper = await db_user.tuppers.filter(id=metadata_dict["tupper_id"]).first()
         if not tupper:
             return
-        webhook = await self._get_webhook(payload.channel_id)
-        await webhook.delete_message(payload.message_id)
+        webhook, thread = await self._get_webhook(payload.channel_id)
+        await webhook.delete_message(payload.message_id, thread=thread)
 
     async def _create_edit_message(
-        self, payload: discord.RawReactionActionEvent, db_user: User, metadata_dict
+            self, payload: discord.RawReactionActionEvent, db_user: User, metadata_dict
     ):
         """Create message in personal chat to edit message"""
         if str(payload.emoji) != self.reaction_to_edit:
@@ -82,7 +82,7 @@ class TupperMessageCog(commands.Cog):
 
         # TODO check this strange bruh moment. need support custom emoji
         if (str(payload.emoji) != self.reaction_to_edit) and (
-            str(payload.emoji) != self.reaction_to_remove
+                str(payload.emoji) != self.reaction_to_remove
         ):
             return
 
@@ -110,7 +110,7 @@ class TupperMessageCog(commands.Cog):
         message_with_metadata = None
 
         async for message in new_message.channel.history(
-            before=new_message, limit=10, oldest_first=False
+                before=new_message, limit=10, oldest_first=False
         ):
             # find message with metadata to edit
             if message.content.find(hidden_header) > -1:
@@ -150,10 +150,12 @@ class TupperMessageCog(commands.Cog):
         )
 
         # TODO we need to edit files or not?
-        webhook = await self._get_webhook(metadata_dict.get("channel_id"))
+        channel = await self.bot.fetch_channel(metadata_dict.get("channel_id"))
+
+        webhook, thread = await self._get_webhook(channel.id)
 
         await webhook.edit_message(
-            metadata_dict.get("message_id"), content=message_content
+            metadata_dict.get("message_id"), content=message_content, thread=thread,
         )
 
         channel = await self.bot.fetch_channel(metadata_dict.get("channel_id"))
@@ -206,7 +208,7 @@ class TupperMessageCog(commands.Cog):
         # Main idea it is create new child message and sent to function bot.process_commands
         # Not sure about of this variant but this code also not ideal...
 
-        webhook = await self._get_webhook(message.channel.id)
+        webhook, thread = await self._get_webhook(message.channel.id)
         hidden_data = {"tupper_id": tupper.id, "author_id": message.author.id}
 
         command_content = await handle_tupper_command(webhook, tupper, message_content)
@@ -250,7 +252,9 @@ class TupperMessageCog(commands.Cog):
             username=tupper.name,
             avatar_url=tupper.image,
             files=files_content,
+            thread=thread
         )
+
         await message.delete()
 
     @commands.Cog.listener()
