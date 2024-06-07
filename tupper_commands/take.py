@@ -29,6 +29,6 @@ async def handle(ctx):
     else:
         await Item.filter(id=item.id).update(quantity=F("quantity") + quantity)
 
-    await ctx.log("+ `{quantity}` `{name}`", quantity=quantity, name=name)
+    await ctx.log("+ `{quantity}` `{name}` {jump_url}", quantity=quantity, name=name)
 
     return locale.format("successfully_obtained", item_name=name, quantity=quantity)

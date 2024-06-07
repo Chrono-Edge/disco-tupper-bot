@@ -20,7 +20,7 @@ class Context:
         try:
             channel = await self.bot.fetch_channel(self.tupper.inventory_chat_id)
 
-            await channel.send(text.format(**kwargs))
+            await channel.send(text.format(jump_url=self.message.jump_url, **kwargs))
         except (
             discord.InvalidData,
             discord.HTTPException,
