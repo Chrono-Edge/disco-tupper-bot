@@ -5,14 +5,14 @@ import discord
 from loguru import logger
 
 import config
-import log
+
 from utils.dices import roll_dices
 from database.models.attribute import Attribute
 from database.models.tupper import Tupper
 from database.models.item import Item
 from utils.encoding.non_printable import NonPrintableEncoder
 from utils.encoding.non_printable import HEADER
-from bot import bot
+
 from localization import locale
 from tortoise.expressions import F
 
@@ -20,7 +20,7 @@ Command = namedtuple("Command", ["name", "args", "argc"])
 
 
 async def get_webhook(
-    bot: discord.Client, channel_id: int
+        bot: discord.Client, channel_id: int
 ) -> (discord.Webhook, discord.Thread):
     # TODO exception if limit of used webhooks
     try:
@@ -156,14 +156,6 @@ async def _command_attributes(call_message, tupper, command):
         else:
             await tupper.attrs.filter(name=name).update(value=value)
 
-        await log.log_webhook(
-            tupper,
-            call_message.author.id,
-            "`{name}`: `{value}`",
-            name=name,
-            value=value
-        )
-
         return locale.attribute_was_successfully_changed
 
     buffer = ""
@@ -211,15 +203,6 @@ async def _command_take(call_message, tupper, command):
     else:
         await Item.filter(id=item.id).update(quantity=F("quantity") + quantity)
 
-    await log.log_webhook(
-        tupper,
-        call_message.author.id,
-        "--> `{name}` (`{quantity}`) {jump_url}",
-        name=name,
-        quantity=quantity,
-        jump_url=call_message.jump_url,
-    )
-
     return locale.format("successfully_obtained", name=name, quantity=quantity)
 
 
@@ -262,15 +245,6 @@ async def _command_give(call_message, tupper, command):
         await Item.create(name=name, quantity=quantity, tupper_owner=to_tupper)
     else:
         await Item.filter(id=item.id).update(quantity=F("quantity") + quantity)
-
-    await log.log_webhook(
-        tupper,
-        call_message.author.id,
-        "<-- `{name}` (`{quantity}`) {jump_url}",
-        name=name,
-        quantity=quantity,
-        jump_url=call_message.jump_url,
-    )
 
     return locale.format("successfully_gived", name=name, quantity=quantity)
 
