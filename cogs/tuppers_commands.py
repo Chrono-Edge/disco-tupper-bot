@@ -1,26 +1,17 @@
 import math
-import re
 
-from discord import app_commands, ui
-from tortoise.functions import Lower
-
-from database.models.item import Item
 from database.models.user import User
 from database.models.tupper import Tupper
 from config import logger
 from discord.ext import commands
 import discord
-import json
 import typing
 from builtins import str
 from datetime import datetime
 from typing import TYPE_CHECKING
-from tortoise.expressions import F
-
 import config
 
 import database.models.user
-from database.models.attribute import Attribute
 from utils.encoding.non_printable import NonPrintableEncoder, HEADER
 from utils.tupper_command import get_webhook
 from utils.tupper_template import parse_template
@@ -358,37 +349,6 @@ class TupperCommandsCog(commands.Cog):
             view = ListMenu()
 
         await ctx.reply(content=message, embeds=embeds, view=view)
-
-    @commands.hybrid_command(name="set_attribute")
-    @commands.has_any_role(*config.player_roles)
-    async def set_attr(
-            self,
-            ctx: discord.ext.commands.Context,
-            member: typing.Optional[discord.Member],
-            tupper_name: str,
-            name: str,
-            value: int,
-    ):
-        """set attribute for tupper"""
-        name = name.lower()
-        if not re.match(r"^[а-яa-z]{2,3}$", name):
-            await ctx.reply(locale.illegal_attribute_name)
-            return
-
-        _, user = await self._get_user_to_edit_tupper(ctx, member)
-        tupper = await user.tuppers.filter(name=tupper_name).first()
-
-        if not tupper:
-            await ctx.reply(locale.no_such_tupper)
-            return
-
-        if not await tupper.attrs.filter(name=name).exists():
-            await Attribute.create(owner=tupper, name=name, value=value)
-            await ctx.reply(locale.attribute_was_successfully_changed)
-            return
-
-        await tupper.attrs.filter(name=name).update(value=value)
-        await ctx.reply(locale.attribute_was_successfully_changed)
 
 
 async def setup(bot: "DiscoTupperBot"):

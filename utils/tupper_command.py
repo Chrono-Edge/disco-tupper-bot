@@ -1,3 +1,4 @@
+import re
 import shlex
 from collections import namedtuple
 
@@ -146,6 +147,9 @@ async def _command_attributes(call_message, tupper, command):
     # TODO info text from localization
     if command.argc == 2:
         name = command.args[0].strip().lower()
+        if not re.match(r"^[а-яa-z]{2,3}$", name):
+            return locale.illegal_attribute_name
+        
         try:
             value = int(command.args[1])
         except ValueError:
