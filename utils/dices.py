@@ -198,7 +198,7 @@ class Dices:
             name = match[0].lower()
 
             if name not in self.names:
-                raise NameError(locale.format("undefined_variable", name=match[0]))
+                raise NameError(locale.format("undefined_variable", variable_name=match[0]))
 
             expr = self.names[name]
 

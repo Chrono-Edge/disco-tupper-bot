@@ -35,7 +35,7 @@
     "number_of_dices_should_be_gtz": "The number of dices should be greater than zero.",
     "number_of_sides_should_be_gtz": "The number of sides should be greater than zero.",
     "unexpected_input": "Unexpected input on position `#{position}`: expected `{expected}`.",
-    "undefined_variable": "Undefined variable: `{name}`.",
+    "undefined_variable": "Undefined variable: `{variable_name}`.",
     "number_dice_or_a_variable": "number, dice or a variable",
     "expression_should_not_be_empty": "Expression should not be empty.",
     "expression_does_not_contain_rolls": "Expression does not contain rolls.",
@@ -54,10 +54,10 @@
     "template_should_contain_something_aside_from_placeholder": "Template should contain something aside from placeholder (`*`).",
 
     "reference_message_not_found": "Reference message not found.",
-    "successfully_obtained": "Successfully obtained `{quantity}` `{name}`.",
+    "successfully_obtained": "Successfully obtained `{quantity}` `{item_name}`.",
     "not_enough_items": "You don't have enough items to give.",
-    "successfully_gived": "Successfully gived away `{quantity}` `{name}`.",
-    "successfully_used": "Successfully used `{quantity}` `{name}`.",
+    "successfully_gived": "Successfully gived away `{quantity}` `{item_name}`.",
+    "successfully_used": "Successfully used `{quantity}` `{item_name}`.",
     "inventory_of": "Inventory of `{tupper_name}`:",
     "empty": "```Empty```",
 

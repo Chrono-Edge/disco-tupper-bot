@@ -34,4 +34,4 @@ async def handle(ctx):
 
     await ctx.log("X `{quantity}` `{name}`", quantity=quantity, name=name)
 
-    return locale.format("successfully_used", name=name, quantity=quantity)
+    return locale.format("successfully_used", item_name=name, quantity=quantity)
