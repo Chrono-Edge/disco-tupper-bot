@@ -58,8 +58,7 @@
     "not_enough_items": "You don't have enough items to give.",
     "successfully_gived": "Successfully gived away `{quantity}` `{item_name}`.",
     "successfully_used": "Successfully used `{quantity}` `{item_name}`.",
-    "inventory_of": "Inventory of `{tupper_name}`:",
-    "empty": "```Empty```",
+    "empty": "```Empty.```",
 
     "attributes_params": "[name value]",
     "attributes_desc": "See or set attributes.",

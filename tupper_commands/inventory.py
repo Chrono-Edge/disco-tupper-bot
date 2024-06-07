@@ -4,9 +4,7 @@ HELP = ("", locale.inventory_desc)
 
 
 async def handle(ctx):
-    buffer = locale.format("inventory_of", tupper_name=ctx.tupper.name)
-
-    buffer += "\n"
+    buffer = ""
 
     async for item in ctx.tupper.items:
         buffer += f"`{item.name}` ({item.quantity})\n"
