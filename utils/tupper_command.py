@@ -5,8 +5,9 @@ import discord
 from loguru import logger
 
 import config
+import log
 from utils.dices import roll_dices
-from database.models.user import User
+from database.models.attribute import Attribute
 from database.models.tupper import Tupper
 from database.models.item import Item
 from utils.encoding.non_printable import NonPrintableEncoder
@@ -18,8 +19,9 @@ from tortoise.expressions import F
 Command = namedtuple("Command", ["name", "args", "argc"])
 
 
-async def get_webhook(bot: discord.Client, channel_id: int) -> (discord.Webhook, discord.Thread):
-    """Get our webhook"""
+async def get_webhook(
+    bot: discord.Client, channel_id: int
+) -> (discord.Webhook, discord.Thread):
     # TODO exception if limit of used webhooks
     try:
         channel = await bot.fetch_channel(channel_id)
@@ -51,6 +53,29 @@ async def get_webhook(bot: discord.Client, channel_id: int) -> (discord.Webhook,
         logger.error(f"Failed to fetch/create webhooks in channel {channel_id}: {e}")
     except Exception as e:
         logger.error(f"Unexpected error in _get_webhook: {e}")
+
+
+async def get_tupper_id(call_message):
+    if not call_message.reference:
+        return None
+
+    channel = await bot.fetch_channel(call_message.reference.channel_id)
+    if not channel:
+        return None
+
+    message = await channel.fetch_message(call_message.reference.message_id)
+    if not message:
+        return None
+
+    if message.content.find(HEADER) <= -1:
+        return None
+
+    _, metadata_dict = NonPrintableEncoder.decode_dict(message.content)
+
+    if "tupper_id" not in metadata_dict:
+        return None
+
+    return int(metadata_dict["tupper_id"])
 
 
 def parse_tupper_command(text):
@@ -85,32 +110,10 @@ async def _command_balance(call_message, tupper, command):
     return locale.format("current_balance", balance=tupper.balance)
 
 
-async def get_tupper_id(call_message):
-    if not call_message.reference:
-        return None
-
-    channel = await bot.fetch_channel(call_message.reference.channel_id)
-    if not channel:
-        return None
-
-    message = await channel.fetch_message(call_message.reference.message_id)
-    if not message:
-        return None
-
-    if message.content.find(HEADER) <= -1:
-        return None
-
-    _, metadata_dict = NonPrintableEncoder.decode_dict(message.content)
-
-    if "tupper_id" not in metadata_dict:
-        return None
-    
-    return int(metadata_dict["tupper_id"])
-    
 async def _command_send(call_message, tupper, command):
-    if command.argc not in (1, 2):
-        return
-    
+    if command.argc != 1:
+        return None
+
     tupper_id = await get_tupper_id(call_message)
     if tupper_id is None:
         return locale.reference_message_not_found
@@ -120,9 +123,14 @@ async def _command_send(call_message, tupper, command):
         return locale.no_such_tupper
 
     try:
+        amount = abs(int(command.args[0]))
+    except ValueError:
+        return None
+
+    try:
         amount = abs(int(amount))
     except ValueError:
-        return
+        return None
 
     if amount > tupper.balance:
         return locale.format("balance_is_too_low", need=amount, have=tupper.balance)
@@ -134,12 +142,37 @@ async def _command_send(call_message, tupper, command):
     return locale.format("current_balance", balance=new_balance)
 
 
-async def _command_attributes(ctx, tupper, command):
+async def _command_attributes(call_message, tupper, command):
     # TODO info text from localization
+    if command.argc == 2:
+        name = command.args[0].strip().lower()
+        try:
+            value = int(command.args[1])
+        except ValueError:
+            return None
+
+        if not await tupper.attrs.filter(name=name).exists():
+            await Attribute.create(owner=tupper, name=name, value=value)
+        else:
+            await tupper.attrs.filter(name=name).update(value=value)
+
+        await log.log_webhook(
+            tupper,
+            call_message.author.id,
+            "`{name}`: `{value}`",
+            name=name,
+            value=value
+        )
+
+        return locale.attribute_was_successfully_changed
+
     buffer = ""
 
     async for attr in tupper.attrs:
         buffer += f"`{attr.name}`: `{attr.value}`\n"
+
+    if len(tupper.attrs) == 0:
+        buffer += locale.empty
 
     return buffer
 
@@ -152,7 +185,7 @@ async def _command_inventory(call_message, tupper, command):
         buffer += f"`{item.name}` ({item.quantity})\n"
 
     if len(tupper.items) == 0:
-        buffer += f"```Empty```"
+        buffer += locale.empty
 
     return buffer
 
@@ -178,10 +211,19 @@ async def _command_take(call_message, tupper, command):
     else:
         await Item.filter(id=item.id).update(quantity=F("quantity") + quantity)
 
+    await log.log_webhook(
+        tupper,
+        call_message.author.id,
+        "--> `{name}` (`{quantity}`) {jump_url}",
+        name=name,
+        quantity=quantity,
+        jump_url=call_message.jump_url,
+    )
+
     return locale.format("successfully_obtained", name=name, quantity=quantity)
 
 
-async def _command_give(call_message: discord.Message, tupper, command):
+async def _command_give(call_message, tupper, command):
     if command.argc not in (1, 2):
         return None
 
@@ -220,6 +262,15 @@ async def _command_give(call_message: discord.Message, tupper, command):
         await Item.create(name=name, quantity=quantity, tupper_owner=to_tupper)
     else:
         await Item.filter(id=item.id).update(quantity=F("quantity") + quantity)
+
+    await log.log_webhook(
+        tupper,
+        call_message.author.id,
+        "<-- `{name}` (`{quantity}`) {jump_url}",
+        name=name,
+        quantity=quantity,
+        jump_url=call_message.jump_url,
+    )
 
     return locale.format("successfully_gived", name=name, quantity=quantity)
 
