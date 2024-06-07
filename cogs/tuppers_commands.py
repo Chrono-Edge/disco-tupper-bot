@@ -198,8 +198,9 @@ class TupperCommandsCog(commands.Cog):
             avatar_url=tupper.image,
             thread=thread
         )
-        await self.discord_logger.send_log(f"Create tupper {tupper.id}|{tupper.name}|{call_pattern}")
-        logger.info(f"Create tupper {tupper.id}|{tupper.name}|{call_pattern}")
+        await self.discord_logger.send_log(
+            f"Create tupper {tupper.id}|{tupper.name}|{call_pattern} - {ctx.message.author.name}")
+        logger.info(f"Create tupper {tupper.id}|{tupper.name}|{call_pattern} - {ctx.message.author.name}")
 
     @commands.hybrid_command(name="remove_tupper")
     @commands.has_any_role(*config.player_roles)
@@ -215,9 +216,12 @@ class TupperCommandsCog(commands.Cog):
             return
 
         tupper_name = tupper.name
+        tupper_id = tupper.id
         await Tupper.filter(id=tupper.id).delete()
 
         await ctx.reply(locale.tupper_was_successfully_removed)
+        await self.discord_logger.send_log(f"Remove tupper {tupper_id}|{tupper_name}")
+        logger.info(f"Remove tupper {tupper_id}|{tupper_name}")
 
     @commands.hybrid_command(name="edit_tupper")
     @commands.has_any_role(*config.player_roles)
@@ -272,6 +276,9 @@ class TupperCommandsCog(commands.Cog):
             thread=thread
         )
 
+        await self.discord_logger.send_log(f"Edit tupper {tupper.name}|{tupper.call_pattern}")
+        logger.info(f"Edit tupper {tupper.name}|{tupper.call_pattern}")
+
     @commands.hybrid_command(name="set_inventory_chat")
     @commands.has_any_role(*config.player_roles)
     async def set_inventory_chat_id(
@@ -291,6 +298,9 @@ class TupperCommandsCog(commands.Cog):
         await tupper.save()
 
         await ctx.reply(locale.format("set_inventory_chat", tupper_name=tupper_name))
+
+        await self.discord_logger.send_log(f"Set inventory chat tupper {tupper.name}|{tupper.inventory_chat_id}")
+        logger.info(f"Set inventory chat tupper {tupper.name}|{tupper.inventory_chat_id}")
 
     @commands.hybrid_command(name="add_user_to_tupper")
     @commands.has_any_role(*config.player_roles)
@@ -312,6 +322,9 @@ class TupperCommandsCog(commands.Cog):
 
         await user_to_add.tuppers.add(tupper)
         await ctx.reply(locale.format("add_owner_form_tupper", tupper_name=tupper_name, user_mention=user_add.mention))
+
+        await self.discord_logger.send_log(f"Add user to tupper {tupper.name}|{user_add.name}")
+        logger.info(f"Add user to tupper {tupper.name}|{user_add.name}")
 
     @commands.hybrid_command(name="remove_user_to_tupper")
     @commands.has_any_role(*config.player_roles)
@@ -339,6 +352,8 @@ class TupperCommandsCog(commands.Cog):
 
         await ctx.reply(
             locale.format("remove_owner_from_tupper", tupper_name=tupper_name, user_mention=user_remove.mention))
+        await self.discord_logger.send_log(f"Remove user from tupper {tupper.name}|{user_remove.name}")
+        logger.info(f"Remove user from tupper {tupper.name}|{user_remove.name}")
 
     @commands.hybrid_command(name="tupper_list")
     @commands.has_any_role(*config.player_roles)
@@ -357,7 +372,7 @@ class TupperCommandsCog(commands.Cog):
 
     @commands.hybrid_command(name="admin_balance_set")
     @commands.has_any_role(*config.admin_roles)
-    async def admin_balance_set(self, ctx, tupper_name: str, balance: int,
+    async def admin_balance_set(self, ctx: discord.ext.commands.Context, tupper_name: str, balance: int,
                                 tupper_owner: typing.Optional[discord.Member]):
         _, target_user = await self._get_user_to_edit_tupper(ctx, tupper_owner)
 
@@ -369,6 +384,10 @@ class TupperCommandsCog(commands.Cog):
         tupper.balance = tupper.balance + balance
         await tupper.save()
         await ctx.reply(locale.format("admin_balance_add", tupper_name=tupper_name, balance=balance))
+
+        await self.discord_logger.send_log(
+            f"Add balance for {tupper.name} balance {balance} - {ctx.message.author.name}")
+        logger.info(f"Add balance for {tupper.name} balance {balance} - {ctx.message.author.name}")
 
 
 async def setup(bot: "DiscoTupperBot"):
