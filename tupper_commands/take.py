@@ -13,8 +13,7 @@ async def handle(ctx):
     if ctx.command.argc not in (1, 2):
         return None
 
-    if ctx.command.argc >= 1:
-        name = ctx.command.args[0].strip().lower()
+    name = ctx.command.args[0].strip().lower()
 
     if ctx.command.argc == 2:
         try:
