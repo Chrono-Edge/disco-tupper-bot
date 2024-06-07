@@ -27,7 +27,7 @@ OPS = {
 }
 OPS_KEYS = "".join(OPS.keys()).replace("-", r"\-")
 
-T_NAME = re.compile(r"([abce-zа-яABCE-ZА-Я]+)")
+T_NAME = re.compile(r"([abce-zа-яA-ZА-Я]+)")
 T_COLON = re.compile(r"(:)")
 T_DICE = re.compile(r"(d)")
 T_MINUS = re.compile(r"(-)")
