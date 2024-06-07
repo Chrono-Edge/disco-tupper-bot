@@ -10,6 +10,7 @@
     "set_inventory_chat" : "Tapper {tupper_name} had a chat inventory installed.",
     "illegal_attribute_name": "Illegal attribute name.",
     "attribute_was_successfully_changed": "Attribute value was successfully changed.",
+    "attribute_was_successfully_removed": "Attribute value was successfully removed.",
     "admin_balance_add" : "Tupper {tupper_name} has added {balance} to balance.",
     "current_balance": "Current balance: `{balance}`.",
     "balance_is_too_low": "Your balance is too low: need `{need}`, have: `{have}`.",
@@ -58,7 +59,7 @@
     "not_enough_items": "You don't have enough items.",
     "successfully_gived": "Successfully gived away `{quantity}` `{item_name}`.",
     "successfully_used": "Successfully used `{quantity}` `{item_name}`.",
-    "cannot_give_to_yourself": "Cannot give items to yourself."
+    "cannot_give_to_yourself": "Cannot give items to yourself.",
     "empty": "```Empty.```",
 
     "attributes_params": "[name value]",

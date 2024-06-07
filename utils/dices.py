@@ -195,7 +195,7 @@ class Dices:
         elif self._match(T_DICE):
             return self._parse_dice()
         elif match := self._match(T_NAME):
-            name = match[0].lower()
+            name = match[0].upper()
 
             if name not in self.names:
                 raise NameError(locale.format("undefined_variable", variable_name=match[0]))
@@ -244,7 +244,7 @@ class Dices:
         return Value(exprs)
 
     def roll(self, vars={}):
-        self.names = {str(k).lower(): Value(vars[k]) for k in vars}
+        self.names = {str(k).upper(): Value(vars[k]) for k in vars}
         self.position = 0
         self.rolls = []
         self._rolls = []

@@ -38,7 +38,7 @@ async def handle(ctx):
         name=name,
         jump_url=ctx.message.reference.jump_url
         if ctx.message.reference
-        else ctx.message.jump_url,
+        else ctx.message.jump_url
     )
 
     return locale.format("successfully_used", item_name=name, quantity=quantity)
