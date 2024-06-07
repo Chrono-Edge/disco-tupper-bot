@@ -118,7 +118,7 @@ class Dices:
 
                 buffer += f"{'' if count == 1 else count}d{sides}: {roll} -> {results} ({int(result)})\n"
 
-            return f"```{self.text}\n{buffer}= {int(self.result)}```"
+            return f"``` {self.text}\n{buffer}= {int(self.result)}```"
 
         return self.text
 
