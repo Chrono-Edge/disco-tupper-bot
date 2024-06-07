@@ -57,5 +57,7 @@
     "successfully_obtained": "Successfully obtained `{quantity}` `{name}`.",
     "not_enough_items": "You don't have enough items to give.",
     "successfully_gived": "Successfully gived away `{quantity}` `{name}`.",
+    "successfully_used": "Successfully used `{quantity}` `{name}`.",
+    "inventory_of": "Inventory of `{tupper_name}`:",
     "empty": "```Empty```"
 }

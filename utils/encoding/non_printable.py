@@ -1,5 +1,4 @@
 ﻿import json
-from typing import Union, Tuple
 
 UTF8_MASK = 0xE0000
 HEADER = "\U000e0042\U000e0042\U000e0011\U000e0011"  # Unique header consisting of 4 non-printable UTF-8 characters

@@ -8,13 +8,13 @@ import discord
 import typing
 from builtins import str
 from datetime import datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Union
 import config
 
 import database.models.user
 from utils.discord.action_logger import DiscordLogger
 from utils.encoding.non_printable import NonPrintableEncoder, HEADER
-from utils.tupper_command import get_webhook
+from utils.get_webhook import get_webhook
 from utils.tupper_template import parse_template
 from utils.discord.permissions import Permissions
 from localization import locale
@@ -32,9 +32,9 @@ class ListMenu(discord.ui.View):
 
     @staticmethod
     async def tupper_list_page(
-            client: discord.Client, discord_user: [discord.User, discord.Member], page=0
+        client: discord.Client, discord_user: Union[discord.User, discord.Member], page=0
     ):
-        user, ___ = await User.get_or_create(discord_id=discord_user.id)
+        user, _ = await User.get_or_create(discord_id=discord_user.id)
 
         embeds_list = []
 
@@ -70,7 +70,7 @@ class ListMenu(discord.ui.View):
         custom_id="persistent_view:left",
     )
     async def left_step(
-            self, interaction: discord.Interaction, button: discord.ui.Button
+        self, interaction: discord.Interaction, button: discord.ui.Button
     ):
         client = interaction.client
         _, meta_dict = NonPrintableEncoder.decode_dict(interaction.message.content)
@@ -102,7 +102,7 @@ class ListMenu(discord.ui.View):
         custom_id="persistent_view:right",
     )
     async def right_step(
-            self, interaction: discord.Interaction, button: discord.ui.Button
+        self, interaction: discord.Interaction, button: discord.ui.Button
     ):
         client = interaction.client
         _, meta_dict = NonPrintableEncoder.decode_dict(interaction.message.content)
@@ -143,7 +143,7 @@ class TupperCommandsCog(commands.Cog):
         self.admin_roles = config.values.get("bot.admin_roles")
 
     async def _get_user_to_edit_tupper(
-            self, ctx: discord.ext.commands.Context, member: discord.Member
+        self, ctx: discord.ext.commands.Context, member: discord.Member
     ) -> typing.Tuple[discord.Member, database.models.user.User]:
         """get current user as target or specified  by admin"""
         if await Permissions.get_user_is_admin(self.admin_roles, ctx) and member:
@@ -152,18 +152,18 @@ class TupperCommandsCog(commands.Cog):
         user, ___ = await User.get_or_create(discord_id=ctx.author.id)
         return ctx.author, user
 
-    async def _get_webhook(self, channel_id: int) -> [discord.Webhook, discord.Thread]:
+    async def _get_webhook(self, channel_id: int) -> tuple[discord.Webhook, discord.Thread]:
         return await get_webhook(self.bot, channel_id)
 
     @commands.hybrid_command(name="create_tupper")
     @commands.has_any_role(*config.player_roles)
     async def create_tupper(
-            self,
-            ctx: discord.ext.commands.Context,
-            name: str,
-            call_pattern: str,
-            avatar: discord.Attachment,
-            member: typing.Optional[discord.Member],
+        self,
+        ctx: discord.ext.commands.Context,
+        name: str,
+        call_pattern: str,
+        avatar: discord.Attachment,
+        member: typing.Optional[discord.Member],
     ):
         """Create new tupper"""
         _, user = await self._get_user_to_edit_tupper(ctx, member)
@@ -196,16 +196,22 @@ class TupperCommandsCog(commands.Cog):
             locale.create_tupper_test_message,
             username=tupper.name,
             avatar_url=tupper.image,
-            thread=thread
+            thread=thread,
         )
         await self.discord_logger.send_log(
-            f"Create tupper {tupper.id}|{tupper.name}|{call_pattern} - {ctx.message.author.name}")
-        logger.info(f"Create tupper {tupper.id}|{tupper.name}|{call_pattern} - {ctx.message.author.name}")
+            f"Create tupper {tupper.id}|{tupper.name}|{call_pattern} - {ctx.message.author.name}"
+        )
+        logger.info(
+            f"Create tupper {tupper.id}|{tupper.name}|{call_pattern} - {ctx.message.author.name}"
+        )
 
     @commands.hybrid_command(name="remove_tupper")
     @commands.has_any_role(*config.player_roles)
     async def remove_tupper(
-            self, ctx: discord.ext.commands.Context, tupper_name: str, member: typing.Optional[discord.Member]
+        self,
+        ctx: discord.ext.commands.Context,
+        tupper_name: str,
+        member: typing.Optional[discord.Member],
     ):
         _, user = await self._get_user_to_edit_tupper(ctx, member)
 
@@ -226,13 +232,13 @@ class TupperCommandsCog(commands.Cog):
     @commands.hybrid_command(name="edit_tupper")
     @commands.has_any_role(*config.player_roles)
     async def edit_tupper(
-            self,
-            ctx: discord.ext.commands.Context,
-            tupper_name: str,
-            new_name: typing.Optional[str],
-            new_call_pattern: typing.Optional[str],
-            avatar: typing.Optional[discord.Attachment],
-            tupper_owner: typing.Optional[discord.Member],
+        self,
+        ctx: discord.ext.commands.Context,
+        tupper_name: str,
+        new_name: typing.Optional[str],
+        new_call_pattern: typing.Optional[str],
+        avatar: typing.Optional[discord.Attachment],
+        tupper_owner: typing.Optional[discord.Member],
     ):
         _, user = await self._get_user_to_edit_tupper(ctx, tupper_owner)
 
@@ -243,7 +249,9 @@ class TupperCommandsCog(commands.Cog):
             return
 
         if new_name:
-            tupper_with_name = await user.tuppers.filter(call_pattern=new_call_pattern).first()
+            tupper_with_name = await user.tuppers.filter(
+                call_pattern=new_call_pattern
+            ).first()
             if tupper_with_name:
                 await ctx.reply(locale.tupper_already_exists)
                 return
@@ -256,7 +264,9 @@ class TupperCommandsCog(commands.Cog):
                 await ctx.reply(str(e))
                 return
 
-            tupper_with_pattern = await user.tuppers.filter(call_pattern=new_call_pattern).first()
+            tupper_with_pattern = await user.tuppers.filter(
+                call_pattern=new_call_pattern
+            ).first()
             if tupper_with_pattern:
                 await ctx.reply(locale.tupper_already_exists)
                 return
@@ -266,26 +276,30 @@ class TupperCommandsCog(commands.Cog):
             tupper.image = avatar.url
 
         await tupper.save()
-        await ctx.reply(locale.format("successful_edit_tupper", tupper_name=tupper_name))
+        await ctx.reply(
+            locale.format("successful_edit_tupper", tupper_name=tupper_name)
+        )
         webhook, thread = await self._get_webhook(ctx.channel.id)
 
         await webhook.send(
             locale.edit_tupper_test_message,
             username=tupper.name,
             avatar_url=tupper.image,
-            thread=thread
+            thread=thread,
         )
 
-        await self.discord_logger.send_log(f"Edit tupper {tupper.name}|{tupper.call_pattern}")
+        await self.discord_logger.send_log(
+            f"Edit tupper {tupper.name}|{tupper.call_pattern}"
+        )
         logger.info(f"Edit tupper {tupper.name}|{tupper.call_pattern}")
 
     @commands.hybrid_command(name="set_inventory_chat")
     @commands.has_any_role(*config.player_roles)
     async def set_inventory_chat_id(
-            self,
-            ctx: discord.ext.commands.Context,
-            member: typing.Optional[discord.Member],
-            tupper_name: str,
+        self,
+        ctx: discord.ext.commands.Context,
+        member: typing.Optional[discord.Member],
+        tupper_name: str,
     ):
         _, user = await self._get_user_to_edit_tupper(ctx, member)
 
@@ -299,17 +313,21 @@ class TupperCommandsCog(commands.Cog):
 
         await ctx.reply(locale.format("set_inventory_chat", tupper_name=tupper_name))
 
-        await self.discord_logger.send_log(f"Set inventory chat tupper {tupper.name}|{tupper.inventory_chat_id}")
-        logger.info(f"Set inventory chat tupper {tupper.name}|{tupper.inventory_chat_id}")
+        await self.discord_logger.send_log(
+            f"Set inventory chat tupper {tupper.name}|{tupper.inventory_chat_id}"
+        )
+        logger.info(
+            f"Set inventory chat tupper {tupper.name}|{tupper.inventory_chat_id}"
+        )
 
     @commands.hybrid_command(name="add_user_to_tupper")
     @commands.has_any_role(*config.player_roles)
     async def add_user_to_tupper(
-            self,
-            ctx: discord.ext.commands.Context,
-            tupper_name: str,
-            user_add: discord.Member,
-            tupper_owner: typing.Optional[discord.Member],
+        self,
+        ctx: discord.ext.commands.Context,
+        tupper_name: str,
+        user_add: discord.Member,
+        tupper_owner: typing.Optional[discord.Member],
     ):
         """Add user for tupper"""
         _, target_user = await self._get_user_to_edit_tupper(ctx, tupper_owner)
@@ -321,19 +339,27 @@ class TupperCommandsCog(commands.Cog):
             return
 
         await user_to_add.tuppers.add(tupper)
-        await ctx.reply(locale.format("add_owner_form_tupper", tupper_name=tupper_name, user_mention=user_add.mention))
+        await ctx.reply(
+            locale.format(
+                "add_owner_form_tupper",
+                tupper_name=tupper_name,
+                user_mention=user_add.mention,
+            )
+        )
 
-        await self.discord_logger.send_log(f"Add user to tupper {tupper.name}|{user_add.name}")
+        await self.discord_logger.send_log(
+            f"Add user to tupper {tupper.name}|{user_add.name}"
+        )
         logger.info(f"Add user to tupper {tupper.name}|{user_add.name}")
 
     @commands.hybrid_command(name="remove_user_to_tupper")
     @commands.has_any_role(*config.player_roles)
     async def remove_user_from_tupper(
-            self,
-            ctx: discord.ext.commands.Context,
-            tupper_name: str,
-            user_remove: discord.Member,
-            tupper_owner: typing.Optional[discord.Member],
+        self,
+        ctx: discord.ext.commands.Context,
+        tupper_name: str,
+        user_remove: discord.Member,
+        tupper_owner: typing.Optional[discord.Member],
     ):
         """Remove user form tupper"""
         _, target_user = await self._get_user_to_edit_tupper(ctx, tupper_owner)
@@ -348,11 +374,20 @@ class TupperCommandsCog(commands.Cog):
 
         if tupper.owners.all().count() == 0:
             await tupper.delete()
-            await ctx.reply(locale.format("tupper_not_used_and_remove", tupper_name=tupper_name))
+            await ctx.reply(
+                locale.format("tupper_not_used_and_remove", tupper_name=tupper_name)
+            )
 
         await ctx.reply(
-            locale.format("remove_owner_from_tupper", tupper_name=tupper_name, user_mention=user_remove.mention))
-        await self.discord_logger.send_log(f"Remove user from tupper {tupper.name}|{user_remove.name}")
+            locale.format(
+                "remove_owner_from_tupper",
+                tupper_name=tupper_name,
+                user_mention=user_remove.mention,
+            )
+        )
+        await self.discord_logger.send_log(
+            f"Remove user from tupper {tupper.name}|{user_remove.name}"
+        )
         logger.info(f"Remove user from tupper {tupper.name}|{user_remove.name}")
 
     @commands.hybrid_command(name="tupper_list")
@@ -372,8 +407,13 @@ class TupperCommandsCog(commands.Cog):
 
     @commands.hybrid_command(name="admin_balance_set")
     @commands.has_any_role(*config.admin_roles)
-    async def admin_balance_set(self, ctx: discord.ext.commands.Context, tupper_name: str, balance: int,
-                                tupper_owner: typing.Optional[discord.Member]):
+    async def admin_balance_set(
+        self,
+        ctx: discord.ext.commands.Context,
+        tupper_name: str,
+        balance: int,
+        tupper_owner: typing.Optional[discord.Member],
+    ):
         _, target_user = await self._get_user_to_edit_tupper(ctx, tupper_owner)
 
         tupper: Tupper = await target_user.tuppers.filter(name=tupper_name).first()
@@ -383,11 +423,16 @@ class TupperCommandsCog(commands.Cog):
 
         tupper.balance = tupper.balance + balance
         await tupper.save()
-        await ctx.reply(locale.format("admin_balance_add", tupper_name=tupper_name, balance=balance))
+        await ctx.reply(
+            locale.format("admin_balance_add", tupper_name=tupper_name, balance=balance)
+        )
 
         await self.discord_logger.send_log(
-            f"Add balance for {tupper.name} balance {balance} - {ctx.message.author.name}")
-        logger.info(f"Add balance for {tupper.name} balance {balance} - {ctx.message.author.name}")
+            f"Add balance for {tupper.name} balance {balance} - {ctx.message.author.name}"
+        )
+        logger.info(
+            f"Add balance for {tupper.name} balance {balance} - {ctx.message.author.name}"
+        )
 
 
 async def setup(bot: "DiscoTupperBot"):

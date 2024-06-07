@@ -6,6 +6,7 @@ from tortoise import Tortoise
 
 import config
 from cogs.tuppers_commands import ListMenu
+from tupper_commands import TupperCommands
 from config import logger
 
 logger.info("Starting DiscoTupperBot")
@@ -22,6 +23,8 @@ class DiscoTupperBot(commands.Bot):
         )
         if config.guild:
             self.debug_guild = discord.Object(config.guild)
+
+        self.tupper_commands = TupperCommands(self)
 
     @staticmethod
     def setup_intents():
@@ -47,6 +50,8 @@ class DiscoTupperBot(commands.Bot):
 
     async def on_ready(self):
         self.log_channel = self.fetch_channel(config.log_channel_id)
+        self.tupper_commands.register_commands()
+
         self.remove_command("help")
         logger.info(
             f"Logged in as: {self.user.name} - {self.user.id} Version: {discord.__version__}\n"
