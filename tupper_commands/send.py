@@ -36,4 +36,15 @@ async def handle(ctx):
     await Tupper.filter(id=ctx.tupper.id).update(balance=new_balance)
     await Tupper.filter(id=to_tupper).update(balance=F("balance") + amount)
 
-    return locale.format("sent_to", amount=amount, tupper_name=to_tupper.name, balance=new_balance)
+    await ctx.log(
+        "`{old_balance}` --> `{amount}` -> `{tupper_name}` --> `{new_balance}`",
+        old_balance=ctx.tupper.balance,
+        amount=amount,
+        tupper_name=to_tupper.name,
+        new_balance=new_balance,
+        jump_url=ctx.message.jump_url
+    )
+
+    return locale.format(
+        "sent_to", amount=amount, tupper_name=to_tupper.name, balance=new_balance
+    )

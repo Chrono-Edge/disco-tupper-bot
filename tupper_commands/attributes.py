@@ -25,7 +25,7 @@ async def handle(ctx):
                 value=attr["value"],
                 jump_url=ctx.message.reference.jump_url
                 if ctx.message.reference
-                else ctx.message.jump_url,
+                else ctx.message.jump_url
             )
 
             return locale.attribute_was_successfully_removed
