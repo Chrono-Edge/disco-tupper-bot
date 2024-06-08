@@ -52,6 +52,7 @@ class ListMenu(discord.ui.View):
                 for user in await tupper.owners.all()
             ]
             human_like_owners = [f"`{user.name}`" for user in human_like_owners]
+            human_like_owners = " ".join(human_like_owners)
 
             embed.add_field(
                 name=locale.tupper_info,
