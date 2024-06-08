@@ -6,9 +6,9 @@
     "no_such_tupper": "No such tupper: `{tupper_name}`",
     "tupper_was_successfully_removed": "Tupper was successfully removed.",
     "tupper_not_used_and_remove" :  "Tupper `{tupper_name}` was removed because it is not used.",
-    "remove_owner_from_tupper" : "Tupper {tupper_name} owner {user_mention} was removed",
-    "add_owner_form_tupper" : "Tapper {tupper_name} owner {user_mention} has been added",
-    "set_inventory_chat" : "Tapper {tupper_name}.",
+    "remove_owner_from_tupper" : "Successfully removed user `{user_mention}` from tupper `{tupper_name}`.",
+    "add_owner_form_tupper" : "Successfully added user `{user_mention}` to tupper `{tupper_name}`.",
+    "set_inventory_chat" : "Successfully changed tupper `{tupper_name}` inventory chat.",
     "illegal_attribute_name": "Illegal attribute name.",
     "unknown_item": "Unknown item: `{item_name}`.",
     "attribute_was_successfully_changed": "Attribute `{attribute_name}` value was successfully changed to `{value}` (from `{old_value}`).",
@@ -23,7 +23,7 @@
     "nothing_to_edit": "Nothing to edit.",
     "message_edited": "Messaged edited: {jump_url}",
 
-    "successful_edit_tupper": "Successfully changed {tupper_name} tapper data",
+    "successful_edit_tupper": "Tupper `{tupper_name}` was successfully edited.",
     "tupper_was_successfully_created": "Tupper was successfully created.",
 
     "T_NAME": "name",
