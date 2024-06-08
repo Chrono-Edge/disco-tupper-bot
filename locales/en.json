@@ -15,7 +15,7 @@
     "attribute_was_successfully_removed": "Attribute `{attribute_name}` was successfully removed.",
     "no_such_attribute": "No such attribute `{attribute_name}`.",
     "attribute_was_not_changed": "Attribute `{attribute_name}` not changed.",
-    "admin_balance_add" : "Tupper {tupper_name} has added {balance} to balance.",
+    "admin_balance_add" : "Sent `{balance}` to balance of tupper `{tupper_name}`.",
     "current_balance": "Current balance: `{balance}`.",
     "balance_is_too_low": "Your balance is too low: need `{need}`, have: `{have}`.",
     "editing_message": "Editing message ```{message}```:",

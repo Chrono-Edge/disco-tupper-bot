@@ -19,6 +19,7 @@ from utils.tupper_template import parse_template
 from utils.discord.permissions import Permissions
 from localization import locale
 from utils.tupper_template import unparse_template
+from tupper_commands import Context
 
 if TYPE_CHECKING:
     from bot import DiscoTupperBot
@@ -56,8 +57,12 @@ class ListMenu(discord.ui.View):
 
             embed.add_field(
                 name=locale.tupper_info,
-                value=locale.format("tupper_info_desc", call_pattern=human_like_call_pattern, owners=human_like_owners),
-                inline=False
+                value=locale.format(
+                    "tupper_info_desc",
+                    call_pattern=human_like_call_pattern,
+                    owners=human_like_owners,
+                ),
+                inline=False,
             )
             embed.set_thumbnail(url=tupper.image)
             embeds_list.append(embed)
@@ -199,7 +204,8 @@ class TupperCommandsCog(commands.Cog):
             "log_create_tupper",
             log_author=ctx.message.author.name,
             log_tupper_name=tupper.name,
-            log_tupper_call_pattern=orig_call_pattern
+            log_tupper_call_pattern=orig_call_pattern,
+            log_jump_url=ctx.message.jump_url,
         )
 
     @commands.hybrid_command(name="remove_tupper")
@@ -226,7 +232,8 @@ class TupperCommandsCog(commands.Cog):
         await self.discord_logger.send_log(
             "log_remove_tupper",
             log_author=ctx.message.author.name,
-            log_tupper_name=tupper_name
+            log_tupper_name=tupper_name,
+            log_jump_url=ctx.message.jump_url,
         )
 
     @commands.hybrid_command(name="edit_tupper")
@@ -283,11 +290,12 @@ class TupperCommandsCog(commands.Cog):
         await ctx.reply(
             locale.format("successful_edit_tupper", tupper_name=tupper_name)
         )
-        
+
         await self.discord_logger.send_log(
             "log_edit_tupper",
             log_author=ctx.message.author.name,
-            **log_keys
+            **log_keys,
+            log_jump_url=ctx.message.jump_url,
         )
 
     @commands.hybrid_command(name="set_inventory_chat")
@@ -314,7 +322,8 @@ class TupperCommandsCog(commands.Cog):
             "log_set_inventory_chat",
             log_author=ctx.message.author.name,
             log_tupper_name=tupper.name,
-            log_inventory_chat_id=tupper.inventory_chat_id
+            log_inventory_chat_id=tupper.inventory_chat_id,
+            log_jump_url=ctx.message.jump_url,
         )
 
     @commands.hybrid_command(name="add_user_to_tupper")
@@ -348,7 +357,8 @@ class TupperCommandsCog(commands.Cog):
             "log_tupper_add_user",
             log_author=ctx.message.author.name,
             log_tupper_name=tupper.name,
-            log_user=user_add.name
+            log_user=user_add.name,
+            log_jump_url=ctx.message.jump_url,
         )
 
     @commands.hybrid_command(name="remove_user_to_tupper")
@@ -384,11 +394,13 @@ class TupperCommandsCog(commands.Cog):
                 user_mention=user_remove.mention,
             )
         )
+
         await self.discord_logger.send_log(
             "log_tupper_remove_user",
             log_author=ctx.message.author.name,
             log_tupper_name=tupper.name,
-            log_user=user_remove.name
+            log_user=user_remove.name,
+            log_jump_url=ctx.message.jump_url,
         )
 
     @commands.hybrid_command(name="tupper_list")
@@ -418,7 +430,7 @@ class TupperCommandsCog(commands.Cog):
         ctx: discord.ext.commands.Context,
         tupper_owner: typing.Optional[discord.Member],
         tupper_name: str,
-        balance: int
+        balance: int,
     ):
         _, target_user = await self._get_user_to_edit_tupper(ctx, tupper_owner)
 
@@ -427,6 +439,7 @@ class TupperCommandsCog(commands.Cog):
             await ctx.reply(locale.no_such_tupper)
             return
 
+        old_balance = tupper.balance
         tupper.balance = tupper.balance + balance
         await tupper.save()
         await ctx.reply(
@@ -437,8 +450,23 @@ class TupperCommandsCog(commands.Cog):
             "log_add_balance",
             log_author=ctx.message.author.name,
             log_tupper_name=tupper.name,
-            log_quantity=balance
+            log_quantity=balance,
+            log_jump_url=ctx.message.jump_url,
         )
+
+        # >:)
+        pseudo_ctx = Context(
+            bot=self.bot, tupper=tupper, message=ctx.message, command=None
+        )
+        await pseudo_ctx.log(
+            "log_incoming_balance",
+            log_quantity=balance,
+            log_author=ctx.message.author.name,
+            log_old_balance=old_balance,
+            log_new_balance=tupper.balance,
+            log_jump_url=ctx.message.jump_url,
+        )
+
 
 async def setup(bot: "DiscoTupperBot"):
     await bot.add_cog(TupperCommandsCog(bot))
