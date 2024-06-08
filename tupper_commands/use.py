@@ -35,7 +35,7 @@ async def handle(ctx):
     await ctx.log(
         "log_use",
         log_item_name=name,
-        log_item_quantity=quantity,
+        log_quantity=quantity,
         log_jump_url=ctx.message.reference.jump_url
         if ctx.message.reference
         else ctx.message.jump_url,
