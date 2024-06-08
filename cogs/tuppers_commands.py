@@ -400,6 +400,11 @@ class TupperCommandsCog(commands.Cog):
         user = await User.filter(discord_id=discord_user.id).first()
 
         count_tuppers = await user.tuppers.all().count()
+        if count_tuppers == 0:
+            await ctx.reply(locale.empty)
+
+            return
+
         if count_tuppers > 10:
             view = ListMenu()
 
