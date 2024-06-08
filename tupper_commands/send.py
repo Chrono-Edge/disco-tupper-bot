@@ -18,6 +18,9 @@ async def handle(ctx):
     to_tupper = await Tupper.get(id=tupper_id)
     if not to_tupper:
         return locale.no_such_tupper
+    
+    if ctx.tupper.id == to_tupper.id:
+        return locale.cannot_send_to_yourself
 
     try:
         amount = abs(int(ctx.command.args[0]))

@@ -59,6 +59,7 @@
     "successfully_gived": "Successfully gived away `{quantity}` `{item_name}` to `{tupper_name}`.",
     "successfully_used": "Successfully used `{quantity}` `{item_name}`.",
     "cannot_give_to_yourself": "Cannot give items to yourself.",
+    "cannot_send_to_yourself": "Cannot send from balance to yourself.",
     "sent_to": "Successfully sent `{amount}` to `{tupper_name}`. Current balance: `{balance}`.",
     "empty": "```Empty.```",
 
