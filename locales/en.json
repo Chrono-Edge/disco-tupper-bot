@@ -84,5 +84,8 @@
     "take_desc": "Take an item.",
 
     "use_params": "<item> [quantity]",
-    "use_desc": "Use an item."
+    "use_desc": "Use an item.",
+
+    "tupper_info": "Tupper info:",
+    "tupper_info_desc": "Call pattern: `{call_pattern}`.\nOwners: {owners}."
 }

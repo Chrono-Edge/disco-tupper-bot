@@ -4,46 +4,48 @@ from localization import locale
 def parse_template(text):
     text = text.strip()
 
-    buffer = ''
+    buffer = ""
     escape = False
     has_star = False
     group = 0
     group_size = 0
     for ch in text:
         if not escape:
-            if ch == '*' and not group:
+            if ch == "*" and not group:
                 if has_star:
-                    raise SyntaxError(locale.template_should_not_contain_more_than_one_placeholder)
+                    raise SyntaxError(
+                        locale.template_should_not_contain_more_than_one_placeholder
+                    )
 
                 has_star = True
 
-                buffer += '(.*)'
+                buffer += "(.*)"
 
                 continue
-            elif ch == '?' and not group:
-                buffer += '.'
+            elif ch == "?" and not group:
+                buffer += "."
 
                 continue
-            elif ch == '[' and not group:
+            elif ch == "[" and not group:
                 group = True
 
-                buffer += '['
+                buffer += "["
 
                 continue
-            elif ch == '\\':
+            elif ch == "\\":
                 escape = True
 
                 continue
 
         if group and not escape:
-            if ch == ']':
+            if ch == "]":
                 if group_size == 0:
                     raise SyntaxError(locale.empty_blocks_are_forbidden)
 
                 group = False
                 group_size = 0
 
-                buffer += ']'
+                buffer += "]"
 
                 continue
 
@@ -51,8 +53,8 @@ def parse_template(text):
 
         escape = False
 
-        if ch in r'\.+*?[-]():':
-            buffer += '\\'
+        if ch in r"\.+*?[-]():":
+            buffer += "\\"
 
         buffer += ch
 
@@ -66,22 +68,73 @@ def parse_template(text):
         raise SyntaxError(locale.template_should_contain_at_least_one_placeholder)
 
     if len(buffer) <= 4:
-        raise SyntaxError(locale.template_should_contain_something_aside_from_placeholder)
+        raise SyntaxError(
+            locale.template_should_contain_something_aside_from_placeholder
+        )
 
-    return f'^{buffer}$'
+    return f"^{buffer}$"
 
 
-if __name__ == '__main__':
-    print(parse_template(r'99 *'))
-    print(parse_template(r'k:*'))
-    print(parse_template(r'(*)'))
-    print(parse_template(r'aaa*bbbb'))
-    print(parse_template(r'\*\**\*\*'))
-    print(parse_template(r'.*.'))
-    print(parse_template(r'\\a*b\\'))
-    print(parse_template(r'[ae]*[ea]'))
-    print(parse_template(r'/?/ * /?/'))
-    print(parse_template(r'[*]*'))
-    print(parse_template(r'[[\]]*'))
-    print(parse_template(r'[??]?*'))
-    print(parse_template(r'* z'))
+def unparse_template(text):
+    text = text[1:-1]
+
+    buffer = ""
+    escape = False
+    in_block = False
+    i = 0
+    while i < len(text):
+        ch = text[i]
+        if in_block:
+            buffer += ch
+
+            i += 1
+
+            continue
+
+        if escape:
+            buffer += ch
+
+            escape = False
+
+            i += 1
+
+            continue
+
+        if ch == ".":
+            buffer += "?"
+        elif ch == "\\":
+            escape = True
+        elif ch == "[":
+            buffer += ch
+
+            in_block = True
+        elif ch == "]":
+            buffer += ch
+
+            in_block = False
+        elif text[i : i + 4] == "(.*)":
+            buffer += "*"
+
+            i += 3
+        else:
+            buffer += ch
+
+        i += 1
+
+    return buffer
+
+
+if __name__ == "__main__":
+    print(parse_template(r"99 *"))
+    print(parse_template(r"k:*"))
+    print(parse_template(r"(*)"))
+    print(parse_template(r"aaa*bbbb"))
+    print(parse_template(r"\*\**\*\*"))
+    print(parse_template(r".*."))
+    print(parse_template(r"\\a*b\\"))
+    print(parse_template(r"[ae]*[ea]"))
+    print(parse_template(r"/?/ * /?/"))
+    print(parse_template(r"[*]*"))
+    print(parse_template(r"[[\]]*"))
+    print(parse_template(r"[??]?*"))
+    print(parse_template(r"* z"))

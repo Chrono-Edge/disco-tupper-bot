@@ -13,13 +13,12 @@ import config
 
 import database.models.user
 from utils.discord.action_logger import DiscordLogger
-from utils.encoding.non_printable import NonPrintableEncoder, HEADER
+from utils.encoding.non_printable import NonPrintableEncoder
 from utils.get_webhook import get_webhook
 from utils.tupper_template import parse_template
 from utils.discord.permissions import Permissions
 from localization import locale
-
-hidden_header = HEADER
+from utils.tupper_template import unparse_template
 
 if TYPE_CHECKING:
     from bot import DiscoTupperBot
@@ -32,7 +31,9 @@ class ListMenu(discord.ui.View):
 
     @staticmethod
     async def tupper_list_page(
-        client: discord.Client, discord_user: Union[discord.User, discord.Member], page=0
+        client: discord.Client,
+        discord_user: Union[discord.User, discord.Member],
+        page=0,
     ):
         user, _ = await User.get_or_create(discord_id=discord_user.id)
 
@@ -44,10 +45,8 @@ class ListMenu(discord.ui.View):
         for tupper in await user.tuppers.offset(page * 10).limit(10).all():
             embed = discord.Embed(colour=0x00B0F4, timestamp=datetime.now())
             embed.set_author(name=f"{tupper.name}")
-            # TODO locale.format
-            human_like_call_pattern = tupper.call_pattern.replace("^", "")
-            human_like_call_pattern = human_like_call_pattern.replace("(.*)$", "")
 
+            human_like_call_pattern = unparse_template(tupper.call_pattern)
             human_like_owners = [
                 await client.fetch_user(user.discord_id)
                 for user in await tupper.owners.all()
@@ -55,9 +54,9 @@ class ListMenu(discord.ui.View):
             human_like_owners = [f"`{user.name}`" for user in human_like_owners]
 
             embed.add_field(
-                name="Info",
-                value=f"Call pattern: `{human_like_call_pattern}`\n Owners: {' '.join(human_like_owners)}",
-                inline=False,
+                name=locale.tupper_info,
+                value=locale.format("tupper_info_desc", call_pattern=human_like_call_pattern, owners=human_like_owners),
+                inline=False
             )
             embed.set_thumbnail(url=tupper.image)
             embeds_list.append(embed)
@@ -152,7 +151,9 @@ class TupperCommandsCog(commands.Cog):
         user, ___ = await User.get_or_create(discord_id=ctx.author.id)
         return ctx.author, user
 
-    async def _get_webhook(self, channel_id: int) -> tuple[discord.Webhook, discord.Thread]:
+    async def _get_webhook(
+        self, channel_id: int
+    ) -> tuple[discord.Webhook, discord.Thread]:
         return await get_webhook(self.bot, channel_id)
 
     @commands.hybrid_command(name="create_tupper")
