@@ -34,7 +34,7 @@ async def handle(ctx):
 
     new_balance = ctx.tupper.balance - amount
     await Tupper.filter(id=ctx.tupper.id).update(balance=new_balance)
-    await Tupper.filter(id=to_tupper).update(balance=F("balance") + amount)
+    await Tupper.filter(id=to_tupper.id).update(balance=F("balance") + amount)
 
     await ctx.log(
         "`{old_balance}` --> `{amount}` -> `{tupper_name}` --> `{new_balance}`",

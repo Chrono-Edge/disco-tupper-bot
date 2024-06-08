@@ -147,9 +147,9 @@ class TupperCommandsCog(commands.Cog):
     ) -> typing.Tuple[discord.Member, database.models.user.User]:
         """get current user as target or specified  by admin"""
         if await Permissions.get_user_is_admin(self.admin_roles, ctx) and member:
-            user, ___ = await User.get_or_create(discord_id=member.id)
+            user, _ = await User.get_or_create(discord_id=member.id)
             return member, user
-        user, ___ = await User.get_or_create(discord_id=ctx.author.id)
+        user, _ = await User.get_or_create(discord_id=ctx.author.id)
         return ctx.author, user
 
     async def _get_webhook(
@@ -193,15 +193,8 @@ class TupperCommandsCog(commands.Cog):
 
         await ctx.reply(locale.tupper_was_successfully_created)
 
-        webhook, thread = await self._get_webhook(ctx.channel.id)
-        await webhook.send(
-            locale.create_tupper_test_message,
-            username=tupper.name,
-            avatar_url=tupper.image,
-            thread=thread,
-        )
         await self.discord_logger.send_log(
-            f"Create tupper {tupper.id}|{tupper.name}|{call_pattern} - {ctx.message.author.name}"
+            f"C `{tupper.id}`|`{tupper.name}`|`{call_pattern}` - `{ctx.message.author.name}`"
         )
         logger.info(
             f"Create tupper {tupper.id}|{tupper.name}|{call_pattern} - {ctx.message.author.name}"
@@ -228,7 +221,7 @@ class TupperCommandsCog(commands.Cog):
         await Tupper.filter(id=tupper.id).delete()
 
         await ctx.reply(locale.tupper_was_successfully_removed)
-        await self.discord_logger.send_log(f"Remove tupper {tupper_id}|{tupper_name}")
+        await self.discord_logger.send_log(f"X `{tupper_id}`|`{tupper_name}`")
         logger.info(f"Remove tupper {tupper_id}|{tupper_name}")
 
     @commands.hybrid_command(name="edit_tupper")
@@ -281,17 +274,9 @@ class TupperCommandsCog(commands.Cog):
         await ctx.reply(
             locale.format("successful_edit_tupper", tupper_name=tupper_name)
         )
-        webhook, thread = await self._get_webhook(ctx.channel.id)
-
-        await webhook.send(
-            locale.edit_tupper_test_message,
-            username=tupper.name,
-            avatar_url=tupper.image,
-            thread=thread,
-        )
-
+        
         await self.discord_logger.send_log(
-            f"Edit tupper {tupper.name}|{tupper.call_pattern}"
+            f"E `{tupper.name}`: `{tupper.call_pattern}`"
         )
         logger.info(f"Edit tupper {tupper.name}|{tupper.call_pattern}")
 
@@ -316,7 +301,7 @@ class TupperCommandsCog(commands.Cog):
         await ctx.reply(locale.format("set_inventory_chat", tupper_name=tupper_name))
 
         await self.discord_logger.send_log(
-            f"Set inventory chat tupper {tupper.name}|{tupper.inventory_chat_id}"
+            f"C `{tupper.name}`: `{tupper.inventory_chat_id}`"
         )
         logger.info(
             f"Set inventory chat tupper {tupper.name}|{tupper.inventory_chat_id}"
@@ -350,7 +335,7 @@ class TupperCommandsCog(commands.Cog):
         )
 
         await self.discord_logger.send_log(
-            f"Add user to tupper {tupper.name}|{user_add.name}"
+            f"+ `{user_add.name}`|`{tupper.name}`"
         )
         logger.info(f"Add user to tupper {tupper.name}|{user_add.name}")
 
@@ -388,7 +373,7 @@ class TupperCommandsCog(commands.Cog):
             )
         )
         await self.discord_logger.send_log(
-            f"Remove user from tupper {tupper.name}|{user_remove.name}"
+            f"X `{user_remove.name}|{tupper.name}`"
         )
         logger.info(f"Remove user from tupper {tupper.name}|{user_remove.name}")
 
@@ -417,9 +402,9 @@ class TupperCommandsCog(commands.Cog):
     async def admin_balance_set(
         self,
         ctx: discord.ext.commands.Context,
+        tupper_owner: discord.Member,
         tupper_name: str,
-        balance: int,
-        tupper_owner: typing.Optional[discord.Member],
+        balance: int
     ):
         _, target_user = await self._get_user_to_edit_tupper(ctx, tupper_owner)
 
@@ -435,7 +420,7 @@ class TupperCommandsCog(commands.Cog):
         )
 
         await self.discord_logger.send_log(
-            f"Add balance for {tupper.name} balance {balance} - {ctx.message.author.name}"
+            f"`{tupper.name}` +`{balance}` - `{ctx.message.author.name}`"
         )
         logger.info(
             f"Add balance for {tupper.name} balance {balance} - {ctx.message.author.name}"

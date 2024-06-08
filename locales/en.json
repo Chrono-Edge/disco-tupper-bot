@@ -23,8 +23,6 @@
 
     "successful_edit_tupper": "Successfully changed {tupper_name} tapper data",
     "tupper_was_successfully_created": "Tupper was successfully created.",
-    "edit_tupper_test_message" :  "-- I am foxgirl now?",
-    "create_tupper_test_message" : "-- Hello world!",
 
     "T_NAME": "name",
     "T_COLON" : "colon",
