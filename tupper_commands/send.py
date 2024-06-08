@@ -24,11 +24,6 @@ async def handle(ctx):
     except ValueError:
         return None
 
-    try:
-        amount = abs(int(amount))
-    except ValueError:
-        return None
-
     if amount > ctx.tupper.balance:
         return locale.format("balance_is_too_low", need=amount, have=ctx.tupper.balance)
 
