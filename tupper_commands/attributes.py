@@ -12,7 +12,7 @@ async def handle(ctx):
         if not re.match(r"^[А-ЯA-Z]{2,3}$", name):
             return locale.illegal_attribute_name
 
-        if ctx.command.args[1] == "-":
+        if ctx.command.args[1] in "Xx-":
             if not await ctx.tupper.attrs.filter(name=name).exists():
                 return locale.no_such_attribute
 
@@ -64,7 +64,7 @@ async def handle(ctx):
 
             await ctx.tupper.attrs.filter(id=old_attr.id).update(value=value)
 
-        return locale.format("attribute_was_successfully_changed", attribute_name=name, value=value, old_value=old_attr.value if old_attr else '-')
+        return locale.format("attribute_was_successfully_changed", attribute_name=name, value=value, old_value=old_attr.value if old_attr else 'X')
 
     buffer = ""
 
