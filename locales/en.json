@@ -9,7 +9,7 @@
     "add_owner_form_tupper" : "Tapper {tupper_name} owner {user_mention} has been added",
     "set_inventory_chat" : "Tapper {tupper_name} had a chat inventory installed.",
     "illegal_attribute_name": "Illegal attribute name.",
-    "attribute_was_successfully_changed": "Attribute value was successfully changed.",
+    "attribute_was_successfully_changed": "Attribute `{attribute_name}` value was successfully changed to `{value}` (from `{old_value}`).",
     "attribute_was_successfully_removed": "Attribute value was successfully removed.",
     "no_such_attribute": "No such attribute.",
     "attribute_was_not_changed": "Attribute was not changed.",

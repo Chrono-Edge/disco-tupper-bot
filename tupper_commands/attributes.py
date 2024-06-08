@@ -16,7 +16,7 @@ async def handle(ctx):
             if not await ctx.tupper.attrs.filter(name=name).exists():
                 return locale.no_such_attribute
 
-            attr = await ctx.tupper.attr.filter(name=name).first().values("value")
+            attr = await ctx.tupper.attrs.filter(name=name).first().values("value")
             await ctx.tupper.attrs.filter(name=name).delete()
 
             await ctx.log(
@@ -64,7 +64,7 @@ async def handle(ctx):
 
             await ctx.tupper.attrs.filter(id=old_attr.id).update(value=value)
 
-        return locale.attribute_was_successfully_changed
+        return locale.format("attribute_was_successfully_changed", attribute_name=name, value=value, old_value=old_attr.value if old_attr else '-')
 
     buffer = ""
 
