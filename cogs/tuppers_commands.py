@@ -198,7 +198,12 @@ class TupperCommandsCog(commands.Cog):
         )
         await user.tuppers.add(tupper)
 
-        await ctx.reply(locale.tupper_was_successfully_created)
+        await ctx.reply(
+            locale.format(
+                "tupper_was_successfully_created",
+                tupper_name=tupper.name,
+            )
+        )
 
         await self.discord_logger.send_log(
             "log_create_tupper",
