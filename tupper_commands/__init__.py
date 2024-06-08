@@ -51,6 +51,7 @@ class Context:
                 username=self.tupper.name,
                 avatar_url=self.tupper.image,
                 thread=thread,
+                suppress_embeds=True
             )
         except (
             discord.InvalidData,
