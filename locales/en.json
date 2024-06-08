@@ -63,12 +63,12 @@
     "sent_to": "Successfully sent `{amount}` to `{tupper_name}`. Current balance: `{balance}`.",
     "empty": "```Empty.```",
 
-    "attributes_params": "[name value]",
+    "attributes_params": "[name value] ?reference",
     "attributes_desc": "See or set attributes.",
 
     "balance_desc": "See balance.",
 
-    "give_params": "<item> [quantity]",
+    "give_params": "<item> [quantity] !reference",
     "give_desc": "Give an item.",
 
     "inventory_desc": "See list of items.",
@@ -76,13 +76,13 @@
     "roll_params": "<dices...>",
     "roll_desc": "Roll a dice or dices.",
 
-    "send_params": "<amount>",
+    "send_params": "<amount> !reference",
     "send_desc": "Send some money.",
 
-    "take_params": "<item> [quantity]",
+    "take_params": "<item> [quantity] !reference",
     "take_desc": "Take an item.",
 
-    "use_params": "<item> [quantity]",
+    "use_params": "<item> [quantity] ?reference",
     "use_desc": "Use an item.",
 
     "tupper_info": "Tupper info:",
