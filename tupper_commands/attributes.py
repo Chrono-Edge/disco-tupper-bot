@@ -20,10 +20,9 @@ async def handle(ctx):
             await ctx.tupper.attrs.filter(name=name).delete()
 
             await ctx.log(
-                "A `{name}`: `{value}` -> X {jump_url}",
-                name=name,
-                value=attr["value"],
-                jump_url=ctx.message.reference.jump_url
+                "log_attr_remove",
+                log_attr_name=name,
+                log_jump_url=ctx.message.reference.jump_url
                 if ctx.message.reference
                 else ctx.message.jump_url,
             )
@@ -41,10 +40,10 @@ async def handle(ctx):
 
         if not old_attr:
             await ctx.log(
-                "A `{name}`: `{value}` {jump_url}",
-                name=name,
-                value=value,
-                jump_url=ctx.message.reference.jump_url
+                "log_attr_set",
+                log_attr_name=name,
+                log_attr_new_value=value,
+                log_jump_url=ctx.message.reference.jump_url
                 if ctx.message.reference
                 else ctx.message.jump_url,
             )
@@ -55,11 +54,11 @@ async def handle(ctx):
                 return locale.format("attribute_was_not_changed", attribute_name=name)
 
             await ctx.log(
-                "A `{name}`: `{old_value}` -> `{value}` {jump_url}",
-                name=name,
-                old_value=old_attr.value,
-                value=value,
-                jump_url=ctx.message.reference.jump_url
+                "log_attr_set",
+                log_attr_name=name,
+                log_attr_old_value=old_attr.value,
+                log_attr_new_value=value,
+                log_jump_url=ctx.message.reference.jump_url
                 if ctx.message.reference
                 else ctx.message.jump_url,
             )

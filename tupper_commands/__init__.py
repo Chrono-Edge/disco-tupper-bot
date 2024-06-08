@@ -7,6 +7,9 @@ import discord
 from loguru import logger
 
 import config
+from localization import locale
+from utils.discord.get_webhook import get_webhook
+from utils.encoding.non_printable import NonPrintableEncoder
 
 
 class Context:
@@ -16,11 +19,39 @@ class Context:
         self.message = message
         self.command = command
 
-    async def log(self, text, **kwargs):
-        try:
-            channel = await self.bot.fetch_channel(self.tupper.inventory_chat_id)
+    async def log_other(self, tupper, label, **kwargs):
+        # this is pure evil.....
 
-            await channel.send(text.format(**kwargs))
+        old_tupper = self.tupper
+        
+        try:
+            self.tupper = tupper
+
+            await self.log(label, **kwargs)
+        finally:
+            self.tupper = old_tupper
+
+    async def log(self, label, **kwargs):
+        text = "; ".join(map(lambda key: locale.format(key, value=kwargs[key]), kwargs))
+        text = f"[{getattr(locale, label)}] {text}"
+
+        try:
+            webhook, thread = await get_webhook(self.bot, self.tupper.inventory_chat_id)
+            if not webhook:
+                return
+
+            hidden_data = {
+                "tupper_id": self.tupper.id,
+                "author_id": self.message.author.id,
+            }
+            text = NonPrintableEncoder.encode_dict(text, hidden_data)
+
+            await webhook.send(
+                text,
+                username=self.tupper.name,
+                avatar_url=self.tupper.image,
+                thread=thread,
+            )
         except (
             discord.InvalidData,
             discord.HTTPException,
@@ -53,6 +84,8 @@ class TupperCommands:
             self.register_command(name, module.handle)
 
             self.help_lines[name] = getattr(module, "HELP", "N/A")
+
+            logger.success(f"Registered tupper command: {name}")
 
         async def help(ctx):
             buffer = ""
@@ -89,6 +122,9 @@ class TupperCommands:
 
         if command.name not in self.commands:
             return None
+        
+        if command.name not in ("help", "h") and tupper.inventory_chat_id == 0:
+            return locale.tupper_is_disabled
 
         return await self.commands[command.name](
             Context(bot=self.bot, tupper=tupper, message=message, command=command)

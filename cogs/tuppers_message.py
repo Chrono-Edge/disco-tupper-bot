@@ -11,7 +11,7 @@ from database.models.user import User
 from utils.discord.message_split import TextFormatterSplit
 from utils.encoding.non_printable import NonPrintableEncoder
 from utils.encoding.non_printable import HEADER
-from utils.get_webhook import get_webhook
+from utils.discord.get_webhook import get_webhook
 from localization import locale
 
 if TYPE_CHECKING:

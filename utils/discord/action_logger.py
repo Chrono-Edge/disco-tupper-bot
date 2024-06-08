@@ -1,16 +1,12 @@
-import discord
-
-import config
-
+from localization import locale
 
 class DiscordLogger:
-    def __init__(self, bot: discord.Client):
+    def __init__(self, bot):
         self.bot = bot
-        self.log_channel = None
-        pass
 
-    async def send_log(self, content: str):
-        if not self.log_channel:
-            self.log_channel = await self.bot.fetch_channel(config.log_channel_id)
+    async def send_log(self, label, **kwargs):
+        
+        text = "; ".join(map(lambda key: locale.format(key, value=kwargs[key]), kwargs))
+        text = f"[{getattr(locale, label)}] {text}"
 
-        await self.log_channel.send(f"```{content}```")
+        await self.bot.log_channel.send(text)

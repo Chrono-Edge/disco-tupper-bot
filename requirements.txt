@@ -10,8 +10,8 @@ idna==3.7
 iso8601==1.1.0
 loguru==0.7.2
 multidict==6.0.5
-pydantic==2.7.2
-pydantic_core==2.18.3
+pydantic==2.7.3
+pydantic_core==2.18.4
 pypika-tortoise==0.1.6
 pytz==2024.1
 tortoise-orm==0.21.2

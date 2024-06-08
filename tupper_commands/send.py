@@ -1,5 +1,5 @@
 from localization import locale
-from utils.get_tupper_id import get_tupper_id
+from utils.discord.get_tupper_id import get_tupper_id
 from database.models.tupper import Tupper
 
 from tortoise.expressions import F
@@ -35,12 +35,21 @@ async def handle(ctx):
     await Tupper.filter(id=to_tupper.id).update(balance=F("balance") + amount)
 
     await ctx.log(
-        "`{old_balance}` --> `{amount}` -> `{tupper_name}` --> `{new_balance}` {jump_url}",
-        old_balance=ctx.tupper.balance,
-        amount=amount,
-        tupper_name=to_tupper.name,
-        new_balance=new_balance,
-        jump_url=ctx.message.jump_url
+        "log_send",
+        log_quantity=amount,
+        log_receiver=to_tupper.name,
+        log_old_balance=ctx.tupper.balance,
+        log_new_balance=new_balance,
+        log_jump_url=ctx.message.reference.jump_url
+    )
+    await ctx.log_other(
+        to_tupper,
+        "log_incoming_balance",
+        log_quantity=amount,
+        log_sender=ctx.tupper.name,
+        log_old_balance=to_tupper.balance,
+        log_new_balance=to_tupper.balance + amount,
+        log_jump_url=ctx.message.reference.jump_url
     )
 
     return locale.format(

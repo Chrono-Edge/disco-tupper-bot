@@ -36,3 +36,5 @@ async def get_webhook(
         logger.error(f"Failed to fetch/create webhooks in channel {channel_id}: {e}")
     except Exception as e:
         logger.error(f"Unexpected error in _get_webhook: {e}")
+
+    return None, None

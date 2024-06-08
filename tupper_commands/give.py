@@ -1,8 +1,9 @@
 from localization import locale
-from utils.get_tupper_id import get_tupper_id
+from utils.discord.get_tupper_id import get_tupper_id
 from database.models.item import Item
 from database.models.tupper import Tupper
 
+from tortoise.exceptions import DoesNotExist
 from tortoise.expressions import F
 
 HELP = (locale.give_params, locale.give_desc)
@@ -19,7 +20,7 @@ async def handle(ctx):
     to_tupper = await Tupper.get(id=tupper_id)
     if not to_tupper:
         return locale.no_such_tupper
-    
+
     if to_tupper.id == ctx.tupper.id:
         return locale.cannot_give_to_yourself
 
@@ -33,7 +34,11 @@ async def handle(ctx):
         except ValueError:
             return None
 
-    item = await Item.get(name=name, tupper_owner=ctx.tupper)
+    try:
+        item = await Item.get(name=name, tupper_owner=ctx.tupper)
+    except DoesNotExist:
+        return locale.format("unknown_item", item_name=name)
+
     if not item:
         return locale.not_enough_items
 
@@ -52,10 +57,24 @@ async def handle(ctx):
         await Item.filter(id=item.id).update(quantity=F("quantity") + quantity)
 
     await ctx.log(
-        "− `{quantity}` `{name}` {jump_url}",
-        quantity=quantity,
-        name=name,
-        jump_url=ctx.message.reference.jump_url
+        "log_give",
+        log_item_name=name,
+        log_quantity=quantity,
+        log_receiver=to_tupper.name,
+        log_jump_url=ctx.message.reference.jump_url,
+    )
+    await ctx.log_other(
+        to_tupper,
+        "log_incoming_item",
+        log_item_name=name,
+        log_quantity=quantity,
+        log_sender=ctx.tupper.name,
+        log_jump_url=ctx.message.reference.jump_url,
     )
 
-    return locale.format("successfully_gived", item_name=name, quantity=quantity, tupper_name=to_tupper.name)
+    return locale.format(
+        "successfully_gived",
+        item_name=name,
+        quantity=quantity,
+        tupper_name=to_tupper.name,
+    )
