@@ -7,7 +7,7 @@ import pathlib
 LANGUAGES = {}
 
 for filename in glob.glob("./locales/[a-z][a-z].json"):
-    with open(filename, "r") as f:
+    with open(filename, "r", encoding="utf-8") as f:
         LANGUAGES[pathlib.Path(filename).name.split(".")[0]] = json.load(f)
 
 
