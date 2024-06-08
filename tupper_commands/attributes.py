@@ -15,13 +15,14 @@ async def handle(ctx):
         if ctx.command.args[1] == "-":
             if not await ctx.tupper.attrs.filter(name=name).exists():
                 return locale.no_such_attribute
-
+            
+            attr = await ctx.tupper.attr.filter(name=name).first().values("value")
             await ctx.tupper.attrs.filter(name=name).delete()
 
             await ctx.log(
                 "X `{name}`: `{value}` {jump_url}",
                 name=name,
-                value=value,
+                value=attr["value"],
                 jump_url=ctx.message.reference.jump_url
                 if ctx.message.reference
                 else ctx.message.jump_url,

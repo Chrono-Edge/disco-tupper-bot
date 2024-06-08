@@ -58,4 +58,4 @@ async def handle(ctx):
         jump_url=ctx.message.reference.jump_url
     )
 
-    return locale.format("successfully_gived", item_name=name, quantity=quantity)
+    return locale.format("successfully_gived", item_name=name, quantity=quantity, tupper_name=to_tupper.name)

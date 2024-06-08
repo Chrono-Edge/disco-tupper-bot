@@ -58,9 +58,10 @@
     "reference_message_not_found": "Reference message not found.",
     "successfully_obtained": "Successfully obtained `{quantity}` `{item_name}`.",
     "not_enough_items": "You don't have enough items.",
-    "successfully_gived": "Successfully gived away `{quantity}` `{item_name}`.",
+    "successfully_gived": "Successfully gived away `{quantity}` `{item_name}` to `{tupper_name}`.",
     "successfully_used": "Successfully used `{quantity}` `{item_name}`.",
     "cannot_give_to_yourself": "Cannot give items to yourself.",
+    "sent_to": "Successfully sent `{amount}` to `{tupper_name}`. Current balance: `{balance}`.",
     "empty": "```Empty.```",
 
     "attributes_params": "[name value]",
