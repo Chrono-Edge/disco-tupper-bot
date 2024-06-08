@@ -15,7 +15,7 @@ async def handle(ctx):
         if ctx.command.args[1] == "-":
             if not await ctx.tupper.attrs.filter(name=name).exists():
                 return locale.no_such_attribute
-            
+
             attr = await ctx.tupper.attr.filter(name=name).first().values("value")
             await ctx.tupper.attrs.filter(name=name).delete()
 
@@ -27,7 +27,7 @@ async def handle(ctx):
                 if ctx.message.reference
                 else ctx.message.jump_url,
             )
-           
+
             return locale.attribute_was_successfully_removed
 
         try:
