@@ -135,7 +135,7 @@ class TupperCommands:
         if command.name not in self.commands:
             return None
 
-        if command.name not in ("help", "h") and tupper.inventory_chat_id == 0:
+        if command.name not in ("help", "h", "х") and tupper.inventory_chat_id == 0:
             return locale.tupper_is_disabled
 
         return await self.commands[command.name](
