@@ -6,6 +6,13 @@ from database.models.attribute import Attribute
 
 HELP = (locale.attributes_params, locale.attributes_desc)
 
+OPS = {
+    "+": operator.add,
+    "-": operator.sub,
+    "*": operator.mul,
+    "/": lambda a, b: 0 if b == 0 else int(a / b),
+}
+
 
 async def handle(ctx):
     if ctx.command.argc not in (0, 1, 2, 3):
@@ -21,7 +28,7 @@ async def handle(ctx):
         if ctx.command.argc == 1:
             if not await ctx.tupper.attrs.filter(name=name).exists():
                 return locale.format("no_such_attribute", attribute_name=name)
-            
+
             attr = await ctx.tupper.attrs.filter(name=name).first().values("value")
 
             return f"`{name}`: `{attr['value']}`"
@@ -32,7 +39,7 @@ async def handle(ctx):
 
             op = ctx.command.args[1].strip()
 
-            if op not in "+-*/":
+            if op not in OPS:
                 return locale.format(
                     "wrong_usage", command_name=__name__.split(".")[-1], usage=HELP[0]
                 )
@@ -46,12 +53,7 @@ async def handle(ctx):
 
             attr = await ctx.tupper.attrs.filter(name=name).first().values("value")
 
-            value = {
-                "+": operator.add,
-                "-": operator.sub,
-                "*": operator.mul,
-                "/": lambda a, b: 0 if b == 0 else int(a / b),
-            }[op](attr["value"], value)
+            value = OPS[op](attr["value"], value)
 
             if value == attr["value"]:
                 return locale.format("attribute_was_not_changed", attribute_name=name)
@@ -100,6 +102,9 @@ async def handle(ctx):
             return locale.format(
                 "wrong_usage", command_name=__name__.split(".")[-1], usage=HELP[0]
             )
+
+        if not await ctx.tupper.attrs.filter(name=name).exists():
+            return locale.format("no_such_attribute", attribute_name=name)
 
         old_attr = await ctx.tupper.attrs.filter(name=name).first()
 

@@ -23,7 +23,7 @@ class Context:
         # this is pure evil.....
 
         old_tupper = self.tupper
-        
+
         try:
             self.tupper = tupper
 
@@ -51,7 +51,7 @@ class Context:
                 username=self.tupper.name,
                 avatar_url=self.tupper.image,
                 thread=thread,
-                suppress_embeds=True
+                suppress_embeds=True,
             )
         except (
             discord.InvalidData,
@@ -65,6 +65,15 @@ class Context:
 Command = namedtuple("Command", ["name", "args", "argc"])
 
 
+def lat_to_cyr(c):
+    try:
+        return "абвгдеёжзийклмнопрстуфхцчшщъыьэюя"[
+            "abvgde?jzijklmnoprstufhzcss?y?eua".index(c)
+        ]
+    except ValueError:
+        return "?"
+
+
 class TupperCommands:
     def __init__(self, bot):
         self.bot = bot
@@ -75,6 +84,7 @@ class TupperCommands:
     def register_command(self, name, handler):
         self.commands[name] = handler
         self.commands[name[0]] = handler
+        self.commands[lat_to_cyr(name[0])] = handler
 
     def register_commands(self, path="tupper_commands"):
         for name in filter(lambda name: not name.startswith("__"), os.listdir(path)):
@@ -123,7 +133,7 @@ class TupperCommands:
 
         if command.name not in self.commands:
             return None
-        
+
         if command.name not in ("help", "h") and tupper.inventory_chat_id == 0:
             return locale.tupper_is_disabled
 

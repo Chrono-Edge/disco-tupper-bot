@@ -486,7 +486,7 @@ class TupperCommandsCog(commands.Cog):
         tupper_name: str,
         command: str,
     ):
-        """Run tupper command"""
+        """Run tupper command."""
         _, target_user = await self._get_user_to_edit_tupper(ctx, tupper_owner)
 
         tupper: Tupper = await target_user.tuppers.filter(name=tupper_name).first()
@@ -499,7 +499,7 @@ class TupperCommandsCog(commands.Cog):
         )
 
         if not command_output:
-            command_output = locale.empty
+            command_output = locale.format("wrong_usage", command_name=command, usage=".help")
 
         await ctx.reply(command_output)
 
