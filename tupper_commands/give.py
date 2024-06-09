@@ -26,7 +26,7 @@ async def handle(ctx):
     if to_tupper.id == ctx.tupper.id:
         return locale.cannot_give_to_yourself
     
-    if to_tupper.inventory_chat_id:
+    if to_tupper.inventory_chat_id == 0:
         return locale.receiver_is_disabled
 
     name = ctx.command.args[0].strip().lower()

@@ -22,7 +22,7 @@ async def handle(ctx):
     if ctx.tupper.id == to_tupper.id:
         return locale.cannot_send_to_yourself
     
-    if to_tupper.inventory_chat_id:
+    if to_tupper.inventory_chat_id == 0:
         return locale.receiver_is_disabled
 
     try:
