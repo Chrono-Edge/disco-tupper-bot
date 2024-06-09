@@ -484,6 +484,7 @@ class TupperCommandsCog(commands.Cog):
         ctx: discord.ext.commands.Context,
         tupper_owner: typing.Optional[discord.Member],
         tupper_name: str,
+        command: str,
     ):
         """Run tupper command"""
         _, target_user = await self._get_user_to_edit_tupper(ctx, tupper_owner)
@@ -494,7 +495,7 @@ class TupperCommandsCog(commands.Cog):
             return
         
         command_output = await self.bot.tupper_commands.handle_command(
-            tupper, ctx.message, ctx.message.content.strip()
+            tupper, ctx.message, command
         )
 
         if not command_output:
