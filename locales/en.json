@@ -99,7 +99,7 @@
     "use_desc": "Use an item.",
 
     "tupper_info": "Tupper info:",
-    "tupper_info_desc": "Call pattern: `{call_pattern}`.\nOwners: {owners}.",
+    "tupper_info_desc": "Call pattern: `{call_pattern}`.\nOwners: {owners}.\nDiary chat ID: `{chat_id}`.",
 
     "wrong_usage": "Wrong usage of tupper command `{command_name}`: `{usage}`.",
 

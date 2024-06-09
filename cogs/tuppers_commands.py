@@ -61,6 +61,7 @@ class ListMenu(discord.ui.View):
                     "tupper_info_desc",
                     call_pattern=human_like_call_pattern,
                     owners=human_like_owners,
+                    chat_id=tupper.inventory_chat_id
                 ),
                 inline=False,
             )

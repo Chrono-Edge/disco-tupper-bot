@@ -99,7 +99,7 @@
     "use_desc": "Использовать предмет(ы).",
 
     "tupper_info": "Информация об актёре:",
-    "tupper_info_desc": "Шаблон вызова: `{call_pattern}`.\nПрикреплён к: {owners}.",
+    "tupper_info_desc": "Шаблон вызова: `{call_pattern}`.\nПрикреплён к: {owners}.\nID чата дневника: `{chat_id}`.",
 
     "wrong_usage": "Некорректный синтаксис команды `{command_name}`: `{usage}`.",
 
