@@ -105,7 +105,7 @@ class TupperCommands:
             for command in self.help_lines:
                 params, desc = self.help_lines[command]
 
-                command = "[" + command[0] + "]" + command[1:]
+                command = "[" + command[0] + "|" + lat_to_cyr(command[0]) + ""]" + command[1:]
 
                 if not params:
                     buffer += f"{command}: {desc}\n"
