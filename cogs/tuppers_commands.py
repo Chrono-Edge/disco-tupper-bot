@@ -477,15 +477,15 @@ class TupperCommandsCog(commands.Cog):
             log_jump_url=ctx.message.jump_url,
         )
 
-    @commands.hybrid_command(name="admin_inv")
+    @commands.hybrid_command(name="admin_do")
     @commands.has_any_role(*config.admin_roles)
-    async def admin_inv(
+    async def admin_do(
         self,
         ctx: discord.ext.commands.Context,
         tupper_owner: typing.Optional[discord.Member],
         tupper_name: str,
     ):
-        """See inventory of a tupper."""
+        """Run tupper command"""
         _, target_user = await self._get_user_to_edit_tupper(ctx, tupper_owner)
 
         tupper: Tupper = await target_user.tuppers.filter(name=tupper_name).first()
@@ -493,44 +493,14 @@ class TupperCommandsCog(commands.Cog):
             await ctx.reply(locale.format("no_such_tupper", tupper_name=tupper_name))
             return
         
-        buffer = ""
+        command_output = await self.bot.tupper_commands.handle_command(
+            tupper, ctx.message, ctx.message.content.strip()
+        )
 
-        async for item in tupper.items:
-            if item.desc:
-                buffer += f"`{item.name}` ({item.quantity}): `{item.desc}`\n"
-            else:
-                buffer += f"`{item.name}` ({item.quantity})\n"
+        if not command_output:
+            command_output = locale.empty
 
-        if len(tupper.items) == 0:
-            buffer += locale.empty
-
-        await ctx.reply(buffer)
-
-    @commands.hybrid_command(name="admin_attrs")
-    @commands.has_any_role(*config.admin_roles)
-    async def admin_attrs(
-        self,
-        ctx: discord.ext.commands.Context,
-        tupper_owner: typing.Optional[discord.Member],
-        tupper_name: str,
-    ):
-        """See attributes of a tupper."""
-        _, target_user = await self._get_user_to_edit_tupper(ctx, tupper_owner)
-
-        tupper: Tupper = await target_user.tuppers.filter(name=tupper_name).first()
-        if not tupper:
-            await ctx.reply(locale.format("no_such_tupper", tupper_name=tupper_name))
-            return
-        
-        buffer = ""
-
-        async for attr in tupper.attrs:
-            buffer += f"`{attr.name}`: `{attr.value}`\n"
-
-        if len(tupper.attrs) == 0:
-            buffer += locale.empty
-
-        await ctx.reply(buffer)
+        await ctx.reply(command_output)
 
 async def setup(bot: "DiscoTupperBot"):
     await bot.add_cog(TupperCommandsCog(bot))
