@@ -1,4 +1,5 @@
 import re
+import operator
 
 from localization import locale
 from database.models.attribute import Attribute
@@ -7,13 +8,61 @@ HELP = (locale.attributes_params, locale.attributes_desc)
 
 
 async def handle(ctx):
-    if ctx.command.argc not in (0, 2):
-        return locale.format("wrong_usage", command_name=__name__.split(".")[-1], usage=HELP[0])
-    
-    if ctx.command.argc == 2:
+    if ctx.command.argc not in (0, 2, 3):
+        return locale.format(
+            "wrong_usage", command_name=__name__.split(".")[-1], usage=HELP[0]
+        )
+
+    if ctx.command.argc in (2, 3):
         name = ctx.command.args[0].strip().upper()
         if not re.match(r"^[А-ЯA-Z]{2,3}$", name):
             return locale.illegal_attribute_name
+
+        if ctx.command.argc == 3:
+            if not await ctx.tupper.attrs.filter(name=name).exists():
+                return locale.format("no_such_attribute", attribute_name=name)
+
+            op = ctx.command.args[1].strip()
+
+            if op not in "+-*/":
+                return locale.format(
+                    "wrong_usage", command_name=__name__.split(".")[-1], usage=HELP[0]
+                )
+
+            try:
+                value = int(ctx.command.args[2])
+            except ValueError:
+                return locale.format(
+                    "wrong_usage", command_name=__name__.split(".")[-1], usage=HELP[0]
+                )
+
+            attr = await ctx.tupper.attrs.filter(name=name).first().values("value")
+
+            value = {
+                "+": operator.add,
+                "-": operator.sub,
+                "*": operator.mul,
+                "/": lambda a, b: 0 if b == 0 else int(a / b),
+            }[op](attr["value"], value)
+
+            await ctx.tupper.attrs.filter(name=name).update(value=value)
+
+            await ctx.log(
+                "log_attr_set",
+                log_attr_name=name,
+                log_attr_old_value=attr["value"],
+                log_attr_new_value=value,
+                log_jump_url=ctx.message.reference.jump_url
+                if ctx.message.reference
+                else ctx.message.jump_url,
+            )
+
+            return locale.format(
+                "attribute_was_successfully_changed",
+                attribute_name=name,
+                value=value,
+                old_value=attr["value"],
+            )
 
         if ctx.command.args[1] in "Xx-":
             if not await ctx.tupper.attrs.filter(name=name).exists():
@@ -37,7 +86,9 @@ async def handle(ctx):
         try:
             value = int(ctx.command.args[1])
         except ValueError:
-            return locale.format("wrong_usage", command_name=__name__.split(".")[-1], usage=HELP[0])
+            return locale.format(
+                "wrong_usage", command_name=__name__.split(".")[-1], usage=HELP[0]
+            )
 
         old_attr = await ctx.tupper.attrs.filter(name=name).first()
 

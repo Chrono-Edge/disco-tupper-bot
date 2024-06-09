@@ -69,7 +69,7 @@
     "name_already_in_use": "Item name `{item_name}` is alread in use.",
     "empty": "```Empty.```",
 
-    "attributes_params": "[name value] ?reference",
+    "attributes_params": "[name value]|[name +-*/ value] ?reference",
     "attributes_desc": "See or set attributes.",
 
     "balance_desc": "See balance.",
