@@ -261,7 +261,7 @@ class TupperCommandsCog(commands.Cog):
         log_keys = {}
 
         if not tupper:
-            await ctx.reply(locale.no_such_tupper)
+            await ctx.reply(locale.format("no_such_tupper", tupper_name=tupper_name))
             return
 
         if new_name:
@@ -305,20 +305,20 @@ class TupperCommandsCog(commands.Cog):
             log_jump_url=ctx.message.jump_url,
         )
 
-    @commands.hybrid_command(name="set_inventory_chat")
+    @commands.hybrid_command(name="set_diary")
     @commands.has_any_role(*config.player_roles)
-    async def set_inventory_chat_id(
+    async def set_diary(
         self,
         ctx: discord.ext.commands.Context,
         member: typing.Optional[discord.Member],
         tupper_name: str,
     ):
-        """Set inventory chat for a tupper."""
+        """Set diary chat for a tupper."""
         _, user = await self._get_user_to_edit_tupper(ctx, member)
 
         tupper: Tupper = await user.tuppers.filter(name=tupper_name).first()
         if not tupper:
-            await ctx.reply(locale.no_such_tupper)
+            await ctx.reply(locale.format("no_such_tupper", tupper_name=tupper_name))
             return
 
         tupper.inventory_chat_id = ctx.channel.id
@@ -334,7 +334,7 @@ class TupperCommandsCog(commands.Cog):
             log_jump_url=ctx.message.jump_url,
         )
 
-    @commands.hybrid_command(name="add_user_to_tupper")
+    @commands.hybrid_command(name="add_userr")
     @commands.has_any_role(*config.player_roles)
     async def add_user_to_tupper(
         self,
@@ -349,7 +349,7 @@ class TupperCommandsCog(commands.Cog):
         tupper: Tupper = await target_user.tuppers.filter(name=tupper_name).first()
 
         if not tupper:
-            await ctx.reply(locale.no_such_tupper)
+            await ctx.reply(locale.format("no_such_tupper", tupper_name=tupper_name))
             return
 
         await user_to_add.tuppers.add(tupper)
@@ -369,7 +369,7 @@ class TupperCommandsCog(commands.Cog):
             log_jump_url=ctx.message.jump_url,
         )
 
-    @commands.hybrid_command(name="remove_user_from_tupper")
+    @commands.hybrid_command(name="remove_user")
     @commands.has_any_role(*config.player_roles)
     async def remove_user_from_tupper(
         self,
@@ -384,7 +384,7 @@ class TupperCommandsCog(commands.Cog):
 
         tupper: Tupper = await target_user.tuppers.filter(name=tupper_name).first()
         if not tupper:
-            await ctx.reply(locale.no_such_tupper)
+            await ctx.reply(locale.format("no_such_tupper", tupper_name=tupper_name))
             return
 
         await user_to_add.tuppers.remove(tupper)
@@ -431,7 +431,7 @@ class TupperCommandsCog(commands.Cog):
 
         await ctx.reply(content=message, embeds=embeds, view=view)
 
-    @commands.hybrid_command(name="admin_balance_set")
+    @commands.hybrid_command(name="admin_give")
     @commands.has_any_role(*config.admin_roles)
     async def admin_balance_set(
         self,
@@ -445,7 +445,7 @@ class TupperCommandsCog(commands.Cog):
 
         tupper: Tupper = await target_user.tuppers.filter(name=tupper_name).first()
         if not tupper:
-            await ctx.reply(locale.no_such_tupper)
+            await ctx.reply(locale.format("no_such_tupper", tupper_name=tupper_name))
             return
 
         old_balance = tupper.balance
@@ -476,6 +476,60 @@ class TupperCommandsCog(commands.Cog):
             log_jump_url=ctx.message.jump_url,
         )
 
+    @commands.hybrid_command(name="admin_inv")
+    @commands.has_any_role(*config.admin_roles)
+    async def admin_inv(
+        self,
+        ctx: discord.ext.commands.Context,
+        tupper_owner: typing.Optional[discord.Member],
+        tupper_name: str,
+    ):
+        """See inventory of a tupper."""
+        _, target_user = await self._get_user_to_edit_tupper(ctx, tupper_owner)
+
+        tupper: Tupper = await target_user.tuppers.filter(name=tupper_name).first()
+        if not tupper:
+            await ctx.reply(locale.format("no_such_tupper", tupper_name=tupper_name))
+            return
+        
+        buffer = ""
+
+        async for item in tupper.items:
+            if item.desc:
+                buffer += f"`{item.name}` ({item.quantity}): `{item.desc}`\n"
+            else:
+                buffer += f"`{item.name}` ({item.quantity})\n"
+
+        if len(ctx.tupper.items) == 0:
+            buffer += locale.empty
+
+        await ctx.reply(buffer)
+
+    @commands.hybrid_command(name="admin_attrs")
+    @commands.has_any_role(*config.admin_roles)
+    async def admin_attrs(
+        self,
+        ctx: discord.ext.commands.Context,
+        tupper_owner: typing.Optional[discord.Member],
+        tupper_name: str,
+    ):
+        """See attributes of a tupper."""
+        _, target_user = await self._get_user_to_edit_tupper(ctx, tupper_owner)
+
+        tupper: Tupper = await target_user.tuppers.filter(name=tupper_name).first()
+        if not tupper:
+            await ctx.reply(locale.format("no_such_tupper", tupper_name=tupper_name))
+            return
+        
+        buffer = ""
+
+        async for attr in tupper.attrs:
+            buffer += f"`{attr.name}`: `{attr.value}`\n"
+
+        if len(ctx.tupper.attrs) == 0:
+            buffer += locale.empty
+
+        await ctx.reply(buffer)
 
 async def setup(bot: "DiscoTupperBot"):
     await bot.add_cog(TupperCommandsCog(bot))
