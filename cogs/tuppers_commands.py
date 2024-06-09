@@ -501,7 +501,7 @@ class TupperCommandsCog(commands.Cog):
             else:
                 buffer += f"`{item.name}` ({item.quantity})\n"
 
-        if len(ctx.tupper.items) == 0:
+        if len(tupper.items) == 0:
             buffer += locale.empty
 
         await ctx.reply(buffer)
@@ -527,7 +527,7 @@ class TupperCommandsCog(commands.Cog):
         async for attr in tupper.attrs:
             buffer += f"`{attr.name}`: `{attr.value}`\n"
 
-        if len(ctx.tupper.attrs) == 0:
+        if len(tupper.attrs) == 0:
             buffer += locale.empty
 
         await ctx.reply(buffer)
