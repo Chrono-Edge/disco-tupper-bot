@@ -11,7 +11,9 @@ HELP = (locale.give_params, locale.give_desc)
 
 async def handle(ctx):
     if ctx.command.argc not in (1, 2):
-        return None
+        return locale.format(
+            "wrong_usage", command_name=__name__.split(".")[-1], usage=HELP[0]
+        )
 
     tupper_id = await get_tupper_id(ctx.bot, ctx.message)
     if tupper_id is None:
@@ -32,7 +34,9 @@ async def handle(ctx):
         try:
             quantity = abs(int(ctx.command.args[1]))
         except ValueError:
-            return None
+            return locale.format(
+                "wrong_usage", command_name=__name__.split(".")[-1], usage=HELP[0]
+            )
 
     try:
         item = await Item.get(name=name, tupper_owner=ctx.tupper)
@@ -40,19 +44,30 @@ async def handle(ctx):
         return locale.format("unknown_item", item_name=name)
 
     if not item:
-        return locale.not_enough_items
+        return locale.format(
+            "not_enough_items", need_quantity=quantity, item_name=name, quantity=0
+        )
 
     if item.quantity < quantity:
-        return locale.not_enough_items
+        return locale.format(
+            "not_enough_items",
+            need_quantity=quantity,
+            item_name=name,
+            quantity=item.quantity,
+        )
 
     if quantity == item.quantity:
         await Item.filter(id=item.id).delete()
     else:
         await Item.filter(id=item.id).update(quantity=F("quantity") - quantity)
 
+    desc = item.desc
+
     item = await Item.filter(name=name, tupper_owner=to_tupper).first()
     if not item:
-        await Item.create(name=name, quantity=quantity, tupper_owner=to_tupper)
+        await Item.create(
+            name=name, quantity=quantity, tupper_owner=to_tupper, desc=desc
+        )
     else:
         await Item.filter(id=item.id).update(quantity=F("quantity") + quantity)
 

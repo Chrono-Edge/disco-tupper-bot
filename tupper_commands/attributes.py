@@ -7,6 +7,9 @@ HELP = (locale.attributes_params, locale.attributes_desc)
 
 
 async def handle(ctx):
+    if ctx.command.argc not in (0, 2):
+        return locale.format("wrong_usage", command_name=__name__.split(".")[-1], usage=HELP[0])
+    
     if ctx.command.argc == 2:
         name = ctx.command.args[0].strip().upper()
         if not re.match(r"^[А-ЯA-Z]{2,3}$", name):
@@ -34,7 +37,7 @@ async def handle(ctx):
         try:
             value = int(ctx.command.args[1])
         except ValueError:
-            return None
+            return locale.format("wrong_usage", command_name=__name__.split(".")[-1], usage=HELP[0])
 
         old_attr = await ctx.tupper.attrs.filter(name=name).first()
 

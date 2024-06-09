@@ -6,7 +6,7 @@ HELP = (locale.roll_params, locale.roll_desc)
 
 async def handle(ctx):
     if ctx.command.argc < 1:
-        return
+        return locale.format("wrong_usage", command_name=__name__.split(".")[-1], usage=HELP[0])
 
     vars = {}
     async for attr in ctx.tupper.attrs:

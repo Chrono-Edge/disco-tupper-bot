@@ -17,7 +17,7 @@
     "attribute_was_not_changed": "Attribute `{attribute_name}` not changed.",
     "admin_balance_add" : "Sent `{balance}` to balance of tupper `{tupper_name}`.",
     "current_balance": "Current balance: `{balance}`.",
-    "balance_is_too_low": "Your balance is too low: need `{need}`, have: `{have}`.",
+    "balance_is_too_low": "Your balance is too low: need `{need}`, have `{have}`.",
     "editing_message": "Editing message ```{message}```:",
     "send_content_of_new_message": "Please send me the new content of the message here:",
     "nothing_to_edit": "Nothing to edit.",
@@ -57,12 +57,16 @@
 
     "reference_message_not_found": "Reference message not found.",
     "successfully_obtained": "Successfully obtained `{quantity}` `{item_name}`.",
-    "not_enough_items": "You don't have enough items.",
+    "not_enough_items": "You don't have enough items: need `{need_quantity}` `{item_name}`, have `{quantity}`.",
     "successfully_gived": "Successfully gived away `{quantity}` `{item_name}` to `{tupper_name}`.",
     "successfully_used": "Successfully used `{quantity}` `{item_name}`.",
+    "successfully_used_desc": "Successfully used `{quantity}` `{item_name}`: `{desc}`.",
     "cannot_give_to_yourself": "Cannot give items to yourself.",
     "cannot_send_to_yourself": "Cannot send from balance to yourself.",
     "sent_to": "Successfully sent `{amount}` to `{tupper_name}`. Current balance: `{balance}`.",
+    "successfully_set_desc": "Description of item `{item_name}` was successfully set to: `{desc}`.",
+    "successfully_renamed": "Sucessfully renamed item `{old_item_name}` to `{item_name}`.",
+    "name_already_in_use": "Item name `{item_name}` is alread in use.",
     "empty": "```Empty.```",
 
     "attributes_params": "[name value] ?reference",
@@ -70,10 +74,16 @@
 
     "balance_desc": "See balance.",
 
+    "desc_params": "<item> <desc> ?reference",
+    "desc_desc": "Set a description for the item.",
+
     "give_params": "<item> [quantity] !reference",
     "give_desc": "Give an item.",
 
     "inventory_desc": "See list of items.",
+
+    "name_params": "<item> <name> ?reference",
+    "name_desc": "Rename an item.",
 
     "roll_params": "<dices...>",
     "roll_desc": "Roll a dice or dices.",
@@ -81,7 +91,7 @@
     "send_params": "<amount> !reference",
     "send_desc": "Send some money.",
 
-    "take_params": "<item> [quantity] !reference",
+    "take_params": "<item> [quantity] [desc] !reference",
     "take_desc": "Take an item.",
 
     "use_params": "<item> [quantity] ?reference",
@@ -90,6 +100,10 @@
     "tupper_info": "Tupper info:",
     "tupper_info_desc": "Call pattern: `{call_pattern}`.\nOwners: {owners}.",
 
+    "wrong_usage": "Wrong usage of tupper command `{command_name}`: `{usage}`.",
+
+    "log_desc_set": "SET ITEM DESCRIPTION",
+    "log_item_rename": "ITEM RENAME",
     "log_attr_remove": "ATTRIBUTE REMOVE",
     "log_attr_set": "ATTRIBUTE SET",
     "log_attr_name": "Attribute: `{value}`",
@@ -101,6 +115,7 @@
     "log_quantity": "Quantity: `{value}`",
     "log_receiver": "Receiver: `{value}`",
     "log_sender": "Sender: `{value}`",
+    "log_desc": "Description: `{value}`",
     "log_send": "BALANCE SEND",
     "log_incoming_balance": "INCOMING BALANCE",
     "log_old_balance": "Old balance: `{value}`",

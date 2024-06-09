@@ -57,12 +57,16 @@
 
     "reference_message_not_found": "Необходимо сообщение-ссылка.",
     "successfully_obtained": "Получено `{quantity}` `{item_name}`.",
-    "not_enough_items": "Недостаточно предметов в инвентаре.",
+    "not_enough_items": "Недостаточно предметов в инвентаре: нужно `{need_quantity}` `{item_name}`, а имеется лишь `{quantity}`.",
     "successfully_gived": "Передано `{quantity}` `{item_name}` актёру `{tupper_name}`.",
     "successfully_used": "Использовано `{quantity}` `{item_name}`.",
+    "successfully_used_desc": "Использовано `{quantity}` `{item_name}`: `{desc}`.",
     "cannot_give_to_yourself": "Нельзя давать предметы самому себе.",
     "cannot_send_to_yourself": "Нельзя переводить на баланс самому себе.",
     "sent_to": "Отправлено `{amount}` на баланс актёра `{tupper_name}`. Текущий баланс: `{balance}`.",
+    "successfully_set_desc": "Описание предмета `{item_name}` было изменено на: `{desc}`.",
+    "successfully_renamed": "Предмет `{old_item_name}` переименован на `{item_name}`.",
+    "name_already_in_use": "Имя предмета `{item_name}` уже используется.",
     "empty": "```Пусто.```",
 
     "attributes_params": "[имя значение] ?ссылка",
@@ -70,10 +74,16 @@
 
     "balance_desc": "Просмотреть баланс.",
 
+    "desc_params": "<предмет> <описание> ?ссылка",
+    "desc_desc": "Установить описание предмета.",
+
     "give_params": "<предмет> [количество] !ссылка",
     "give_desc": "Передать предмет(ы) другому актёру.",
 
     "inventory_desc": "Просмотреть список предметов в инвентаре.",
+
+    "name_params": "<предмет> <имя> ?ссылка",
+    "name_desc": "Переименовать предмет.",
 
     "roll_params": "<кости...>",
     "roll_desc": "Бросить кости.",
@@ -81,7 +91,7 @@
     "send_params": "<количество> !ссылка",
     "send_desc": "Перевести на баланс другому актёру.",
 
-    "take_params": "<предмет> [количество] !ссылка",
+    "take_params": "<предмет> [количество] [описание] !ссылка",
     "take_desc": "Взять предмет(ы).",
 
     "use_params": "<предмет> [количество] ?ссылка",
@@ -90,6 +100,10 @@
     "tupper_info": "Информация об актёре:",
     "tupper_info_desc": "Шаблон вызова: `{call_pattern}`.\nПрикреплён к: {owners}.",
 
+    "wrong_usage": "Некорректный синтаксис команды `{command_name}`: `{usage}`.",
+
+    "log_desc_set": "УСТАНОВКА ОПИСАНИЯ ПРЕДМЕТА",
+    "log_item_rename": "ПЕРЕИМЕНОВАНИЕ ПРЕДМЕТА",
     "log_attr_remove": "УДАЛЕНИЕ ХАРАКТЕРИСТИКИ",
     "log_attr_set": "УСТАНОВКА ХАРАКТЕРИСТИКИ",
     "log_attr_name": "Характеристика: `{value}`",
@@ -101,6 +115,7 @@
     "log_quantity": "Количество: `{value}`",
     "log_receiver": "Получатель: `{value}`",
     "log_sender": "Отправитель: `{value}`",
+    "log_desc": "Описание: `{value}`",
     "log_send": "ПЕРЕВОД С БАЛАНСА",
     "log_incoming_balance": "ВХОДЯЩИЙ ПЕРЕВОД",
     "log_old_balance": "Предыдущий баланс: `{value}`",

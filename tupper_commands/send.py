@@ -9,7 +9,7 @@ HELP = (locale.send_params, locale.send_desc)
 
 async def handle(ctx):
     if ctx.command.argc != 1:
-        return None
+        return locale.format("wrong_usage", command_name=__name__.split(".")[-1], usage=HELP[0])
 
     tupper_id = await get_tupper_id(ctx.bot, ctx.message)
     if tupper_id is None:
@@ -25,7 +25,7 @@ async def handle(ctx):
     try:
         amount = abs(int(ctx.command.args[0]))
     except ValueError:
-        return None
+        return locale.format("wrong_usage", command_name=__name__.split(".")[-1], usage=HELP[0])
 
     if amount > ctx.tupper.balance:
         return locale.format("balance_is_too_low", need=amount, have=ctx.tupper.balance)
