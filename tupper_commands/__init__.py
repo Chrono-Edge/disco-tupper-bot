@@ -1,5 +1,6 @@
 import os
 import shlex
+import string
 import importlib
 from collections import namedtuple
 
@@ -67,8 +68,8 @@ Command = namedtuple("Command", ["name", "args", "argc"])
 
 def lat_to_cyr(c):
     try:
-        return "абвгдеёжзийклмнопрстуфхцчшщъыьэюя"[
-            "abvgde?jzijklmnoprstufhzcss?y?eua".index(c)
+        return "абцдефгхижклмнопкрстуввхуз"[
+            string.ascii_lowercase.index(c)
         ]
     except ValueError:
         return "?"
