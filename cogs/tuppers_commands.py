@@ -335,7 +335,7 @@ class TupperCommandsCog(commands.Cog):
             log_jump_url=ctx.message.jump_url,
         )
 
-    @commands.hybrid_command(name="add_userr")
+    @commands.hybrid_command(name="add_user")
     @commands.has_any_role(*config.player_roles)
     async def add_user_to_tupper(
         self,
