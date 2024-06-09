@@ -33,11 +33,7 @@ async def handle(ctx):
     else:
         desc = None
 
-    try:
-        item = await Item.get(name=name, tupper_owner=ctx.tupper)
-    except DoesNotExist:
-        return locale.format("unknown_item", item_name=name)
-    
+    item = await Item.filter(name=name, tupper_owner=ctx.tupper).first()
     if not item:
         await Item.create(
             name=name,

@@ -95,7 +95,7 @@
     "take_params": "<item> [quantity] [desc] !reference",
     "take_desc": "Take an item.",
 
-    "use_params": "<item> [quantity] ?reference",
+    "use_params": "<item> [quantity] [desc] ?reference",
     "use_desc": "Use an item.",
 
     "tupper_info": "Tupper info:",
