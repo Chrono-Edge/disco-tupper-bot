@@ -3,6 +3,7 @@
     "tupper_already_exists": "Tupper with such name or/and call pattern already exists.",
 
     "tupper_is_disabled": "Tupper commands are disabled at the moment because no diary is bound to it.",
+    "receiver_is_disabled": "Unable to perform this action because receiving tupper is disabled.",
     "no_such_tupper": "No such tupper: `{tupper_name}`",
     "tupper_was_successfully_removed": "Tupper was successfully removed.",
     "tupper_not_used_and_remove" :  "Tupper `{tupper_name}` was removed because it is not used.",
