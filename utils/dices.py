@@ -167,6 +167,9 @@ class Dices:
         left = int(left)
         right = int(right)
 
+        if left > 1000 or right > 1000:
+            raise SyntaxError(locale.too_long_number)
+
         roll = Value(_roll(left, right))
 
         self._rolls.append((left, right, roll))
@@ -186,8 +189,11 @@ class Dices:
         elif self._match(T_MINUS):
             return self._parse_atom().apply(operator.neg)
         elif match := self._match(T_DIGIT):
-            left = int(match[0])
-
+            try:
+                left = int(match[0])
+            except ValueError:
+                raise SyntaxError(locale.too_long_number)
+            
             if match := self._match(T_DICE, skip_ws=False):
                 return self._parse_dice(left)
 
@@ -227,6 +233,9 @@ class Dices:
     def _parse_exprs(self):
         exprs = []
         while not self._done():
+            if len(exprs) >= 20:
+                raise SyntaxError(locale.too_long_number)
+
             rolls_count = len(self._rolls)
 
             expr = self._parse_expr()

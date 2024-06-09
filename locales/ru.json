@@ -43,6 +43,7 @@
     "expression_should_not_be_empty": "Выражение не должно быть пустым.",
     "expression_does_not_contain_rolls": "Выражение не содержит бросков.",
     "division_by_zero": "Попытка деления на ноль.",
+    "too_long_number": "Слишком длинное число.",
 
     "user_already_exists": "Пользователь уже существует.",
     "user_was_successfully_created": "Пользователь был успешно создан.",

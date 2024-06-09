@@ -43,6 +43,7 @@
     "expression_should_not_be_empty": "Expression should not be empty.",
     "expression_does_not_contain_rolls": "Expression does not contain rolls.",
     "division_by_zero": "Attempt to divide by zero.",
+    "too_long_number": "Too large number.",
 
     "user_already_exists": "User already exists.",
     "user_was_successfully_created": "User was successfully created.",
