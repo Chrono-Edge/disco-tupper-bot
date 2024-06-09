@@ -162,11 +162,6 @@ class TupperCommandsCog(commands.Cog):
     ) -> tuple[discord.Webhook, discord.Thread]:
         return await get_webhook(self.bot, channel_id)
 
-    @commands.command(name="help")
-    async def help(self, ctx):
-        """Display help."""
-        await ctx.reply(locale.help)
-
     @commands.hybrid_command(name="create_tupper")
     @commands.has_any_role(*config.player_roles)
     async def create_tupper(

@@ -135,7 +135,5 @@
     "log_tupper_name": "Tupper name: `{value}`",
     "log_tupper_call_pattern": "Tupper call pattern: `{value}`",
     "log_inventory_chat_id": "Chat ID: `{value}`",
-    "log_user": "User: `{value}`",
-
-    "help": "`/create_tupper` - create a new tupper.\n`/remove_tupper` - delete an existing tupper.\n`/edit_tupper` - edit an existing tupper.\n`/set_inventory_chat` - set inventory chat for a tupper.\n`/add_user_to_tupper` - attach an user to a tupper.\n`/remove_user_from_tupper` - remove an user from a tupper.\n`/tupper_list` - display list of tuppers.\n`/admin_balance_set` - add balance to a tupper."
+    "log_user": "User: `{value}`"
 }

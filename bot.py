@@ -46,8 +46,7 @@ class DiscoTupperBot(commands.Bot):
 
         self.add_view(ListMenu())
 
-        # logger.warning("Commands synchronization")
-        # This copies the global commands over to your guild.
+        
 
     async def on_ready(self):
         self.log_channel = await self.fetch_channel(config.log_channel_id)
