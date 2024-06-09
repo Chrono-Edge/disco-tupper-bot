@@ -1,6 +1,7 @@
 from localization import locale
 from database.models.item import Item
 
+from tortoise.exceptions import DoesNotExist
 from tortoise.expressions import F
 
 HELP = (locale.take_params, locale.take_desc)
@@ -32,7 +33,11 @@ async def handle(ctx):
     else:
         desc = None
 
-    item = await Item.filter(name=name, tupper_owner=ctx.tupper).first()
+    try:
+        item = await Item.get(name=name, tupper_owner=ctx.tupper)
+    except DoesNotExist:
+        return locale.format("unknown_item", item_name=name)
+    
     if not item:
         await Item.create(
             name=name,

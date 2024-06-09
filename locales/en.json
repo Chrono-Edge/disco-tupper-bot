@@ -69,8 +69,8 @@
     "name_already_in_use": "Item name `{item_name}` is alread in use.",
     "empty": "```Empty.```",
 
-    "attributes_params": "[name value]|[name +-*/ value] ?reference",
-    "attributes_desc": "See or set attributes.",
+    "attributes_params": "[name]|[name value]|[name +-*/ value] ?reference",
+    "attributes_desc": "See or set attributes (value = `X` to remove attribute).",
 
     "balance_desc": "See balance.",
 
@@ -80,6 +80,7 @@
     "give_params": "<item> [quantity] !reference",
     "give_desc": "Give an item.",
 
+    "inventory_params": "[item]",
     "inventory_desc": "See list of items.",
 
     "name_params": "<item> <name> ?reference",
@@ -134,5 +135,7 @@
     "log_tupper_name": "Tupper name: `{value}`",
     "log_tupper_call_pattern": "Tupper call pattern: `{value}`",
     "log_inventory_chat_id": "Chat ID: `{value}`",
-    "log_user": "User: `{value}`"
+    "log_user": "User: `{value}`",
+
+    "help": "`/create_tupper` - create a new tupper.\n`/remove_tupper` - delete an existing tupper.\n`/edit_tupper` - edit an existing tupper.\n`/set_inventory_chat` - set inventory chat for a tupper.\n`/add_user_to_tupper` - attach an user to a tupper.\n`/remove_user_from_tupper` - remove an user from a tupper.\n`/tupper_list` - display list of tuppers.\n`/admin_balance_set` - add balance to a tupper."
 }

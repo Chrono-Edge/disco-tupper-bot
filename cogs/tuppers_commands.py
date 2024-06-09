@@ -150,7 +150,7 @@ class TupperCommandsCog(commands.Cog):
     async def _get_user_to_edit_tupper(
         self, ctx: discord.ext.commands.Context, member: discord.Member
     ) -> typing.Tuple[discord.Member, database.models.user.User]:
-        """get current user as target or specified  by admin"""
+        """get current user as target or specified by admin"""
         if await Permissions.get_user_is_admin(self.admin_roles, ctx) and member:
             user, _ = await User.get_or_create(discord_id=member.id)
             return member, user
@@ -162,6 +162,11 @@ class TupperCommandsCog(commands.Cog):
     ) -> tuple[discord.Webhook, discord.Thread]:
         return await get_webhook(self.bot, channel_id)
 
+    @commands.command(name="help")
+    async def help(self, ctx):
+        """Display help."""
+        await ctx.reply(locale.help)
+
     @commands.hybrid_command(name="create_tupper")
     @commands.has_any_role(*config.player_roles)
     async def create_tupper(
@@ -172,7 +177,7 @@ class TupperCommandsCog(commands.Cog):
         avatar: discord.Attachment,
         member: typing.Optional[discord.Member],
     ):
-        """Create new tupper"""
+        """Create new tupper."""
         _, user = await self._get_user_to_edit_tupper(ctx, member)
 
         if await user.tuppers.filter(name=name).first():
@@ -221,6 +226,7 @@ class TupperCommandsCog(commands.Cog):
         tupper_name: str,
         member: typing.Optional[discord.Member],
     ):
+        """Delete existing tupper."""
         _, user = await self._get_user_to_edit_tupper(ctx, member)
 
         tupper = await user.tuppers.filter(name=tupper_name).first()
@@ -252,6 +258,7 @@ class TupperCommandsCog(commands.Cog):
         avatar: typing.Optional[discord.Attachment],
         tupper_owner: typing.Optional[discord.Member],
     ):
+        """Edit tupper."""
         _, user = await self._get_user_to_edit_tupper(ctx, tupper_owner)
 
         tupper: Tupper = await user.tuppers.filter(name=tupper_name).first()
@@ -311,6 +318,7 @@ class TupperCommandsCog(commands.Cog):
         member: typing.Optional[discord.Member],
         tupper_name: str,
     ):
+        """Set inventory chat for a tupper."""
         _, user = await self._get_user_to_edit_tupper(ctx, member)
 
         tupper: Tupper = await user.tuppers.filter(name=tupper_name).first()
@@ -340,7 +348,7 @@ class TupperCommandsCog(commands.Cog):
         user_add: discord.Member,
         tupper_owner: typing.Optional[discord.Member],
     ):
-        """Add user for tupper"""
+        """Add user to a tupper."""
         _, target_user = await self._get_user_to_edit_tupper(ctx, tupper_owner)
         user_to_add, _ = await User.get_or_create(discord_id=user_add.id)
         tupper: Tupper = await target_user.tuppers.filter(name=tupper_name).first()
@@ -366,7 +374,7 @@ class TupperCommandsCog(commands.Cog):
             log_jump_url=ctx.message.jump_url,
         )
 
-    @commands.hybrid_command(name="remove_user_to_tupper")
+    @commands.hybrid_command(name="remove_user_from_tupper")
     @commands.has_any_role(*config.player_roles)
     async def remove_user_from_tupper(
         self,
@@ -375,7 +383,7 @@ class TupperCommandsCog(commands.Cog):
         user_remove: discord.Member,
         tupper_owner: typing.Optional[discord.Member],
     ):
-        """Remove user form tupper"""
+        """Remove user from a tupper."""
         _, target_user = await self._get_user_to_edit_tupper(ctx, tupper_owner)
         user_to_add = await User.get(discord_id=user_remove.id)
 
@@ -411,7 +419,7 @@ class TupperCommandsCog(commands.Cog):
     @commands.hybrid_command(name="tupper_list")
     @commands.has_any_role(*config.player_roles)
     async def tupper_list(self, ctx, member: typing.Optional[discord.Member]):
-        """List all tuppers for user"""
+        """List all tuppers for a user."""
         view = None
         discord_user, _ = await self._get_user_to_edit_tupper(ctx, member)
         message, embeds = await ListMenu.tupper_list_page(self.bot, discord_user, 0)
@@ -437,6 +445,7 @@ class TupperCommandsCog(commands.Cog):
         tupper_name: str,
         balance: int,
     ):
+        """Add balance for a tupper."""
         _, target_user = await self._get_user_to_edit_tupper(ctx, tupper_owner)
 
         tupper: Tupper = await target_user.tuppers.filter(name=tupper_name).first()

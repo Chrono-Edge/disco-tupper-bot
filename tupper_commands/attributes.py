@@ -8,15 +8,23 @@ HELP = (locale.attributes_params, locale.attributes_desc)
 
 
 async def handle(ctx):
-    if ctx.command.argc not in (0, 2, 3):
+    if ctx.command.argc not in (0, 1, 2, 3):
         return locale.format(
             "wrong_usage", command_name=__name__.split(".")[-1], usage=HELP[0]
         )
 
-    if ctx.command.argc in (2, 3):
+    if ctx.command.argc > 0:
         name = ctx.command.args[0].strip().upper()
         if not re.match(r"^[А-ЯA-Z]{2,3}$", name):
             return locale.illegal_attribute_name
+
+        if ctx.command.argc == 1:
+            if not await ctx.tupper.attrs.filter(name=name).exists():
+                return locale.format("no_such_attribute", attribute_name=name)
+            
+            attr = await ctx.tupper.attrs.filter(name=name).first().values("value")
+
+            return f"`{name}`: `{attr['value']}`"
 
         if ctx.command.argc == 3:
             if not await ctx.tupper.attrs.filter(name=name).exists():
@@ -44,6 +52,9 @@ async def handle(ctx):
                 "*": operator.mul,
                 "/": lambda a, b: 0 if b == 0 else int(a / b),
             }[op](attr["value"], value)
+
+            if value == attr["value"]:
+                return locale.format("attribute_was_not_changed", attribute_name=name)
 
             await ctx.tupper.attrs.filter(name=name).update(value=value)
 

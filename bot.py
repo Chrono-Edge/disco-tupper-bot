@@ -53,7 +53,6 @@ class DiscoTupperBot(commands.Bot):
         self.log_channel = await self.fetch_channel(config.log_channel_id)
         self.tupper_commands.register_commands()
 
-        self.remove_command("help")
         logger.info(
             f"Logged in as: {self.user.name} - {self.user.id} Version: {discord.__version__}\n"
         )
