@@ -119,9 +119,9 @@ class TupperCommands:
                 buffer = locale.help_preline
 
                 for command in self.help_lines:
-                    buffer += f"- `{command}`"
+                    buffer += f"- `{command}`\n"
 
-                buffer += locale.postline
+                buffer += locale.help_postline
 
                 return buffer
             
