@@ -144,7 +144,7 @@ class ListMenu(discord.ui.View):
 
 
 class TupperCommandsCog(commands.Cog):
-    #TODO Interaction.response.defer() remade to normal commands
+    # TODO Interaction.response.defer() remade to normal commands
     def __init__(self, bot: discord.ext.commands.Bot):
         self.bot = bot
         self.discord_logger = DiscordLogger(self.bot)
@@ -200,7 +200,7 @@ class TupperCommandsCog(commands.Cog):
             return
 
         tupper = await Tupper.create(
-            name=name, call_pattern=call_pattern, image=config.values.get("secrets.https_path")
+            name=name, call_pattern=call_pattern, image=config.default_avatar_url
         )
 
         # upload image on server
@@ -429,7 +429,7 @@ class TupperCommandsCog(commands.Cog):
                 user_mention=user_remove.mention,
             )
         )
-        #TODO autoremove tupper
+        # TODO autoremove tupper
         await self.discord_logger.send_log(
             "log_tupper_remove_user",
             log_author=ctx.message.author.name,
