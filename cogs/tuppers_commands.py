@@ -183,7 +183,7 @@ class TupperCommandsCog(commands.Cog):
         _, user = await self._get_user_to_edit_tupper(ctx, member)
 
         if await user.tuppers.filter(name=name).first():
-            await ctx.channel.send(locale.tupper_already_exists)
+            await ctx.reply(locale.tupper_already_exists)
             return
 
         orig_call_pattern = call_pattern
@@ -191,11 +191,11 @@ class TupperCommandsCog(commands.Cog):
         try:
             call_pattern = parse_template(call_pattern)
         except SyntaxError as e:
-            await ctx.channel.send(str(e))
+            await ctx.reply(str(e))
             return
 
         if await user.tuppers.filter(call_pattern=call_pattern).first():
-            await ctx.channel.send(locale.tupper_already_exists)
+            await ctx.reply(locale.tupper_already_exists)
 
             return
 
@@ -213,7 +213,7 @@ class TupperCommandsCog(commands.Cog):
         await tupper.save()
         await user.tuppers.add(tupper)
 
-        await ctx.channel.send(
+        await ctx.reply(
             locale.format(
                 "tupper_was_successfully_created",
                 tupper_name=tupper.name,
@@ -243,7 +243,7 @@ class TupperCommandsCog(commands.Cog):
         tupper: Tupper = await user.tuppers.filter(name=tupper_name).first()
 
         if not tupper:
-            await ctx.channel.send(locale.format("no_such_tupper", tupper_name=tupper_name))
+            await ctx.reply(locale.format("no_such_tupper", tupper_name=tupper_name))
             return
 
         tupper_name = tupper.name
@@ -252,7 +252,7 @@ class TupperCommandsCog(commands.Cog):
 
         await Tupper.filter(id=tupper.id).delete()
 
-        await ctx.channel.send(locale.tupper_was_successfully_removed)
+        await ctx.reply(locale.tupper_was_successfully_removed)
 
         await self.discord_logger.send_log(
             "log_remove_tupper",
@@ -281,7 +281,7 @@ class TupperCommandsCog(commands.Cog):
         log_keys = {}
 
         if not tupper:
-            await ctx.channel.send(locale.format("no_such_tupper", tupper_name=tupper_name))
+            await ctx.reply(locale.format("no_such_tupper", tupper_name=tupper_name))
             return
 
         if new_name:
@@ -289,7 +289,7 @@ class TupperCommandsCog(commands.Cog):
                 call_pattern=new_call_pattern
             ).first()
             if tupper_with_name:
-                await ctx.channel.send(locale.tupper_already_exists)
+                await ctx.reply(locale.tupper_already_exists)
                 return
             tupper.name = new_name
             log_keys["log_tupper_name"] = new_name
@@ -298,14 +298,14 @@ class TupperCommandsCog(commands.Cog):
             try:
                 new_call_pattern = parse_template(new_call_pattern)
             except SyntaxError as e:
-                await ctx.channel.send(str(e))
+                await ctx.reply(str(e))
                 return
 
             tupper_with_pattern = await user.tuppers.filter(
                 call_pattern=new_call_pattern
             ).first()
             if tupper_with_pattern:
-                await ctx.channel.send(locale.tupper_already_exists)
+                await ctx.reply(locale.tupper_already_exists)
                 return
             tupper.call_pattern = new_call_pattern
             log_keys["log_tupper_call_pattern"] = new_call_pattern
@@ -318,7 +318,7 @@ class TupperCommandsCog(commands.Cog):
             tupper.image = avatar_image_url
 
         await tupper.save()
-        await ctx.channel.send(
+        await ctx.reply(
             locale.format("successful_edit_tupper", tupper_name=tupper_name)
         )
 
@@ -343,13 +343,13 @@ class TupperCommandsCog(commands.Cog):
 
         tupper: Tupper = await user.tuppers.filter(name=tupper_name).first()
         if not tupper:
-            await ctx.channel.send(locale.format("no_such_tupper", tupper_name=tupper_name))
+            await ctx.reply(locale.format("no_such_tupper", tupper_name=tupper_name))
             return
 
         tupper.inventory_chat_id = ctx.channel.id
         await tupper.save()
 
-        await ctx.channel.send(locale.format("set_inventory_chat", tupper_name=tupper_name))
+        await ctx.reply(locale.format("set_inventory_chat", tupper_name=tupper_name))
 
         await self.discord_logger.send_log(
             "log_set_inventory_chat",
@@ -375,11 +375,11 @@ class TupperCommandsCog(commands.Cog):
         tupper: Tupper = await target_user.tuppers.filter(name=tupper_name).first()
 
         if not tupper:
-            await ctx.channel.send(locale.format("no_such_tupper", tupper_name=tupper_name))
+            await ctx.reply(locale.format("no_such_tupper", tupper_name=tupper_name))
             return
 
         await user_to_add.tuppers.add(tupper)
-        await ctx.channel.send(
+        await ctx.reply(
             locale.format(
                 "add_owner_form_tupper",
                 tupper_name=tupper_name,
@@ -411,18 +411,18 @@ class TupperCommandsCog(commands.Cog):
 
         tupper: Tupper = await target_user.tuppers.filter(name=tupper_name).first()
         if not tupper:
-            await ctx.channel.send(locale.format("no_such_tupper", tupper_name=tupper_name))
+            await ctx.reply(locale.format("no_such_tupper", tupper_name=tupper_name))
             return
 
         await user_to_add.tuppers.remove(tupper)
 
         if tupper.owners.all().count() == 0:
             await tupper.delete()
-            await ctx.channel.send(
+            await ctx.reply(
                 locale.format("tupper_not_used_and_remove", tupper_name=tupper_name)
             )
 
-        await ctx.channel.send(
+        await ctx.reply(
             locale.format(
                 "remove_owner_from_tupper",
                 tupper_name=tupper_name,
@@ -450,14 +450,14 @@ class TupperCommandsCog(commands.Cog):
 
         count_tuppers = await user.tuppers.all().count()
         if count_tuppers == 0:
-            await ctx.channel.send(locale.empty)
+            await ctx.reply(locale.empty)
 
             return
 
         if count_tuppers > 10:
             view = ListMenu()
 
-        await ctx.channel.send(content=message, embeds=embeds, view=view)
+        await ctx.reply(content=message, embeds=embeds, view=view)
 
     @commands.hybrid_command(name="admin_give")
     @commands.has_any_role(*config.admin_roles)
@@ -474,13 +474,13 @@ class TupperCommandsCog(commands.Cog):
 
         tupper: Tupper = await target_user.tuppers.filter(name=tupper_name).first()
         if not tupper:
-            await ctx.channel.send(locale.format("no_such_tupper", tupper_name=tupper_name))
+            await ctx.reply(locale.format("no_such_tupper", tupper_name=tupper_name))
             return
 
         old_balance = tupper.balance
         tupper.balance = tupper.balance + balance
         await tupper.save()
-        await ctx.channel.send(
+        await ctx.reply(
             locale.format("admin_balance_add", tupper_name=tupper_name, balance=balance)
         )
 
@@ -520,7 +520,7 @@ class TupperCommandsCog(commands.Cog):
 
         tupper: Tupper = await target_user.tuppers.filter(name=tupper_name).first()
         if not tupper:
-            await ctx.channel.send(locale.format("no_such_tupper", tupper_name=tupper_name))
+            await ctx.reply(locale.format("no_such_tupper", tupper_name=tupper_name))
             return
 
         command_output = await self.bot.tupper_commands.handle_command(
@@ -530,7 +530,7 @@ class TupperCommandsCog(commands.Cog):
         if not command_output:
             command_output = locale.format("wrong_usage", command_name=command, usage=".help")
 
-        await ctx.channel.send(command_output)
+        await ctx.reply(command_output)
 
 
 async def setup(bot: "DiscoTupperBot"):
