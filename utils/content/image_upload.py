@@ -34,8 +34,18 @@ class ImageStorage:
         self.client.close()
         return f"{self.https_path}{filename}"
 
+    def remove_file(self, filename: str):
+        self._connect()
+        sftp: SFTPClient = self.client.open_sftp()
+        sftp.chdir(self.path)
+        sftp.remove(filename)
+        sftp.close()
+        self.client.close()
+
 
 if __name__ == "__main__":
     iS = ImageStorage()
     with open("test.png", "rb") as png_test:
         iS.upload_file(png_test.read(), "pngtest.png")
+
+    iS.remove_file("pngtest.png")

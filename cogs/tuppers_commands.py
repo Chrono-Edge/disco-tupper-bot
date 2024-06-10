@@ -1,4 +1,6 @@
 import math
+import pathlib
+import urllib.parse
 
 from database.models.user import User
 from database.models.tupper import Tupper
@@ -12,6 +14,7 @@ from typing import TYPE_CHECKING, Union
 import config
 
 import database.models.user
+from utils.content.image_upload import ImageStorage
 from utils.discord.action_logger import DiscordLogger
 from utils.encoding.non_printable import NonPrintableEncoder
 from utils.discord.get_webhook import get_webhook
@@ -32,9 +35,9 @@ class ListMenu(discord.ui.View):
 
     @staticmethod
     async def tupper_list_page(
-        client: discord.Client,
-        discord_user: Union[discord.User, discord.Member],
-        page=0,
+            client: discord.Client,
+            discord_user: Union[discord.User, discord.Member],
+            page=0,
     ):
         user, _ = await User.get_or_create(discord_id=discord_user.id)
 
@@ -76,7 +79,7 @@ class ListMenu(discord.ui.View):
         custom_id="persistent_view:left",
     )
     async def left_step(
-        self, interaction: discord.Interaction, button: discord.ui.Button
+            self, interaction: discord.Interaction, button: discord.ui.Button
     ):
         client = interaction.client
         _, meta_dict = NonPrintableEncoder.decode_dict(interaction.message.content)
@@ -108,7 +111,7 @@ class ListMenu(discord.ui.View):
         custom_id="persistent_view:right",
     )
     async def right_step(
-        self, interaction: discord.Interaction, button: discord.ui.Button
+            self, interaction: discord.Interaction, button: discord.ui.Button
     ):
         client = interaction.client
         _, meta_dict = NonPrintableEncoder.decode_dict(interaction.message.content)
@@ -147,9 +150,10 @@ class TupperCommandsCog(commands.Cog):
         self.reaction_to_edit = config.values.get("bot.reaction_to_edit")
         self.reaction_to_remove = config.values.get("bot.reaction_to_remove")
         self.admin_roles = config.values.get("bot.admin_roles")
+        self.image_storage = ImageStorage()
 
     async def _get_user_to_edit_tupper(
-        self, ctx: discord.ext.commands.Context, member: discord.Member
+            self, ctx: discord.ext.commands.Context, member: discord.Member
     ) -> typing.Tuple[discord.Member, database.models.user.User]:
         """get current user as target or specified by admin"""
         if await Permissions.get_user_is_admin(self.admin_roles, ctx) and member:
@@ -159,26 +163,25 @@ class TupperCommandsCog(commands.Cog):
         return ctx.author, user
 
     async def _get_webhook(
-        self, channel_id: int
+            self, channel_id: int
     ) -> tuple[discord.Webhook, discord.Thread]:
         return await get_webhook(self.bot, channel_id)
 
     @commands.hybrid_command(name="create_tupper")
     @commands.has_any_role(*config.player_roles)
     async def create_tupper(
-        self,
-        ctx: discord.ext.commands.Context,
-        name: str,
-        call_pattern: str,
-        avatar: discord.Attachment,
-        member: typing.Optional[discord.Member],
+            self,
+            ctx: discord.ext.commands.Context,
+            name: str,
+            call_pattern: str,
+            avatar: discord.Attachment,
+            member: typing.Optional[discord.Member],
     ):
         """Create new tupper."""
         _, user = await self._get_user_to_edit_tupper(ctx, member)
 
         if await user.tuppers.filter(name=name).first():
             await ctx.reply(locale.tupper_already_exists)
-
             return
 
         orig_call_pattern = call_pattern
@@ -195,8 +198,16 @@ class TupperCommandsCog(commands.Cog):
             return
 
         tupper = await Tupper.create(
-            name=name, call_pattern=call_pattern, image=avatar.url
+            name=name, call_pattern=call_pattern
         )
+
+        # upload image on server
+        avatar_bytes = await avatar.read()
+        file_ext = pathlib.Path(avatar.filename).suffix
+        avatar_image_url = self.image_storage.upload_file(data=avatar_bytes, filename=f"{tupper.id}{file_ext}")
+        tupper.image = avatar_image_url
+
+        await tupper.save()
         await user.tuppers.add(tupper)
 
         await ctx.reply(
@@ -217,21 +228,24 @@ class TupperCommandsCog(commands.Cog):
     @commands.hybrid_command(name="remove_tupper")
     @commands.has_any_role(*config.player_roles)
     async def remove_tupper(
-        self,
-        ctx: discord.ext.commands.Context,
-        tupper_name: str,
-        member: typing.Optional[discord.Member],
+            self,
+            ctx: discord.ext.commands.Context,
+            tupper_name: str,
+            member: typing.Optional[discord.Member],
     ):
         """Delete existing tupper."""
         _, user = await self._get_user_to_edit_tupper(ctx, member)
 
-        tupper = await user.tuppers.filter(name=tupper_name).first()
+        tupper: Tupper = await user.tuppers.filter(name=tupper_name).first()
 
         if not tupper:
             await ctx.reply(locale.format("no_such_tupper", tupper_name=tupper_name))
             return
 
         tupper_name = tupper.name
+        filename = pathlib.Path(urllib.parse.urlparse(tupper.image).path).name
+        self.image_storage.remove_file(filename)
+
         await Tupper.filter(id=tupper.id).delete()
 
         await ctx.reply(locale.tupper_was_successfully_removed)
@@ -246,13 +260,13 @@ class TupperCommandsCog(commands.Cog):
     @commands.hybrid_command(name="edit_tupper")
     @commands.has_any_role(*config.player_roles)
     async def edit_tupper(
-        self,
-        ctx: discord.ext.commands.Context,
-        tupper_name: str,
-        new_name: typing.Optional[str],
-        new_call_pattern: typing.Optional[str],
-        avatar: typing.Optional[discord.Attachment],
-        tupper_owner: typing.Optional[discord.Member],
+            self,
+            ctx: discord.ext.commands.Context,
+            tupper_name: str,
+            new_name: typing.Optional[str],
+            new_call_pattern: typing.Optional[str],
+            avatar: typing.Optional[discord.Attachment],
+            tupper_owner: typing.Optional[discord.Member],
     ):
         """Edit tupper."""
         _, user = await self._get_user_to_edit_tupper(ctx, tupper_owner)
@@ -292,7 +306,11 @@ class TupperCommandsCog(commands.Cog):
             log_keys["log_tupper_call_pattern"] = new_call_pattern
 
         if avatar:
-            tupper.image = avatar.url
+            # upload image on server
+            avatar_bytes = await avatar.read()
+            file_ext = pathlib.Path(avatar.filename).suffix
+            avatar_image_url = self.image_storage.upload_file(data=avatar_bytes, filename=f"{tupper.id}{file_ext}")
+            tupper.image = avatar_image_url
 
         await tupper.save()
         await ctx.reply(
@@ -309,10 +327,10 @@ class TupperCommandsCog(commands.Cog):
     @commands.hybrid_command(name="set_diary")
     @commands.has_any_role(*config.player_roles)
     async def set_diary(
-        self,
-        ctx: discord.ext.commands.Context,
-        member: typing.Optional[discord.Member],
-        tupper_name: str,
+            self,
+            ctx: discord.ext.commands.Context,
+            member: typing.Optional[discord.Member],
+            tupper_name: str,
     ):
         """Set diary chat for a tupper."""
         _, user = await self._get_user_to_edit_tupper(ctx, member)
@@ -338,11 +356,11 @@ class TupperCommandsCog(commands.Cog):
     @commands.hybrid_command(name="add_user")
     @commands.has_any_role(*config.player_roles)
     async def add_user_to_tupper(
-        self,
-        ctx: discord.ext.commands.Context,
-        tupper_name: str,
-        user_add: discord.Member,
-        tupper_owner: typing.Optional[discord.Member],
+            self,
+            ctx: discord.ext.commands.Context,
+            tupper_name: str,
+            user_add: discord.Member,
+            tupper_owner: typing.Optional[discord.Member],
     ):
         """Add user to a tupper."""
         _, target_user = await self._get_user_to_edit_tupper(ctx, tupper_owner)
@@ -373,11 +391,11 @@ class TupperCommandsCog(commands.Cog):
     @commands.hybrid_command(name="remove_user")
     @commands.has_any_role(*config.player_roles)
     async def remove_user_from_tupper(
-        self,
-        ctx: discord.ext.commands.Context,
-        tupper_name: str,
-        user_remove: discord.Member,
-        tupper_owner: typing.Optional[discord.Member],
+            self,
+            ctx: discord.ext.commands.Context,
+            tupper_name: str,
+            user_remove: discord.Member,
+            tupper_owner: typing.Optional[discord.Member],
     ):
         """Remove user from a tupper."""
         _, target_user = await self._get_user_to_edit_tupper(ctx, tupper_owner)
@@ -435,11 +453,11 @@ class TupperCommandsCog(commands.Cog):
     @commands.hybrid_command(name="admin_give")
     @commands.has_any_role(*config.admin_roles)
     async def admin_balance_set(
-        self,
-        ctx: discord.ext.commands.Context,
-        tupper_owner: typing.Optional[discord.Member],
-        tupper_name: str,
-        balance: int,
+            self,
+            ctx: discord.ext.commands.Context,
+            tupper_owner: typing.Optional[discord.Member],
+            tupper_name: str,
+            balance: int,
     ):
         """Add balance for a tupper."""
         _, target_user = await self._get_user_to_edit_tupper(ctx, tupper_owner)
@@ -480,11 +498,11 @@ class TupperCommandsCog(commands.Cog):
     @commands.hybrid_command(name="admin_do")
     @commands.has_any_role(*config.admin_roles)
     async def admin_do(
-        self,
-        ctx: discord.ext.commands.Context,
-        tupper_owner: discord.Member,
-        tupper_name: str,
-        command: str,
+            self,
+            ctx: discord.ext.commands.Context,
+            tupper_owner: discord.Member,
+            tupper_name: str,
+            command: str,
     ):
         """Run tupper command."""
         _, target_user = await self._get_user_to_edit_tupper(ctx, tupper_owner)
@@ -493,7 +511,7 @@ class TupperCommandsCog(commands.Cog):
         if not tupper:
             await ctx.reply(locale.format("no_such_tupper", tupper_name=tupper_name))
             return
-        
+
         command_output = await self.bot.tupper_commands.handle_command(
             tupper, ctx.message, command
         )
@@ -502,6 +520,7 @@ class TupperCommandsCog(commands.Cog):
             command_output = locale.format("wrong_usage", command_name=command, usage=".help")
 
         await ctx.reply(command_output)
+
 
 async def setup(bot: "DiscoTupperBot"):
     await bot.add_cog(TupperCommandsCog(bot))
