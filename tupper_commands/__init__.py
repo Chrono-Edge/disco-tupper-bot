@@ -98,7 +98,7 @@ class TupperCommands:
             logger.success(f"Registered tupper command: {name}")
 
         async def help(ctx):
-            buffer = locale.help_preline
+            buffer = locale.help_preline if ctx.command.argc == 0 else ""
             k = 0
 
             for command in self.help_lines:
