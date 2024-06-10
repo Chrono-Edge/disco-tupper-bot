@@ -178,7 +178,7 @@ class TupperCommandsCog(commands.Cog):
             avatar: discord.Attachment,
             member: typing.Optional[discord.Member],
     ):
-
+        await ctx.defer(ephemeral=True)
         """Create new tupper."""
         _, user = await self._get_user_to_edit_tupper(ctx, member)
 
@@ -236,7 +236,7 @@ class TupperCommandsCog(commands.Cog):
             tupper_name: str,
             member: typing.Optional[discord.Member],
     ):
-
+        await ctx.defer(ephemeral=True)
         """Delete existing tupper."""
         _, user = await self._get_user_to_edit_tupper(ctx, member)
 
@@ -272,7 +272,7 @@ class TupperCommandsCog(commands.Cog):
             avatar: typing.Optional[discord.Attachment],
             tupper_owner: typing.Optional[discord.Member],
     ):
-
+        await ctx.defer(ephemeral=True)
         """Edit tupper."""
         _, user = await self._get_user_to_edit_tupper(ctx, tupper_owner)
 
@@ -337,7 +337,7 @@ class TupperCommandsCog(commands.Cog):
             member: typing.Optional[discord.Member],
             tupper_name: str,
     ):
-
+        await ctx.defer(ephemeral=True)
         """Set diary chat for a tupper."""
         _, user = await self._get_user_to_edit_tupper(ctx, member)
 
@@ -368,7 +368,7 @@ class TupperCommandsCog(commands.Cog):
             user_add: discord.Member,
             tupper_owner: typing.Optional[discord.Member],
     ):
-
+        await ctx.defer(ephemeral=True)
         """Add user to a tupper."""
         _, target_user = await self._get_user_to_edit_tupper(ctx, tupper_owner)
         user_to_add, _ = await User.get_or_create(discord_id=user_add.id)
@@ -404,7 +404,7 @@ class TupperCommandsCog(commands.Cog):
             user_remove: discord.Member,
             tupper_owner: typing.Optional[discord.Member],
     ):
-
+        await ctx.defer(ephemeral=True)
         """Remove user from a tupper."""
         _, target_user = await self._get_user_to_edit_tupper(ctx, tupper_owner)
         user_to_add = await User.get(discord_id=user_remove.id)
@@ -441,7 +441,7 @@ class TupperCommandsCog(commands.Cog):
     @commands.hybrid_command(name="tupper_list")
     @commands.has_any_role(*config.player_roles)
     async def tupper_list(self, ctx, member: typing.Optional[discord.Member]):
-
+        await ctx.defer(ephemeral=True)
         """List all tuppers for a user."""
         view = None
         discord_user, _ = await self._get_user_to_edit_tupper(ctx, member)
@@ -468,7 +468,7 @@ class TupperCommandsCog(commands.Cog):
             tupper_name: str,
             balance: int,
     ):
-
+        await ctx.defer(ephemeral=True)
         """Add balance for a tupper."""
         _, target_user = await self._get_user_to_edit_tupper(ctx, tupper_owner)
 
@@ -514,7 +514,7 @@ class TupperCommandsCog(commands.Cog):
             tupper_name: str,
             command: str,
     ):
-
+        await ctx.defer(ephemeral=True)
         """Run tupper command."""
         _, target_user = await self._get_user_to_edit_tupper(ctx, tupper_owner)
 
