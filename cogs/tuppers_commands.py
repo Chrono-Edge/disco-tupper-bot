@@ -421,7 +421,7 @@ class TupperCommandsCog(commands.Cog):
                 user_mention=user_remove.mention,
             )
         )
-
+        #TODO autoremove tupper
         await self.discord_logger.send_log(
             "log_tupper_remove_user",
             log_author=ctx.message.author.name,
