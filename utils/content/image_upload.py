@@ -48,4 +48,4 @@ if __name__ == "__main__":
     with open("test.png", "rb") as png_test:
         iS.upload_file(png_test.read(), "pngtest.png")
 
-    iS.remove_file("pngtest.png")
+    #iS.remove_file("pngtest.png")

@@ -200,13 +200,14 @@ class TupperCommandsCog(commands.Cog):
             return
 
         tupper = await Tupper.create(
-            name=name, call_pattern=call_pattern
+            name=name, call_pattern=call_pattern, image=config.values.get("secrets.https_path")
         )
 
         # upload image on server
         avatar_bytes = await avatar.read()
         file_ext = pathlib.Path(avatar.filename).suffix
         avatar_image_url = self.image_storage.upload_file(data=avatar_bytes, filename=f"{tupper.id}{file_ext}")
+
         tupper.image = avatar_image_url
 
         await tupper.save()
