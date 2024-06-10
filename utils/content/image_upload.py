@@ -18,7 +18,7 @@ class ImageStorage:
         self.user = temp[0]
         self.host = temp[1].split(":")[0]
         self.port = int(temp[1].split(":")[1])
-        self.https_path = config.values.get("secrets.sftp_path")
+        self.https_path = config.values.get("secrets.https_path")
 
     def _connect(self):
         self.client.connect(hostname=self.host, port=self.port, username=self.user,
