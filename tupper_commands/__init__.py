@@ -102,7 +102,7 @@ class TupperCommands:
             k = 0
 
             for command in self.help_lines:
-                if command not in ctx.command.args:
+                if ctx.command.argc and command not in ctx.command.args:
                     continue
 
                 k += 1
