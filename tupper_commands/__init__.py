@@ -98,33 +98,56 @@ class TupperCommands:
             logger.success(f"Registered tupper command: {name}")
 
         async def help(ctx):
-            buffer = locale.help_preline if ctx.command.argc == 0 else ""
-            k = 0
+            if locale.language == "en":
+                buffer = ""
 
+                for command in self.help_lines:
+                    params, desc = self.help_lines[command]
+
+                    command = (
+                        "[" + command[0] + "|" + lat_to_cyr(command[0]) + "]" + command[1:]
+                    )
+
+                    if not params:
+                        buffer += f"{command}: {desc}\n"
+                    else:
+                        buffer += f"{command} {params}: {desc}\n"
+
+                return f"```{buffer.strip()}```"
+        
+            if ctx.command.argc == 0:
+                buffer = locale.help_preline
+
+                for command in self.help_lines:
+                    buffer += f"- `{command}`"
+
+                buffer += locale.postline
+
+                return buffer
+            
+            query = []
+            for command in ctx.command.args:
+                command = command.strip().lower()
+                if command.startswith(config.prefixes):
+                    command = command[1:]
+
+                if command not in self.commands:
+                    return locale.format("wrong_usage", command_name=command, usage="?")
+                
+                query.append(command)
+
+            if not query:
+                return locale.empty
+            
+            buffer = ""
+            
             for command in self.help_lines:
-                if ctx.command.argc and command not in ctx.command.args:
+                if command not in query:
                     continue
-
-                k += 1
 
                 params, desc = self.help_lines[command]
 
-                if locale.language != "en":
-                    buffer += f"{params}{desc}\n"
-                
-                    continue
-
-                command = (
-                    "[" + command[0] + "|" + lat_to_cyr(command[0]) + "]" + command[1:]
-                )
-
-                if not params:
-                    buffer += f"{command}: {desc}\n"
-                else:
-                    buffer += f"{command} {params}: {desc}\n"
-
-            if k == 0:
-                return locale.empty
+                buffer += f"{params}{desc}\n"
 
             return buffer.strip()
 

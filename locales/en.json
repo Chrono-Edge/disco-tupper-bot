@@ -74,7 +74,8 @@
     "empty": "```Empty.```",
 
     "help_preline": "",
-    
+    "help_postline": "",
+
     "attributes_params": "[name]|[name value]|[name +-*/ value] ?reference",
     "attributes_desc": "See or set attributes (value = `X` to remove attribute).",
 

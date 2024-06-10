@@ -482,7 +482,7 @@ class TupperCommandsCog(commands.Cog):
     async def admin_do(
         self,
         ctx: discord.ext.commands.Context,
-        tupper_owner: typing.Optional[discord.Member],
+        tupper_owner: discord.Member,
         tupper_name: str,
         command: str,
     ):
