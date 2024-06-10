@@ -3,6 +3,7 @@ import random
 import operator
 from localization import locale
 
+
 def _roll(count, sides):
     if count <= 0:
         raise ValueError(locale.number_of_dices_should_be_gtz)
@@ -69,11 +70,14 @@ class Value:
 
     def __index__(self, index):
         return self.value[index]
-    
+
+    def __len__(self):
+        return len(self.value)
+
     def __eq__(self, other):
         if not isinstance(other, Value):
             return False
-        
+
         return self.value == other.value
 
     def apply(self, what, *args):
@@ -103,18 +107,16 @@ class Dices:
             for roll, result in zip(self.rolls, self.result):
                 count, sides, roll = roll
 
-                results = ", ".join(
-                    map(
-                        lambda t: f"{t[0]}{'' if t[1] < 0 else '+'}{t[1]}" if t[1] != 0 else str(t[0]),
-                        zip(roll, map(lambda t: t[1] - t[0], zip(roll, result))),
-                    )
-                )
+                roll_sum = int(roll)
+                result_sum = int(result)
+                if result_sum == roll_sum:
+                    results = ", ".join(map(str, result))
 
-                if "," in results:
-                    results = f"[{results}]"
-
-                if roll != result:
-                    results += f" -> {result}"
+                    if "," in results:
+                        results = f"[{results}]"
+                else:
+                    difference = result_sum - roll_sum
+                    results = f"{'' if len(roll) == 1 else f'{roll_sum} -> '}{roll_sum}{'' if difference < 0 else '+'}{difference}"
 
                 buffer += f"{'' if count == 1 else count}d{sides}: {roll} -> {results} ({int(result)})\n"
 
@@ -193,7 +195,7 @@ class Dices:
                 left = int(match[0])
             except ValueError:
                 raise SyntaxError(locale.too_long_number)
-            
+
             if match := self._match(T_DICE, skip_ws=False):
                 return self._parse_dice(left)
 
@@ -204,7 +206,9 @@ class Dices:
             name = match[0].upper()
 
             if name not in self.names:
-                raise NameError(locale.format("undefined_variable", variable_name=match[0]))
+                raise NameError(
+                    locale.format("undefined_variable", variable_name=match[0])
+                )
 
             expr = self.names[name]
 
@@ -224,7 +228,7 @@ class Dices:
 
             left = left.apply(op, right)
         elif self._match(T_COLON):
-            right = self._expect(T_NAME)[0]
+            right = self._expect(T_NAME)[0].upper()
 
             self.names[right] = left
 
@@ -278,10 +282,11 @@ def roll_dices(dices, vars={}):
 
 if __name__ == "__main__":
     print(Dices("d20 d20").roll())
-    print(Dices("d(d5 * d(3d20^5))").roll())
     print(Dices("d20+3").roll())
     print(Dices("d20 + d20").roll())
     print(Dices("d20:x dx").roll())
     print(Dices("d20+ЛВК").roll({"ЛВК": 5}))
     print(Dices("2d5:x d4+x").roll())
     print(Dices("2d20+РАЗ").roll({"РАЗ": -5}))
+    print(Dices("2d7+ЛВК").roll({"ЛВК": 4}))
+    print(Dices("d20+5 d20+5").roll())
