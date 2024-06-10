@@ -20,7 +20,10 @@ async def handle(ctx):
         return locale.format("no_such_attribute", attribute_name=name)
 
     try:
-        limit = int(ctx.command.args[1])
+        if ctx.command.args[1] in "-Xx":
+            limit = 0
+        else:
+            limit = abs(int(ctx.command.args[1]))
     except ValueError:
         return locale.format(
             "wrong_usage", command_name=__name__.split(".")[-1], usage=HELP[0]
@@ -30,18 +33,18 @@ async def handle(ctx):
     if not attr:
         return locale.format("no_such_attribute", attribute_name=name)
 
-    await ctx.tupper.attrs.filter(id=attr.id).update(limit=limit)
+    await ctx.tupper.attrs.filter(id=attr.id).update(value=min(attr.value, limit), limit=limit)
 
     await ctx.log(
         "log_attr_set_limit",
         log_attr_name=name,
-        log_attr_old_value=attr.limit,
-        log_attr_new_value=limit,
+        log_attr_old_value='X' if attr.limit == 0 else attr.limit,
+        log_attr_new_value='X' if limit == 0 else limit,
         log_jump_url=ctx.message.reference.jump_url
         if ctx.message.reference
         else ctx.message.jump_url,
     )
 
     return locale.format(
-        "successfully_set_limit", attribute_name=name, limit=limit, old_limit=attr.limit
+        "successfully_set_limit", attribute_name=name, limit='X' if limit == 0 else limit, old_limit='X' if attr.limit == 0 else attr.limit
     )

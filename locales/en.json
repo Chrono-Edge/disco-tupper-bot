@@ -87,7 +87,7 @@
     "inventory_desc": "See list of items.",
 
     "limit_params": "<name> <limit>",
-    "limit_desc": "Set limit for a attribute.",
+    "limit_desc": "Set limit for a attribute (value = `X` to disable limit).",
 
     "name_params": "<item> <name> ?reference",
     "name_desc": "Rename an item.",
