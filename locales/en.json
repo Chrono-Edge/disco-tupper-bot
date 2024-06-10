@@ -69,6 +69,7 @@
     "successfully_set_desc": "Description of item `{item_name}` was successfully set to: `{desc}`.",
     "successfully_renamed": "Sucessfully renamed item `{old_item_name}` to `{item_name}`.",
     "name_already_in_use": "Item name `{item_name}` is alread in use.",
+    "successfully_set_limit": "Limit for attribute `{attribute_name}` was successfully set to `{limit}` (from `{old_limit}`).",
     "empty": "```Empty.```",
 
     "attributes_params": "[name]|[name value]|[name +-*/ value] ?reference",
@@ -82,8 +83,11 @@
     "give_params": "<item> [quantity] !reference",
     "give_desc": "Give an item.",
 
-    "inventory_params": "[item]",
+    "inventory_params": "[items]",
     "inventory_desc": "See list of items.",
+
+    "limit_params": "<name> <limit>",
+    "limit_desc": "Set limit for a attribute.",
 
     "name_params": "<item> <name> ?reference",
     "name_desc": "Rename an item.",
@@ -109,6 +113,7 @@
     "log_item_rename": "ITEM RENAME",
     "log_attr_remove": "ATTRIBUTE REMOVE",
     "log_attr_set": "ATTRIBUTE SET",
+    "log_attr_set_limit": "ATTRIBUTE SET LIMIT",
     "log_attr_name": "Attribute: `{value}`",
     "log_attr_old_value": "Old value: `{value}`",
     "log_attr_new_value": "New value: `{value}`",

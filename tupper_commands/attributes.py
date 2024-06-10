@@ -51,9 +51,12 @@ async def handle(ctx):
                     "wrong_usage", command_name=__name__.split(".")[-1], usage=HELP[0]
                 )
 
-            attr = await ctx.tupper.attrs.filter(name=name).first().values("value")
+            attr = await ctx.tupper.attrs.filter(name=name).first().values("value", "limit")
 
             value = OPS[op](attr["value"], value)
+
+            if attr["limit"] != 0:
+                value = min(value, attr["limit"])
 
             if value == attr["value"]:
                 return locale.format("attribute_was_not_changed", attribute_name=name)
@@ -116,6 +119,9 @@ async def handle(ctx):
 
             await Attribute.create(owner=ctx.tupper, name=name, value=value)
         else:
+            if old_attr.limit != 0:
+                value = min(value, old_attr.limit)
+
             if old_attr.value == value:
                 return locale.format("attribute_was_not_changed", attribute_name=name)
 

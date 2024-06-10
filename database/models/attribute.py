@@ -10,3 +10,4 @@ class Attribute(Model):
 
     name = fields.CharField(max_length=3)
     value = fields.IntField()
+    limit = fields.IntField(default=0)
