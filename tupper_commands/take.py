@@ -33,7 +33,7 @@ async def handle(ctx):
     else:
         desc = None
 
-    item = await Item.filter(name=name, tupper_owner=ctx.tupper).first()
+    item = await ctx.tupper.items.filter(name=name).first()
     if not item:
         await Item.create(
             name=name,

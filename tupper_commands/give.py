@@ -66,7 +66,7 @@ async def handle(ctx):
 
     desc = item.desc
 
-    item = await Item.filter(name=name, tupper_owner=to_tupper).first()
+    item = await to_tupper.items.filter(name=name).first()
     if not item:
         await Item.create(
             name=name, quantity=quantity, tupper_owner=to_tupper, desc=desc
