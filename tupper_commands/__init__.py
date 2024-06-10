@@ -99,8 +99,14 @@ class TupperCommands:
 
         async def help(ctx):
             buffer = locale.help_preline
+            k = 0
 
             for command in self.help_lines:
+                if command not in ctx.command.args:
+                    continue
+
+                k += 1
+
                 params, desc = self.help_lines[command]
 
                 if locale.language != "en":
@@ -116,6 +122,9 @@ class TupperCommands:
                     buffer += f"{command}: {desc}\n"
                 else:
                     buffer += f"{command} {params}: {desc}\n"
+
+            if k == 0:
+                return locale.empty
 
             return buffer.strip()
 
