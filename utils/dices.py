@@ -79,7 +79,7 @@ class Value:
     def apply(self, what, *args):
         args = list(map(int, args))
 
-        return Value(list(map(lambda n: what(int(n), *args), self.value)))
+        return Value(what(int(self), *args))
 
 
 class Dices:
