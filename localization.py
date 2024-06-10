@@ -16,6 +16,7 @@ class Language:
         if language not in LANGUAGES:
             raise NameError(language)
 
+        self.language = language
         self.data = LANGUAGES[language]
         self.fallback = fallback
 

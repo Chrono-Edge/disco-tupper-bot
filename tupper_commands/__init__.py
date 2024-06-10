@@ -103,6 +103,11 @@ class TupperCommands:
             for command in self.help_lines:
                 params, desc = self.help_lines[command]
 
+                if locale.language != "en":
+                    buffer = f"{params}{desc}"
+                
+                    continue
+                
                 command = (
                     "[" + command[0] + "|" + lat_to_cyr(command[0]) + "]" + command[1:]
                 )
