@@ -101,13 +101,9 @@ async def handle(ctx):
         except ValueError:
             return locale.format(
                 "wrong_usage", command_name=__name__.split(".")[-1], usage=HELP[0]
-            )
-
-        if not await ctx.tupper.attrs.filter(name=name).exists():
-            return locale.format("no_such_attribute", attribute_name=name)
+        
 
         old_attr = await ctx.tupper.attrs.filter(name=name).first()
-
         if not old_attr:
             await ctx.log(
                 "log_attr_set",
