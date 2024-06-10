@@ -7,7 +7,7 @@ HELP = (locale.limit_params, locale.limit_desc)
 
 
 async def handle(ctx):
-    if ctx.command.argc != 2:
+    if ctx.command.argc not in (1, 2):
         return locale.format(
             "wrong_usage", command_name=__name__.split(".")[-1], usage=HELP[0]
         )
@@ -19,6 +19,13 @@ async def handle(ctx):
     if not await ctx.tupper.attrs.filter(name=name).exists():
         return locale.format("no_such_attribute", attribute_name=name)
 
+    attr = await ctx.tupper.attrs.filter(name=name).first()
+    if not attr:
+        return locale.format("no_such_attribute", attribute_name=name)
+    
+    if ctx.command.argc == 1:
+        return f"`{'X' if attr.limit == 0 else attr.limit}`"
+    
     try:
         if ctx.command.args[1] in "-Xx":
             limit = 0
@@ -28,12 +35,14 @@ async def handle(ctx):
         return locale.format(
             "wrong_usage", command_name=__name__.split(".")[-1], usage=HELP[0]
         )
+    
+    if attr.limit == limit:
+        return locale.format("attribute_was_not_changed", attribute_name=name)
 
-    attr = await ctx.tupper.attrs.filter(name=name).first()
-    if not attr:
-        return locale.format("no_such_attribute", attribute_name=name)
+    await ctx.tupper.attrs.filter(id=attr.id).update(limit=limit)
 
-    await ctx.tupper.attrs.filter(id=attr.id).update(value=min(attr.value, limit), limit=limit)
+    if limit != 0:
+        await ctx.tupper.attrs.filter(id=attr.id).update(value=min(attr.value, limit))
 
     await ctx.log(
         "log_attr_set_limit",
@@ -45,6 +54,12 @@ async def handle(ctx):
         else ctx.message.jump_url,
     )
 
+    if limit == 0:
+        return locale.format(
+            "limit_disabled",
+            attribute_name=name
+        )
+    
     return locale.format(
-        "successfully_set_limit", attribute_name=name, limit='X' if limit == 0 else limit, old_limit='X' if attr.limit == 0 else attr.limit
+        "successfully_set_limit", attribute_name=name, limit=limit, old_limit='X' if attr.limit == 0 else attr.limit
     )

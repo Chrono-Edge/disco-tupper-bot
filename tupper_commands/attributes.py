@@ -147,7 +147,10 @@ async def handle(ctx):
     buffer = ""
 
     async for attr in ctx.tupper.attrs:
-        buffer += f"`{attr.name}`: `{attr.value}`\n"
+        if attr.limit != 0:
+            buffer += f"`{attr.name}`: `{attr.value}`/`{attr.limit}`\n"
+        else:
+            buffer += f"`{attr.name}`: `{attr.value}`\n"
 
     if len(ctx.tupper.attrs) == 0:
         buffer += locale.empty

@@ -70,8 +70,11 @@
     "successfully_renamed": "Sucessfully renamed item `{old_item_name}` to `{item_name}`.",
     "name_already_in_use": "Item name `{item_name}` is alread in use.",
     "successfully_set_limit": "Limit for attribute `{attribute_name}` was successfully set to `{limit}` (from `{old_limit}`).",
+    "limit_disabled": "Limit for attribute `{attribute_name}` was successfully reset.",
     "empty": "```Empty.```",
 
+    "help_preline": "",
+    
     "attributes_params": "[name]|[name value]|[name +-*/ value] ?reference",
     "attributes_desc": "See or set attributes (value = `X` to remove attribute).",
 

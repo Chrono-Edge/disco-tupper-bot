@@ -98,8 +98,8 @@ class TupperCommands:
             logger.success(f"Registered tupper command: {name}")
 
         async def help(ctx):
-            buffer = ""
-
+            buffer = locale.help_preline
+            
             for command in self.help_lines:
                 params, desc = self.help_lines[command]
 
