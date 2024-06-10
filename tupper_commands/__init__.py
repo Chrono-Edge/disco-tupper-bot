@@ -99,7 +99,7 @@ class TupperCommands:
 
         async def help(ctx):
             buffer = locale.help_preline
-            
+
             for command in self.help_lines:
                 params, desc = self.help_lines[command]
 
@@ -112,7 +112,7 @@ class TupperCommands:
                 else:
                     buffer += f"{command} {params}: {desc}\n"
 
-            return f"```{buffer.strip()}```"
+            return buffer.strip()
 
         self.register_command("help", help)
 
