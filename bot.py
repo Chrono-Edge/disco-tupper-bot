@@ -25,7 +25,7 @@ class DiscoTupperBot(commands.Bot):
         if config.guild:
             self.debug_guild = discord.Object(config.guild)
 
-        self.discord_logger = DiscordLogger(self.bot)
+        self.discord_logger = DiscordLogger(self)
         self.tupper_commands = TupperCommands(self)
         self.log_channel = None
 
