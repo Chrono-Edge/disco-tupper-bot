@@ -108,7 +108,8 @@
     "use_params": "<item> [quantity] [desc] ?reference",
     "use_desc": "Use an item.",
 
-    "help_desc": "# help\nPrints help on commands.",
+    "help_params": "# help\n",
+    "help_desc": "Prints help on commands.",
 
     "tupper_info": "Tupper info:",
     "tupper_info_desc": "Call pattern: `{call_pattern}`.\nOwners: {owners}.\nDiary chat ID: `{chat_id}`.",
