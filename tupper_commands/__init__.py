@@ -86,8 +86,6 @@ class TupperCommands:
         self.commands[lat_to_cyr(name[0])] = handler
 
         self.help_lines[name] = help
-        self.help_lines[name[0]] = help
-        self.help_lines[lat_to_cyr(name[0])] = help
 
     def register_commands(self, path="tupper_commands"):
         for name in filter(lambda name: not name.startswith("__"), os.listdir(path)):
@@ -144,7 +142,7 @@ class TupperCommands:
             buffer = ""
             
             for command in self.help_lines:
-                if command not in query:
+                if command not in query and command[0] not in query and lat_to_cyr(command[0]) not in query:
                     continue
 
                 params, desc = self.help_lines[command]
