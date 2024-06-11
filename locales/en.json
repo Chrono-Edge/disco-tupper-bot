@@ -144,6 +144,8 @@
     "log_add_balance": "ADD BALANCE",
     "log_author": "Author: `{value}`",
     "log_tupper_name": "Tupper name: `{value}`",
+    "log_new_tupper_name": "New tupper name: `{value}`",
+    "log_avatar_url": "Avatar URL: `{value}`",
     "log_tupper_call_pattern": "Tupper call pattern: `{value}`",
     "log_inventory_chat_id": "Chat ID: `{value}`",
     "log_user": "User: `{value}`"

@@ -292,7 +292,7 @@ class TupperCommandsCog(commands.Cog):
                 await ctx.reply(locale.tupper_already_exists)
                 return
             tupper.name = new_name
-            log_keys["log_tupper_name"] = new_name
+            log_keys["log_new_tupper_name"] = new_name
 
         if new_call_pattern:
             try:
@@ -316,6 +316,7 @@ class TupperCommandsCog(commands.Cog):
             file_ext = pathlib.Path(avatar.filename).suffix
             avatar_image_url = self.image_storage.upload_file(data=avatar_bytes, filename=f"{tupper.id}{file_ext}")
             tupper.image = avatar_image_url
+            log_keys["log_avatar_url"] = avatar_image_url
 
         await tupper.save()
         await ctx.reply(
@@ -325,6 +326,7 @@ class TupperCommandsCog(commands.Cog):
         await self.discord_logger.send_log(
             "log_edit_tupper",
             log_author=ctx.message.author.name,
+            log_tupper_name=tupper_name,
             **log_keys,
             log_jump_url=ctx.message.jump_url,
         )

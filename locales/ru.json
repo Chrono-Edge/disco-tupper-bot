@@ -144,6 +144,8 @@
     "log_add_balance": "ПОПОЛНЕНИЕ БАЛАНСА",
     "log_author": "Инициатор команды: `{value}`",
     "log_tupper_name": "Имя актёра: `{value}`",
+    "log_new_tupper_name": "Новое имя актёра: `{value}`",
+    "log_avatar_url": "URL аватара: `{value}`",
     "log_tupper_call_pattern": "Шаблон вызова актёра: `{value}`",
     "log_inventory_chat_id": "ID чата: `{value}`",
     "log_user": "Пользователь: `{value}`"
