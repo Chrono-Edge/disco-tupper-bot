@@ -121,6 +121,8 @@
     "log_attr_remove": "ATTRIBUTE REMOVE",
     "log_attr_set": "ATTRIBUTE SET",
     "log_attr_set_limit": "ATTRIBUTE SET LIMIT",
+    "log_roll": "ROLL",
+    "log_roll_result": "Roll result: {value}",
     "log_attr_name": "Attribute: `{value}`",
     "log_attr_old_value": "Old value: `{value}`",
     "log_attr_new_value": "New value: `{value}`",

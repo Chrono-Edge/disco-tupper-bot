@@ -15,7 +15,6 @@ import config
 
 import database.models.user
 from utils.content.image_upload import ImageStorage
-from utils.discord.action_logger import DiscordLogger
 from utils.encoding.non_printable import NonPrintableEncoder
 from utils.discord.get_webhook import get_webhook
 from utils.tupper_template import parse_template
@@ -147,7 +146,6 @@ class TupperCommandsCog(commands.Cog):
     # TODO Interaction.response.defer() remade to normal commands
     def __init__(self, bot: discord.ext.commands.Bot):
         self.bot = bot
-        self.discord_logger = DiscordLogger(self.bot)
         self.reaction_to_edit = config.values.get("bot.reaction_to_edit")
         self.reaction_to_remove = config.values.get("bot.reaction_to_remove")
         self.admin_roles = config.values.get("bot.admin_roles")
@@ -220,7 +218,7 @@ class TupperCommandsCog(commands.Cog):
             )
         )
 
-        await self.discord_logger.send_log(
+        await self.bot.discord_logger.send_log(
             "log_create_tupper",
             log_author=ctx.message.author.name,
             log_tupper_name=tupper.name,
@@ -259,7 +257,7 @@ class TupperCommandsCog(commands.Cog):
 
         await ctx.reply(locale.tupper_was_successfully_removed)
 
-        await self.discord_logger.send_log(
+        await self.bot.discord_logger.send_log(
             "log_remove_tupper",
             log_author=ctx.message.author.name,
             log_tupper_name=tupper_name,
@@ -328,7 +326,7 @@ class TupperCommandsCog(commands.Cog):
             locale.format("successful_edit_tupper", tupper_name=tupper_name)
         )
 
-        await self.discord_logger.send_log(
+        await self.bot.discord_logger.send_log(
             "log_edit_tupper",
             log_author=ctx.message.author.name,
             log_tupper_name=tupper_name,
@@ -358,7 +356,7 @@ class TupperCommandsCog(commands.Cog):
 
         await ctx.reply(locale.format("set_inventory_chat", tupper_name=tupper_name))
 
-        await self.discord_logger.send_log(
+        await self.bot.discord_logger.send_log(
             "log_set_inventory_chat",
             log_author=ctx.message.author.name,
             log_tupper_name=tupper.name,
@@ -394,7 +392,7 @@ class TupperCommandsCog(commands.Cog):
             )
         )
 
-        await self.discord_logger.send_log(
+        await self.bot.discord_logger.send_log(
             "log_tupper_add_user",
             log_author=ctx.message.author.name,
             log_tupper_name=tupper.name,
@@ -442,7 +440,7 @@ class TupperCommandsCog(commands.Cog):
             )
         )
         # TODO autoremove tupper
-        await self.discord_logger.send_log(
+        await self.bot.discord_logger.send_log(
             "log_tupper_remove_user",
             log_author=ctx.message.author.name,
             log_tupper_name=tupper.name,
@@ -496,7 +494,7 @@ class TupperCommandsCog(commands.Cog):
             locale.format("admin_balance_add", tupper_name=tupper_name, balance=balance)
         )
 
-        await self.discord_logger.send_log(
+        await self.bot.discord_logger.send_log(
             "log_add_balance",
             log_author=ctx.message.author.name,
             log_tupper_name=tupper.name,

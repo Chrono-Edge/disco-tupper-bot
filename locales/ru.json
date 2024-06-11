@@ -121,6 +121,8 @@
     "log_attr_remove": "УДАЛЕНИЕ ХАРАКТЕРИСТИКИ",
     "log_attr_set": "УСТАНОВКА ХАРАКТЕРИСТИКИ",
     "log_attr_set_limit": "УСТАНОВКА МАКС. ЗНАЧЕНИЯ ХАРАКТЕРИСТИКИ",
+    "log_roll": "БРОСОК КОСТЕЙ",
+    "log_roll_result": "Результат броска: {value}",
     "log_attr_name": "Характеристика: `{value}`",
     "log_attr_old_value": "Предыдущее значение: `{value}`",
     "log_attr_new_value": "Новое значение: `{value}`",

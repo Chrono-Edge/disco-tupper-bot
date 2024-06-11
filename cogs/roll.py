@@ -9,7 +9,7 @@ class RollCog(commands.Cog):
 
     @commands.hybrid_command(name="roll", aliases=["r"])
     async def roll_dice(self, ctx, text: str):
-        await ctx.send(f"{ctx.author.display_name}: {roll_dices(text)}.")
+        await ctx.send(f"{ctx.author.display_name}: {roll_dices(text)}")
 
 
 async def setup(bot):

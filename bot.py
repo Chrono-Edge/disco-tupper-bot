@@ -5,6 +5,7 @@ from discord.ext import commands
 from tortoise import Tortoise
 
 import config
+from utils.discord.action_logger import DiscordLogger
 from cogs.tuppers_commands import ListMenu
 from tupper_commands import TupperCommands
 from config import logger
@@ -24,6 +25,7 @@ class DiscoTupperBot(commands.Bot):
         if config.guild:
             self.debug_guild = discord.Object(config.guild)
 
+        self.discord_logger = DiscordLogger(self.bot)
         self.tupper_commands = TupperCommands(self)
         self.log_channel = None
 

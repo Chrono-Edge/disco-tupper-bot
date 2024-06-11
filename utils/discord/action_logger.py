@@ -5,7 +5,6 @@ class DiscordLogger:
         self.bot = bot
 
     async def send_log(self, label, **kwargs):
-        
         text = "; ".join(map(lambda key: locale.format(key, value=kwargs[key]), kwargs))
         text = f"[{getattr(locale, label)}] {text}"
 
