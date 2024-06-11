@@ -574,9 +574,16 @@ class TupperCommandsCog(commands.Cog):
 
             return
         
+        try:
+            sign = bytes.fromhex(hidden_data["sign"])
+        except ValueError:
+            await ctx.reply(locale.not_verified)
+
+            return
+        
         await ctx.reply(
             locale.verified
-            if RSASign.verify(message_content, hidden_data["sign"], int(message.created_at.timestamp()))
+            if RSASign.verify(message_content, sign, int(message.created_at.timestamp()))
             else locale.not_verified
         )
 

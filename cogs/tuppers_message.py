@@ -238,7 +238,7 @@ class TupperMessageCog(commands.Cog):
             message_content = command_content
             files_content = []
             hidden_data["is_command"] = True
-            hidden_data["sign"] = RSASign.sign(message_content)
+            hidden_data["sign"] = RSASign.sign(message_content).hex()
             message_content = NonPrintableEncoder.encode_dict(
                 message_content, hidden_data
             )

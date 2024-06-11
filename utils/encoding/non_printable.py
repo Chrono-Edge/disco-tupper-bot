@@ -48,14 +48,6 @@ class NonPrintableEncoder:
         # TODO need get error catch
 
         return text, dict_data
-
-    @staticmethod
-    def encode_raw(data):
-        return "".join(chr(UTF8_MASK + byte) for byte in data)
-    
-    @staticmethod
-    def decode_raw(data):
-        return bytes((ord(char) - UTF8_MASK) for char in data)
     
     @staticmethod
     def encode(text: str, data: bytes) -> str:

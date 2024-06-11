@@ -5,7 +5,6 @@ from Crypto.Cipher import AES
 from Crypto.Hash import SHA1
 
 import config
-from utils.encoding.non_printable import NonPrintableEncoder
 
 CHECKSUM_LENGTH = 20
 TS_LENGTH = 8
@@ -18,13 +17,11 @@ class RSASign:
         sign = SHA1.new(message.encode('UTF-8')).digest() + struct.pack('<Q', int(time.time()))
         cipher = AES.new(KEY, AES.MODE_EAX, nonce=KEY)
         sign = cipher.encrypt(sign)
-        sign = NonPrintableEncoder.encode_raw(sign)
 
         return sign
 
     @staticmethod
-    def verify(message, sign, message_ts): 
-        sign = NonPrintableEncoder.decode_raw(sign)
+    def verify(message, sign, message_ts):
         cipher = AES.new(KEY, AES.MODE_EAX, nonce=KEY)
         sign = cipher.decrypt(sign)
         
