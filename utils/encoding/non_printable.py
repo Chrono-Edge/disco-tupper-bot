@@ -48,6 +48,7 @@ class NonPrintableEncoder:
         # TODO need get error catch
 
         return text, dict_data
+
     
     @staticmethod
     def encode(text: str, data: bytes) -> str:
@@ -87,4 +88,4 @@ class NonPrintableEncoder:
         encoded_body_start += len(HEADER)
         encoded_body = encoded_string[encoded_body_start:]
         byte_string = bytes((ord(char) - UTF8_MASK) for char in encoded_body)
-        return encoded_string[:encoded_body_start], byte_string
+        return encoded_string[:encoded_body_start-len(HEADER)], byte_string
