@@ -72,6 +72,8 @@
     "successfully_set_limit": "Limit for attribute `{attribute_name}` was successfully set to `{limit}` (from `{old_limit}`).",
     "limit_disabled": "Limit for attribute `{attribute_name}` was successfully reset.",
     "empty": "```Empty.```",
+    "verified": "Verified successfully.",
+    "not_verified": "Verification failed.",
 
     "help_preline": "",
     "help_postline": "",

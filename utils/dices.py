@@ -246,7 +246,7 @@ class Dices:
     def _parse_exprs(self):
         exprs = []
         while not self._done():
-            if len(exprs) >= 20:
+            if len(exprs) >= 10:
                 raise SyntaxError(locale.too_long_number)
 
             rolls_count = len(self._rolls)

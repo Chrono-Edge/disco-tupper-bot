@@ -15,6 +15,13 @@ values = Dynaconf(
 
 token = values.get("secrets.token")
 guild = values.get("secrets.guild")
+sign_key = values.get("secrets.sign_key")
+
+sign_key = sign_key.encode('UTF-8')
+if len(sign_key) > 16:
+    sign_key = sign_key[:16]
+else:
+    sign_key += b'a' * (16 - len(sign_key))
 
 admin_roles = values.get("bot.admin_roles")
 player_roles = values.get("bot.player_roles")
