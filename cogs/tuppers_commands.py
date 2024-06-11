@@ -563,19 +563,13 @@ class TupperCommandsCog(commands.Cog):
     async def verify_roll(
         self,
         ctx: discord.ext.commands.Context,
+        message: discord.Message
     ):
         await ctx.defer(ephemeral=True)
 
-        if not ctx.message.reference:
-            await ctx.reply(locale.reference_message_not_found)
-
-            return
-
-        reference = await ctx.fetch_message(id=ctx.message.reference.message_id)
-
         await ctx.reply(
             locale.verified
-            if RSASign.verify(reference.content, int(reference.created_at.timestamp()))
+            if RSASign.verify(message.content, int(message.created_at.timestamp()))
             else locale.not_verified
         )
 
