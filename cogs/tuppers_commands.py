@@ -567,16 +567,16 @@ class TupperCommandsCog(commands.Cog):
     ):
         await ctx.defer(ephemeral=True)
 
-        try:
-            message_content, _ = NonPrintableEncoder.decode(message.content)
-        except ValueError:
+        message_content, hidden_data = NonPrintableEncoder.decode_dict(message.content)
+        
+        if hidden_data is None or "sign" not in hidden_data:
             await ctx.reply(locale.not_verified)
 
             return
         
         await ctx.reply(
             locale.verified
-            if RSASign.verify(message_content, int(message.created_at.timestamp()))
+            if RSASign.verify(message_content, hidden_data["sign"], int(message.created_at.timestamp()))
             else locale.not_verified
         )
 

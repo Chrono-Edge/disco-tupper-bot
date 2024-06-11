@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 import config
 from database.models.tupper import Tupper
 from database.models.user import User
+from utils.rsa.sign import RSASign
 from utils.discord.message_split import TextFormatterSplit
 from utils.encoding.non_printable import NonPrintableEncoder
 from utils.encoding.non_printable import HEADER
@@ -237,6 +238,7 @@ class TupperMessageCog(commands.Cog):
             message_content = command_content
             files_content = []
             hidden_data["is_command"] = True
+            hidden_data["sign"] = RSASign.sign(message_content)
             message_content = NonPrintableEncoder.encode_dict(
                 message_content, hidden_data
             )

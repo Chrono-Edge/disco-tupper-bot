@@ -1,4 +1,3 @@
-from utils.rsa.sign import RSASign
 from utils.dices import roll_dices
 from localization import locale
 
@@ -25,4 +24,4 @@ async def handle(ctx):
         log_jump_url=ctx.message.jump_url,
     )
 
-    return RSASign.sign(roll)
+    return roll
