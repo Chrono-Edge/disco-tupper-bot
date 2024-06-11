@@ -209,7 +209,7 @@ class TupperMessageCog(commands.Cog):
         tupper = None
         # take tupper from user tuppers list
         async for other_tupper in db_user.tuppers:
-            if match := re.match(other_tupper.call_pattern, message_content):
+            if match := re.match(other_tupper.call_pattern, message_content, flags=re.DOTALL):
                 tupper = other_tupper
                 message_content = match.group(1)
                 break
