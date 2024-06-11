@@ -563,7 +563,7 @@ class TupperCommandsCog(commands.Cog):
         await ctx.reply(command_output)
 
     @app_commands.checks.has_any_role(*config.admin_roles)
-    async def verify(interaction: discord.Interaction, message: discord.Message):
+    async def verify(self, interaction: discord.Interaction, message: discord.Message):
         message_content, hidden_data = NonPrintableEncoder.decode_dict(message.content)
 
         if (
