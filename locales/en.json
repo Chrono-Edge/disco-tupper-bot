@@ -108,7 +108,7 @@
     "use_params": "<item> [quantity] [desc] ?reference",
     "use_desc": "Use an item.",
 
-    "help_params": "# help\n",
+    "help_params": "[command...]",
     "help_desc": "Prints help on commands.",
 
     "tupper_info": "Tupper info:",
