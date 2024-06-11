@@ -151,7 +151,7 @@ class TupperCommands:
 
             return buffer.strip()
 
-        self.register_command("help", help, help=locale.help_desc)
+        self.register_command("help", help, help=(locale.help_params, locale.help_desc))
 
     async def handle_command(self, tupper, message, text):
         text = text.strip()
