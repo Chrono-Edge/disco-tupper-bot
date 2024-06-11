@@ -252,6 +252,11 @@ class TupperCommandsCog(commands.Cog):
 
         await Tupper.filter(id=tupper.id).delete()
 
+        async for user in tupper.owners:
+            count_tuppers = await user.tuppers.all().count()
+            if count_tuppers == 0:
+                await User.filter(id=user.id).delete()
+
         await ctx.reply(locale.tupper_was_successfully_removed)
 
         await self.discord_logger.send_log(
@@ -409,17 +414,22 @@ class TupperCommandsCog(commands.Cog):
         await ctx.defer(ephemeral=True)
         """Remove user from a tupper."""
         _, target_user = await self._get_user_to_edit_tupper(ctx, tupper_owner)
-        user_to_add = await User.get(discord_id=user_remove.id)
-
+        user_to_remove = await User.filter(discord_id=user_remove.id).first()
+        if not user_to_remove:
+            await ctx.reply(locale.format("no_such_tupper", tupper_name=tupper_name))
+            return
+        
         tupper: Tupper = await target_user.tuppers.filter(name=tupper_name).first()
         if not tupper:
             await ctx.reply(locale.format("no_such_tupper", tupper_name=tupper_name))
             return
 
-        await user_to_add.tuppers.remove(tupper)
+        await user_to_remove.tuppers.remove(tupper)
 
-        if tupper.owners.all().count() == 0:
-            await tupper.delete()
+        count = await tupper.owners.all().count()
+        if count == 0:
+            await Tupper.filter(id=tupper.id).delete()
+
             await ctx.reply(
                 locale.format("tupper_not_used_and_remove", tupper_name=tupper_name)
             )
