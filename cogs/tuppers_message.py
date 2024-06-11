@@ -112,7 +112,7 @@ class TupperMessageCog(commands.Cog):
             message.content
         )
 
-        if "tupper_id" in metadata_dict:
+        if metadata_dict is not None and "tupper_id" in metadata_dict:
             db_user = await User.get(discord_id=payload.user_id)
             if not db_user:
                 return
