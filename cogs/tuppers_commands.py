@@ -568,7 +568,7 @@ class TupperCommandsCog(commands.Cog):
         await ctx.defer(ephemeral=True)
 
         try:
-            text, _ = NonPrintableEncoder.decode(message.content)
+            message_content, _ = NonPrintableEncoder.decode(message.content)
         except ValueError:
             await ctx.reply(locale.not_verified)
 
@@ -576,7 +576,7 @@ class TupperCommandsCog(commands.Cog):
         
         await ctx.reply(
             locale.verified
-            if RSASign.verify(text, int(message.created_at.timestamp()))
+            if RSASign.verify(message_content, int(message.created_at.timestamp()))
             else locale.not_verified
         )
 
