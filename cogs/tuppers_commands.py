@@ -15,7 +15,7 @@ import config
 import database.models.user
 from utils.rsa.sign import RSASign
 from utils.content.image_upload import ImageStorage
-from utils.encoding.non_printable import NonPrintableEncoder
+from utils.encoding.non_printable import NonPrintableEncoder, HEADER
 from utils.discord.get_webhook import get_webhook
 from utils.tupper_template import parse_template
 from utils.discord.permissions import Permissions
@@ -567,9 +567,16 @@ class TupperCommandsCog(commands.Cog):
     ):
         await ctx.defer(ephemeral=True)
 
+        try:
+            text, _ = NonPrintableEncoder.decode(message.content)
+        except ValueError:
+            await ctx.reply(locale.not_verified)
+
+            return
+        
         await ctx.reply(
             locale.verified
-            if RSASign.verify(message.content, int(message.created_at.timestamp()))
+            if RSASign.verify(text, int(message.created_at.timestamp()))
             else locale.not_verified
         )
 
