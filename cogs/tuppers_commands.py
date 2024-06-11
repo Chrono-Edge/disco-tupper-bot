@@ -558,9 +558,9 @@ class TupperCommandsCog(commands.Cog):
 
         await ctx.reply(command_output)
 
-    @commands.hybrid_command(name="verify_roll")
+    @commands.hybrid_command(name="verify")
     @commands.has_any_role(*config.admin_roles)
-    async def verify_roll(
+    async def verify(
         self,
         ctx: discord.ext.commands.Context,
         message: discord.Message,
