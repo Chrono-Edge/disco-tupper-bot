@@ -6,9 +6,10 @@ from Crypto.Hash import SHA1
 
 import config
 
+SIGN_MAX_AGE = 2
+
 CHECKSUM_LENGTH = 20
 TS_LENGTH = 8
-TS_DIFF = 3
 KEY = config.sign_key
 
 class RSASign:
@@ -32,7 +33,7 @@ class RSASign:
         
         ts = struct.unpack('<Q', ts)[0]
 
-        if message_ts not in range(ts, ts+TS_DIFF+1):
+        if message_ts not in range(ts, ts+SIGN_MAX_AGE+1):
             return False
         
         return True

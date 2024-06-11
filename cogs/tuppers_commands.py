@@ -569,7 +569,7 @@ class TupperCommandsCog(commands.Cog):
 
         message_content, hidden_data = NonPrintableEncoder.decode_dict(message.content)
         
-        if hidden_data is None or "sign" not in hidden_data:
+        if hidden_data is None or "is_command" not in hidden_data or "sign" not in hidden_data:
             await ctx.reply(locale.not_verified)
 
             return
