@@ -567,7 +567,9 @@ class TupperCommandsCog(commands.Cog):
         await ctx.defer(ephemeral=True)
 
         if not ctx.message.reference:
-            return locale.reference_message_not_found
+            await ctx.reply(locale.reference_message_not_found)
+
+            return
 
         reference = await ctx.fetch_message(id=ctx.message.reference.message_id)
 
