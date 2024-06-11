@@ -107,6 +107,8 @@ class Dices:
             for roll, result in zip(self.rolls, self.result):
                 count, sides, roll = roll
 
+                buffer += f"{'' if count == 1 else count}d{sides}: "
+
                 roll_sum = int(roll)
                 result_sum = int(result)
                 if result_sum == roll_sum:
@@ -114,11 +116,18 @@ class Dices:
 
                     if "," in results:
                         results = f"[{results}]"
+
+                    buffer += results
+
+                    if "," in results:
+                        buffer += f" ({result_sum})"
+
+                    buffer += "\n"
                 else:
                     difference = result_sum - roll_sum
                     results = f"{'' if len(roll) == 1 else f'{roll_sum} -> '}{roll_sum}{'' if difference < 0 else '+'}{difference}"
 
-                buffer += f"{'' if count == 1 else count}d{sides}: {roll} -> {results} ({int(result)})\n"
+                    buffer += f"{roll} -> {results} ({int(result)})\n"
 
             return f"```\n{self.text}\n{buffer}= {int(self.result)}```"
 

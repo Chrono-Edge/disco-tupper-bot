@@ -80,10 +80,14 @@ class TupperCommands:
         self.commands = {}
         self.help_lines = {}
 
-    def register_command(self, name, handler):
+    def register_command(self, name, handler, help="N/A"):
         self.commands[name] = handler
         self.commands[name[0]] = handler
         self.commands[lat_to_cyr(name[0])] = handler
+
+        self.help_lines[name] = help
+        self.help_lines[name[0]] = help
+        self.help_lines[lat_to_cyr(name[0])] = help
 
     def register_commands(self, path="tupper_commands"):
         for name in filter(lambda name: not name.startswith("__"), os.listdir(path)):
@@ -91,9 +95,7 @@ class TupperCommands:
 
             module = importlib.import_module(f"tupper_commands.{name}")
 
-            self.register_command(name, module.handle)
-
-            self.help_lines[name] = getattr(module, "HELP", "N/A")
+            self.register_command(name, module.handle, help=getattr(module, "HELP", "N/A"))
 
             logger.success(f"Registered tupper command: {name}")
 
@@ -119,7 +121,7 @@ class TupperCommands:
                 buffer = locale.help_preline
 
                 for command in self.help_lines:
-                    buffer += f"- `{command}`\n"
+                    buffer += f"- `{command}`, `{command[0]}`, `{lat_to_cyr(command[0])}`\n"
 
                 buffer += locale.help_postline
 
