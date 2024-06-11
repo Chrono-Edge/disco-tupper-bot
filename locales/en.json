@@ -72,6 +72,7 @@
     "successfully_set_limit": "Limit for attribute `{attribute_name}` was successfully set to `{limit}` (from `{old_limit}`).",
     "limit_disabled": "Limit for attribute `{attribute_name}` was successfully reset.",
     "empty": "```Empty.```",
+    "verify": "Verify tupper message.",
     "verified": "Verified successfully.",
     "not_verified": "Verification failed.",
 

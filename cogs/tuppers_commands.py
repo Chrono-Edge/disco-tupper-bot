@@ -4,6 +4,7 @@ import urllib.parse
 
 from database.models.user import User
 from database.models.tupper import Tupper
+from discord import app_commands
 from discord.ext import commands
 import discord
 import typing
@@ -150,6 +151,9 @@ class TupperCommandsCog(commands.Cog):
         self.reaction_to_remove = config.values.get("bot.reaction_to_remove")
         self.admin_roles = config.values.get("bot.admin_roles")
         self.image_storage = ImageStorage()
+        self.bot.tree.add_command(
+            app_commands.ContextMenu(name=locale.verify, callback=self.verify)
+        )
 
     async def _get_user_to_edit_tupper(
         self, ctx: discord.ext.commands.Context, member: discord.Member
@@ -558,33 +562,33 @@ class TupperCommandsCog(commands.Cog):
 
         await ctx.reply(command_output)
 
-    @commands.hybrid_command(name="verify")
-    @commands.has_any_role(*config.admin_roles)
-    async def verify(
-        self,
-        ctx: discord.ext.commands.Context,
-        message: discord.Message,
-    ):
-        await ctx.defer(ephemeral=True)
-
+    @app_commands.checks.has_any_role(*config.admin_roles)
+    async def verify(interaction: discord.Interaction, message: discord.Message):
         message_content, hidden_data = NonPrintableEncoder.decode_dict(message.content)
-        
-        if hidden_data is None or "is_command" not in hidden_data or "sign" not in hidden_data:
-            await ctx.reply(locale.not_verified)
+
+        if (
+            hidden_data is None
+            or "is_command" not in hidden_data
+            or "sign" not in hidden_data
+        ):
+            await interaction.response.send_message(locale.not_verified, ephemeral=True)
 
             return
-        
+
         try:
             sign = bytes.fromhex(hidden_data["sign"])
         except ValueError:
-            await ctx.reply(locale.not_verified)
+            await interaction.response.send_message(locale.not_verified, ephemeral=True)
 
             return
-        
-        await ctx.reply(
+
+        await interaction.response.send_message(
             locale.verified
-            if RSASign.verify(message_content, sign, int(message.created_at.timestamp()))
-            else locale.not_verified
+            if RSASign.verify(
+                message_content, sign, int(message.created_at.timestamp())
+            )
+            else locale.not_verified,
+            ephemeral=True,
         )
 
 
