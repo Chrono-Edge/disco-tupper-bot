@@ -3,6 +3,7 @@ import math
 import pathlib
 import urllib.parse
 
+from Crypto.Hash import SHA1
 from database.models.user import User
 from database.models.tupper import Tupper
 from discord import app_commands
@@ -209,10 +210,12 @@ class TupperCommandsCog(commands.Cog):
 
         # upload image on server
         avatar_bytes = await avatar.read()
-        file_hash = hashlib.sha1(avatar_bytes)
+
+        file_hash = SHA1.new(avatar_bytes).hexdigest()
         file_ext = pathlib.Path(avatar.filename).suffix
+
         avatar_image_url = self.image_storage.upload_file(
-            data=avatar_bytes, filename=f"{file_hash.hexdigest()}{file_ext}"
+            data=avatar_bytes, filename=f"{file_hash}{file_ext}"
         )
 
         tupper.image = avatar_image_url
@@ -333,11 +336,11 @@ class TupperCommandsCog(commands.Cog):
 
             # upload image on server
             avatar_bytes = await avatar.read()
-            file_hash = hashlib.sha1(avatar_bytes)
+            file_hash = SHA1.new(avatar_bytes).hexdigest()
 
             file_ext = pathlib.Path(avatar.filename).suffix
             avatar_image_url = self.image_storage.upload_file(
-                data=avatar_bytes, filename=f"{file_hash.hexdigest()}{file_ext}"
+                data=avatar_bytes, filename=f"{file_hash}{file_ext}"
             )
             tupper.image = avatar_image_url
             log_keys["log_avatar_url"] = avatar_image_url
