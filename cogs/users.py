@@ -41,6 +41,7 @@ class UserCog(commands.Cog):
     @commands.hybrid_command(name="sync_commands")
     @commands.has_any_role(*config.admin_roles)
     async def sync_commands(self, ctx: discord.ext.commands.Context):
+        """Sync all commands"""
         self.bot.tree.copy_global_to(guild=ctx.guild)
         if await self.bot.tree.sync():
             await asyncio.sleep(2)

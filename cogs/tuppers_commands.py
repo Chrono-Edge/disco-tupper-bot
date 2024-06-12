@@ -477,7 +477,7 @@ class TupperCommandsCog(commands.Cog):
 
     @commands.hybrid_command(name="tupper_list")
     @commands.has_any_role(*config.player_roles)
-    async def tupper_list(self, ctx, member: typing.Optional[discord.Member]):
+    async def list_tuppers(self, ctx, member: typing.Optional[discord.Member]):
         """List all tuppers for a user."""
         await ctx.defer(ephemeral=True)
 
@@ -546,7 +546,7 @@ class TupperCommandsCog(commands.Cog):
 
     @commands.hybrid_command(name="admin_do")
     @commands.has_any_role(*config.admin_roles)
-    async def admin_do(
+    async def admin_tapper_do(
             self,
             ctx: discord.ext.commands.Context,
             tupper_owner: discord.Member,
