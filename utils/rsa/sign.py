@@ -11,6 +11,7 @@ SIGN_MAX_AGE = 2
 CHECKSUM_LENGTH = 20
 TUPPER_ID_LENGTH = 4
 TS_LENGTH = 8
+SIGN_LENGTH = CHECKSUM_LENGTH + TUPPER_ID_LENGTH + TS_LENGTH
 KEY = config.sign_key
 
 class RSASign:
@@ -24,6 +25,9 @@ class RSASign:
 
     @staticmethod
     def verify(message, sign, message_ts, message_tupper_id):
+        if len(sign) != SIGN_LENGTH:
+            return False
+
         cipher = AES.new(KEY, AES.MODE_EAX, nonce=KEY)
         sign = cipher.decrypt(sign)
         
