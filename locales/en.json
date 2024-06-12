@@ -75,7 +75,8 @@
     "verify": "Verify tupper message.",
     "verified": "Verified successfully.",
     "not_verified": "Verification failed.",
-
+    "text": "text",
+    
     "help_preline": "",
     "help_postline": "",
 
