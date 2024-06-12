@@ -568,8 +568,8 @@ class TupperCommandsCog(commands.Cog):
 
         if (
             hidden_data is None
-            or "is_command" not in hidden_data
             or "sign" not in hidden_data
+            or "tupper_id" not in hidden_data
         ):
             await interaction.response.send_message(locale.not_verified, ephemeral=True)
 
@@ -577,6 +577,7 @@ class TupperCommandsCog(commands.Cog):
 
         try:
             sign = bytes.fromhex(hidden_data["sign"])
+            tupper_id = abs(int(hidden_data["tupper_id"]))
         except ValueError:
             await interaction.response.send_message(locale.not_verified, ephemeral=True)
 
@@ -585,7 +586,7 @@ class TupperCommandsCog(commands.Cog):
         await interaction.response.send_message(
             locale.verified
             if RSASign.verify(
-                message_content, sign, int(message.created_at.timestamp())
+                message_content, sign, int(message.created_at.timestamp()), tupper_id
             )
             else locale.not_verified,
             ephemeral=True,

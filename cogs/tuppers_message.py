@@ -67,12 +67,9 @@ class TupperMessageCog(commands.Cog):
         message = await channel.fetch_message(payload.message_id)
         await message.remove_reaction(payload.emoji, user)
 
-        try:
-            message_content, message_hidden_dict = NonPrintableEncoder.decode_dict(message.content)
-        except ValueError:
-            return
+        message_content, message_hidden_dict = NonPrintableEncoder.decode_dict(message.content)
         
-        if "is_command" in message_hidden_dict:
+        if message_hidden_dict is None or "sign" in message_hidden_dict:
             return
 
         await user.send(locale.format("editing_message", message=message_content))
@@ -237,8 +234,7 @@ class TupperMessageCog(commands.Cog):
         if command_content:
             message_content = command_content
             files_content = []
-            hidden_data["is_command"] = True
-            hidden_data["sign"] = RSASign.sign(message_content).hex()
+            hidden_data["sign"] = RSASign.sign(message_content, tupper.id).hex()
             message_content = NonPrintableEncoder.encode_dict(
                 message_content, hidden_data
             )
