@@ -17,7 +17,7 @@ KEY = config.sign_key
 class RSASign:
     @staticmethod
     def sign(message, tupper_id):
-        sign = SHA1.new(message.encode('UTF-8')).digest() + struct.pack('<L', tupper_id) + struct.pack('<Q', int(time.time()))
+        sign = SHA1.new(message.encode('UTF-8')).digest() + struct.pack('<LQ', tupper_id, int(time.time()))
         cipher = AES.new(KEY, AES.MODE_EAX, nonce=KEY)
         sign = cipher.encrypt(sign)
 
@@ -31,20 +31,16 @@ class RSASign:
         cipher = AES.new(KEY, AES.MODE_EAX, nonce=KEY)
         sign = cipher.decrypt(sign)
         
-        sign, ts = sign[:CHECKSUM_LENGTH+TUPPER_ID_LENGTH], sign[-TS_LENGTH:]
-        checksum, tupper_id = sign[:CHECKSUM_LENGTH], sign[-TUPPER_ID_LENGTH:]
+        checksum, sign = sign[:CHECKSUM_LENGTH], sign[CHECKSUM_LENGTH:]
+        tupper_id, ts = struct.unpack(sign)
 
-        tupper_id = struct.unpack('<L', tupper_id)[0]
-        
         if tupper_id != message_tupper_id:
+            return False
+        
+        if message_ts not in range(ts, ts+SIGN_MAX_AGE+1):
             return False
         
         if SHA1.new(message.encode('UTF-8')).digest() != checksum:
             return False
-        
-        ts = struct.unpack('<Q', ts)[0]
-
-        if message_ts not in range(ts, ts+SIGN_MAX_AGE+1):
-            return False
-        
+    
         return True

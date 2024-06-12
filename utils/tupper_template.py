@@ -4,6 +4,8 @@ from localization import locale
 def parse_template(text):
     text = text.strip()
 
+    text = '*'.join(text.rsplit(locale.text, 1))
+
     buffer = ""
     escape = False
     has_star = False
@@ -113,7 +115,7 @@ def unparse_template(text):
 
             in_block = False
         elif text[i : i + 4] == "(.*)":
-            buffer += "*"
+            buffer += locale.text
 
             i += 3
         else:
