@@ -164,7 +164,7 @@ class TupperCommands:
         except ValueError:
             return None
 
-        if len(parts) < 1:
+        if len(parts) < 1 or len(parts) > 20:
             return None
 
         command = Command(name=parts[0].lower(), args=parts[1:], argc=len(parts) - 1)

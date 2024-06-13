@@ -167,6 +167,6 @@ async def handle(ctx):
                 buffer += f"`{attr.name}`: `{attr.value}`\n"
 
         if len(ctx.tupper.attrs) == 0:
-            buffer += locale.empty
+            return locale.empty
 
-    return buffer.strip()
+    return buffer.rstrip()
