@@ -190,8 +190,6 @@ class TupperCommandsCog(commands.Cog):
             await ctx.reply(locale.tupper_already_exists)
             return
 
-        orig_call_pattern = call_pattern
-
         try:
             call_pattern = validate_template(call_pattern)
         except SyntaxError as e:
@@ -233,7 +231,7 @@ class TupperCommandsCog(commands.Cog):
             "log_create_tupper",
             log_author=ctx.message.author.name,
             log_tupper_name=tupper.name,
-            log_tupper_call_pattern=orig_call_pattern,
+            log_tupper_call_pattern=call_pattern,
             log_jump_url=ctx.message.jump_url,
         )
 
