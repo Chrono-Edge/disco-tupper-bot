@@ -1,6 +1,8 @@
 from localization import locale
 
 async def get_template_start(user, text):
+    text = text.lstrip()
+
     async for tupper in user.tuppers:
         l, r = split_template(tupper.call_pattern)
 

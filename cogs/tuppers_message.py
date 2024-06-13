@@ -288,7 +288,7 @@ class TupperMessageCog(commands.Cog):
                 i += len(l)
 
                 while i < len(message_content):
-                    if (r and message_content[i:].startswith(r)) or await get_template_start(db_user, message_content[i:]):
+                    if (r and message_content[i:].lstrip().startswith(r)) or await get_template_start(db_user, message_content[i:]):
                         break
                     
                     buffer += message_content[i]
@@ -296,7 +296,7 @@ class TupperMessageCog(commands.Cog):
                     i += 1
 
                 if r:
-                    if not message_content[i:].startswith(r):
+                    if not message_content[i:].lstrip().startswith(r):
                         return
 
                     i += len(r)
