@@ -25,7 +25,7 @@ async def handle(ctx):
     buffer = ""
 
     if ctx.command.argc > 0:
-        for arg in ctx.commands.args:
+        for arg in ctx.command.args:
             arg = arg.strip().upper()
             if not (
                 match := re.match(r"^([А-ЯA-Z]{2,3})(?:(=|\+|-|\*|/)(\d+|X|-))?$", arg)
