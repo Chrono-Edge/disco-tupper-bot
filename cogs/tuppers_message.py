@@ -303,7 +303,7 @@ class TupperMessageCog(commands.Cog):
                     if not message_content[i:].lstrip().startswith(r):
                         return
 
-                    i += len(r)
+                    i += len(r)-1
 
                 buffer = buffer.strip()
                 if not buffer:
