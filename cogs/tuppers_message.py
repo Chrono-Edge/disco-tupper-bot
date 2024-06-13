@@ -25,16 +25,7 @@ class TupperMessageCog(commands.Cog):
         self.bot = bot
         self.reaction_to_edit = config.values.get("bot.reaction_to_edit")
         self.reaction_to_remove = config.values.get("bot.reaction_to_remove")
-        self.text_splitter = TextFormatterSplit(
-            {
-                "general": {"byNewlines": True},
-                "amounts": {
-                    "splitCounter": 300,
-                    "maxMessageLength": 1200,
-                    "maxMessages": 100,
-                },
-            }
-        )
+        self.text_splitter = TextFormatterSplit()
 
     async def _get_webhook(
         self, channel_id: int
