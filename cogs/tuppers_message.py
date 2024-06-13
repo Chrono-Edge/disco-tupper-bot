@@ -59,8 +59,10 @@ class TupperMessageCog(commands.Cog):
         message = await channel.fetch_message(payload.message_id)
         await message.remove_reaction(payload.emoji, user)
 
-        message_content, message_hidden_dict = NonPrintableEncoder.decode_dict(message.content)
-        
+        message_content, message_hidden_dict = NonPrintableEncoder.decode_dict(
+            message.content
+        )
+
         if message_hidden_dict is None or "sign" in message_hidden_dict:
             return
 
@@ -237,7 +239,14 @@ class TupperMessageCog(commands.Cog):
             original_message, _ = NonPrintableEncoder.decode_dict(message_content)
             list_messages = self.text_splitter.format_text(original_message)
             list_messages = [
-                NonPrintableEncoder.encode_dict(splited_message, hidden_data)
+                NonPrintableEncoder.encode_dict(
+                    splited_message,
+                    hidden_data.update(
+                        {"sign": Sign.sign(splited_message, tupper.id).hex()}
+                    )
+                    if "sign" in hidden_data
+                    else hidden_data,
+                )
                 for splited_message in list_messages
             ]
             for message_to_send in list_messages:
@@ -277,7 +286,7 @@ class TupperMessageCog(commands.Cog):
         message_content = message.content.strip()
         if not message_content:
             return
-        
+
         matches = []
         i = 0
         while i < len(message_content):
@@ -291,9 +300,11 @@ class TupperMessageCog(commands.Cog):
                 i += len(l)
 
                 while i < len(message_content):
-                    if (r and message_content[i:].startswith(r)) or await get_template_start(db_user, message_content[i:]):
+                    if (
+                        r and message_content[i:].startswith(r)
+                    ) or await get_template_start(db_user, message_content[i:]):
                         break
-                    
+
                     buffer += message_content[i]
 
                     i += 1
