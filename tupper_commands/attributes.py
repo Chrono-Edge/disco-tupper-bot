@@ -32,7 +32,7 @@ async def handle(ctx):
             ):
                 return locale.illegal_attribute_name
 
-            name, op, value = match
+            name, op, value = match.groups()
             attr = await ctx.tupper.attrs.filter(name=name).first()
             if not value:
                 if not attr:
