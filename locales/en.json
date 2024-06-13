@@ -50,7 +50,6 @@
     "user_was_successfully_removed": "User was successfully removed.",
     "user_does_not_exist": "User doesn't exist.",
 
-    "template_should_contain_at_least_one_placeholder": "Template should contain at least one placeholder (`text`).",
     "template_should_contain_something_aside_from_placeholder": "Template should contain something aside from placeholder (`text`).",
 
     "reference_message_not_found": "Reference message not found.",

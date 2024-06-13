@@ -50,7 +50,6 @@
     "user_was_successfully_removed": "Пользователь был успешно удалён.",
     "user_does_not_exist": "Такого пользователя не существует.",
 
-    "template_should_contain_at_least_one_placeholder": "Шаблон должен содержать хотя бы один плейсхолдер (`text`).",
     "template_should_contain_something_aside_from_placeholder": "Шаблон должен содержать что-то помимо плейсхолдера (`text`).",
 
     "reference_message_not_found": "Необходимо сообщение-ссылка.",

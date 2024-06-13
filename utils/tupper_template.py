@@ -11,10 +11,10 @@ async def get_template_start(user, text):
 
 
 def validate_template(text):
-    text = text.strip()
+    text = text.lower().strip()
 
     if "text" not in text:
-        raise SyntaxError(locale.template_should_contain_at_least_one_placeholder)
+        text += "text"
 
     if len(text) <= 4:
         raise SyntaxError(
