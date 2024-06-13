@@ -88,7 +88,7 @@ async def handle(ctx):
                         old_limit = 0
                         if not attr:
                             attr = await Attribute.create(
-                                owner=ctx.tupper, name=name, limit=limit
+                                owner=ctx.tupper, name=name, value=0, limit=limit
                             )
                         else:
                             old_limit = attr.limit
