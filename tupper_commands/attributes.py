@@ -28,11 +28,13 @@ async def handle(ctx):
         for arg in ctx.command.args:
             arg = arg.strip().upper()
             if not (
-                match := re.match(r"^([А-ЯA-Z]{2,3})(?:(=|\+|-|\*|/)(\d+|X|-))?$", arg)
+                match := re.match(
+                    r"^([А-ЯA-Z]{2,3})(?:(=|\+|-|\*|/)(\d+|X|-)(?:/(\d+|X|-))?)?$", arg
+                )
             ):
                 return locale.illegal_attribute_name
 
-            name, op, value = match.groups()
+            name, op, value, limit = match.groups()
             attr = await ctx.tupper.attrs.filter(name=name).first()
             if not value:
                 if not attr:
@@ -73,6 +75,45 @@ async def handle(ctx):
                             )
 
                         value = OPS[op](attr.value, value)
+
+                    if limit is not None:
+                        try:
+                            if limit in "X-":
+                                limit = 0
+                            else:
+                                limit = int(limit)
+                        except ValueError:
+                            return locale.too_long_number
+
+                        old_limit = 0
+                        if not attr:
+                            attr = await Attribute.create(
+                                owner=ctx.tupper, name=name, value=value, limit=limit
+                            )
+                        else:
+                            old_limit = attr.limit
+                            attr.limit = limit
+                            await attr.save()
+
+                        await ctx.log(
+                            "log_attr_set_limit",
+                            log_attr_name=name,
+                            log_attr_old_value="X" if old_limit == 0 else old_limit,
+                            log_attr_new_value="X" if limit == 0 else limit,
+                            log_jump_url=ctx.message.reference.jump_url
+                            if ctx.message.reference
+                            else ctx.message.jump_url,
+                        )
+
+                        if limit == 0:
+                            buffer += locale.format("limit_disabled", attribute_name=name) + "\n"
+
+                        buffer += locale.format(
+                            "successfully_set_limit",
+                            attribute_name=name,
+                            limit=limit,
+                            old_limit="X" if old_limit == 0 else old_limit,
+                        ) + "\n"
 
                     if attr and attr.limit != 0:
                         value = min(value, attr.limit)

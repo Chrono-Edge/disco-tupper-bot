@@ -290,6 +290,9 @@ class TupperMessageCog(commands.Cog):
         matches = []
         i = 0
         while i < len(message_content):
+            if len(matches) >= 10:
+                return
+
             while i < len(message_content) and message_content[i] in string.whitespace:
                 i += 1
 
@@ -322,16 +325,21 @@ class TupperMessageCog(commands.Cog):
                 matches.append((tupper, buffer))
 
                 continue
+            elif i == 0:
+                return
 
             i += 1
 
         if not matches:
             return
 
+        try:
+            await message.delete()
+        except Exception:
+            pass
+
         for tupper, message_content in matches:
             await self._handle_message(tupper, message, message_content)
-
-        await message.delete()
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
