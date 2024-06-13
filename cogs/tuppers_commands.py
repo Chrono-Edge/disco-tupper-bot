@@ -16,14 +16,13 @@ from typing import TYPE_CHECKING, Union
 import config
 
 import database.models.user
-from utils.rsa.sign import RSASign
+from utils.sign import Sign
 from utils.content.image_upload import ImageStorage
-from utils.encoding.non_printable import NonPrintableEncoder, HEADER
+from utils.encoding.non_printable import NonPrintableEncoder
 from utils.discord.get_webhook import get_webhook
-from utils.tupper_template import parse_template
+from utils.tupper_template import validate_template
 from utils.discord.permissions import Permissions
 from localization import locale
-from utils.tupper_template import unparse_template
 from tupper_commands import Context
 
 if TYPE_CHECKING:
@@ -52,7 +51,7 @@ class ListMenu(discord.ui.View):
             embed = discord.Embed(colour=0x00B0F4, timestamp=datetime.now())
             embed.set_author(name=f"{tupper.name}")
 
-            human_like_call_pattern = unparse_template(tupper.call_pattern)
+            human_like_call_pattern = tupper.call_pattern
             human_like_owners = [
                 await client.fetch_user(user.discord_id)
                 for user in await tupper.owners.all()
@@ -194,7 +193,7 @@ class TupperCommandsCog(commands.Cog):
         orig_call_pattern = call_pattern
 
         try:
-            call_pattern = parse_template(call_pattern)
+            call_pattern = validate_template(call_pattern)
         except SyntaxError as e:
             await ctx.reply(str(e))
             return
@@ -315,7 +314,7 @@ class TupperCommandsCog(commands.Cog):
 
         if new_call_pattern:
             try:
-                new_call_pattern = parse_template(new_call_pattern)
+                new_call_pattern = validate_template(new_call_pattern)
             except SyntaxError as e:
                 await ctx.reply(str(e))
                 return
@@ -598,7 +597,7 @@ class TupperCommandsCog(commands.Cog):
 
         await interaction.response.send_message(
             locale.verified
-            if RSASign.verify(
+            if Sign.verify(
                 message_content, sign, int(message.created_at.timestamp()), tupper_id
             )
             else locale.not_verified,

@@ -8,11 +8,12 @@ from typing import TYPE_CHECKING
 import config
 from database.models.tupper import Tupper
 from database.models.user import User
-from utils.rsa.sign import RSASign
+from utils.sign import Sign
 from utils.discord.message_split import TextFormatterSplit
 from utils.encoding.non_printable import NonPrintableEncoder
 from utils.encoding.non_printable import HEADER
 from utils.discord.get_webhook import get_webhook
+from utils.tupper_template import get_template_start
 from localization import locale
 
 if TYPE_CHECKING:
@@ -185,39 +186,7 @@ class TupperMessageCog(commands.Cog):
 
         await new_message.reply(message_relpy)
 
-    async def _on_message(self, message: discord.Message):
-        """parse on message"""
-        # cut off bots and selfmessages
-
-        if (message.author.id == self.bot.user.id) or message.author.bot:
-            return
-
-        # take user form database by discord id
-        db_user = await User.filter(discord_id=message.author.id).first()
-        if not db_user:
-            return
-
-        # if channel is private
-        if message.channel.type == discord.ChannelType.private:
-            await self._edit_tupper_message(message)
-            return
-
-        message_content = message.content.strip()
-
-        tupper = None
-        # take tupper from user tuppers list
-        async for other_tupper in db_user.tuppers:
-            if match := re.match(other_tupper.call_pattern, message_content, flags=re.DOTALL):
-                tupper = other_tupper
-                message_content = match.group(1)
-                break
-
-        if not tupper:
-            return
-
-        if len(message_content) == 0:
-            return
-
+    async def _handle_message(self, tupper, message, message_content):
         # TODO limit messages to 1800 with relpy
         # TODO await bot.process_commands(message)
         # Change to create custom ctx type with custom send and relpy system
@@ -234,7 +203,7 @@ class TupperMessageCog(commands.Cog):
         if command_content:
             message_content = command_content
             files_content = []
-            hidden_data["sign"] = RSASign.sign(message_content, tupper.id).hex()
+            hidden_data["sign"] = Sign.sign(message_content, tupper.id).hex()
             message_content = NonPrintableEncoder.encode_dict(
                 message_content, hidden_data
             )
@@ -246,7 +215,7 @@ class TupperMessageCog(commands.Cog):
                 relpy_message = await channel.fetch_message(
                     message.reference.message_id
                 )
-                ___, relpy_dict = NonPrintableEncoder.decode_dict(relpy_message.content)
+                _, relpy_dict = NonPrintableEncoder.decode_dict(relpy_message.content)
 
                 # check tupper message or not
                 if relpy_dict:
@@ -296,6 +265,64 @@ class TupperMessageCog(commands.Cog):
                 files=files_content,
                 thread=thread,
             )
+
+    async def _on_message(self, message: discord.Message):
+        """parse on message"""
+        # cut off bots and selfmessages
+
+        if (message.author.id == self.bot.user.id) or message.author.bot:
+            return
+
+        # take user form database by discord id
+        db_user = await User.filter(discord_id=message.author.id).first()
+        if not db_user:
+            return
+
+        # if channel is private
+        if message.channel.type == discord.ChannelType.private:
+            await self._edit_tupper_message(message)
+            return
+
+        message_content = message.content.strip()
+        if not message_content:
+            return
+        
+        matches = []
+        i = 0
+        while i < len(message_content):
+            if match := await get_template_start(db_user, message_content[i:]):
+                tupper, l, r = match
+                buffer = ""
+
+                i += len(l)
+
+                while i < len(message_content):
+                    if (r and message_content[i:].startswith(r)) or await get_template_start(db_user, message_content[i:]):
+                        break
+                    
+                    buffer += message_content[i]
+
+                    i += 1
+
+                if r:
+                    if not message_content[i:].startswith(r):
+                        return
+
+                    i += len(r)
+
+                buffer = buffer.strip()
+                if not buffer:
+                    return
+
+                matches.append((tupper, buffer))
+
+            i += 1
+
+        if not matches:
+            return
+
+        for tupper, message_content in matches:
+            await self._handle_message(tupper, message, message_content)
 
         await message.delete()
 

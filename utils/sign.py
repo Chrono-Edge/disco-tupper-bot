@@ -15,7 +15,7 @@ SIGN_LENGTH = CHECKSUM_LENGTH + TUPPER_ID_LENGTH + TS_LENGTH
 KEY = config.sign_key
 
 
-class RSASign:
+class Sign:
     @staticmethod
     def sign(message, tupper_id):
         sign = SHA1.new(message.encode("UTF-8")).digest() + struct.pack(

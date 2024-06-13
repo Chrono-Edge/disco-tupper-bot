@@ -50,12 +50,8 @@
     "user_was_successfully_removed": "User was successfully removed.",
     "user_does_not_exist": "User doesn't exist.",
 
-    "template_should_not_contain_more_than_one_placeholder": "Template shouldn't contain more than one placeholder (`*`).",
-    "empty_blocks_are_forbidden": "Empty blocks (`[...]`) are forbidden.",
-    "missing_closing_bracket": "Missing closing square bracket (`]`).",
-    "incorrect_escape": "Incorrect escape.",
-    "template_should_contain_at_least_one_placeholder": "Template should contain at least one placeholder (`*`).",
-    "template_should_contain_something_aside_from_placeholder": "Template should contain something aside from placeholder (`*`).",
+    "template_should_contain_at_least_one_placeholder": "Template should contain at least one placeholder (`text`).",
+    "template_should_contain_something_aside_from_placeholder": "Template should contain something aside from placeholder (`text`).",
 
     "reference_message_not_found": "Reference message not found.",
     "successfully_obtained": "Successfully obtained `{quantity}` `{item_name}`.",
@@ -75,7 +71,6 @@
     "verify": "Verify tupper message.",
     "verified": "Verified successfully.",
     "not_verified": "Verification failed.",
-    "text": "text",
     
     "help_preline": "",
     "help_postline": "",
