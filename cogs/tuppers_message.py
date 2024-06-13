@@ -1,7 +1,7 @@
 from discord.ext import commands
 import discord
-import re
 import json
+import string
 from builtins import str
 from typing import TYPE_CHECKING
 
@@ -281,6 +281,9 @@ class TupperMessageCog(commands.Cog):
         matches = []
         i = 0
         while i < len(message_content):
+            while i < len(message_content) and message_content[i] in string.whitespace:
+                i += 1
+
             if match := await get_template_start(db_user, message_content[i:]):
                 tupper, l, r = match
                 buffer = ""
@@ -288,11 +291,7 @@ class TupperMessageCog(commands.Cog):
                 i += len(l)
 
                 while i < len(message_content):
-                    if r and message_content[i:].lstrip().startswith(r):
-                        break
-                    elif await get_template_start(db_user, message_content[i:]):
-                        i -= 1
-
+                    if (r and message_content[i:].startswith(r)) or await get_template_start(db_user, message_content[i:]):
                         break
                     
                     buffer += message_content[i]
@@ -300,16 +299,18 @@ class TupperMessageCog(commands.Cog):
                     i += 1
 
                 if r:
-                    if not message_content[i:].lstrip().startswith(r):
+                    if not message_content[i:].startswith(r):
                         return
 
-                    i += len(r)-1
+                    i += len(r)
 
                 buffer = buffer.strip()
                 if not buffer:
                     return
 
                 matches.append((tupper, buffer))
+
+                continue
 
             i += 1
 
