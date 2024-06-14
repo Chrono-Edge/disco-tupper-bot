@@ -3,6 +3,7 @@ import math
 import pathlib
 import urllib.parse
 
+from loguru import logger
 from Crypto.Hash import SHA1
 from database.models.user import User
 from database.models.tupper import Tupper
@@ -261,7 +262,10 @@ class TupperCommandsCog(commands.Cog):
         tupper_name = tupper.name
 
         filename = pathlib.Path(urllib.parse.urlparse(tupper.image).path).name
-        self.image_storage.remove_file(filename)
+        try:
+            self.image_storage.remove_file(filename)
+        except Exception as e:
+            logger.error(e)
 
         # TODO change to modal screen!
         await Tupper.filter(id=tupper.id).delete()
@@ -335,7 +339,11 @@ class TupperCommandsCog(commands.Cog):
         if avatar:
             # remove old one image
             filename = pathlib.Path(urllib.parse.urlparse(tupper.image).path).name
-            self.image_storage.remove_file(filename)
+
+            try:
+                self.image_storage.remove_file(filename)
+            except Exception as e:
+                logger.error(e)
 
             # upload image on server
             avatar_bytes = await avatar.read()
