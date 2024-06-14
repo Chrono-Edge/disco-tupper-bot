@@ -217,7 +217,7 @@ class TupperCommandsCog(commands.Cog):
         file_ext = pathlib.Path(avatar.filename).suffix
 
         avatar_image_url = self.image_storage.upload_file(
-            data=avatar_bytes, filename=f"{file_hash}{file_ext}"
+            data=avatar_bytes, filename=f"{tupper.id}{file_hash}{file_ext}"
         )
 
         tupper.image = avatar_image_url
@@ -262,10 +262,7 @@ class TupperCommandsCog(commands.Cog):
         tupper_name = tupper.name
 
         filename = pathlib.Path(urllib.parse.urlparse(tupper.image).path).name
-        try:
-            self.image_storage.remove_file(filename)
-        except Exception as e:
-            logger.error(e)
+        self.image_storage.remove_file(filename)
 
         # TODO change to modal screen!
         await Tupper.filter(id=tupper.id).delete()
@@ -339,11 +336,7 @@ class TupperCommandsCog(commands.Cog):
         if avatar:
             # remove old one image
             filename = pathlib.Path(urllib.parse.urlparse(tupper.image).path).name
-
-            try:
-                self.image_storage.remove_file(filename)
-            except Exception as e:
-                logger.error(e)
+            self.image_storage.remove_file(filename)
 
             # upload image on server
             avatar_bytes = await avatar.read()
@@ -351,7 +344,7 @@ class TupperCommandsCog(commands.Cog):
 
             file_ext = pathlib.Path(avatar.filename).suffix
             avatar_image_url = self.image_storage.upload_file(
-                data=avatar_bytes, filename=f"{file_hash}{file_ext}"
+                data=avatar_bytes, filename=f"{tupper.id}{file_hash}{file_ext}"
             )
             tupper.image = avatar_image_url
             log_keys["log_avatar_url"] = avatar_image_url
