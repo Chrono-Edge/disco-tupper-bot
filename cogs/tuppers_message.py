@@ -336,7 +336,7 @@ class TupperMessageCog(commands.Cog):
         message_per_line = message_content.split("\n")
 
         # fill with patterns
-        patterns_per_line: list[TupperCallPattern] = [TupperCallPattern("", tupper=None)] * len(message_per_line)
+        patterns_per_line: list[TupperCallPattern] = [TupperCallPattern(None)] * len(message_per_line)
         # fill with selected tuppers
         tupper_per_line: list[Tupper] = [None] * len(message_per_line)
 

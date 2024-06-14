@@ -3,6 +3,7 @@ from enum import Enum
 
 from localization import locale
 
+PseudoTupper = namedtuple("Tupper", "id")
 
 class PatternType(Enum):
     NONE = 0
@@ -13,19 +14,27 @@ class PatternType(Enum):
 
 class TupperCallPattern:
     def __init__(self, tupper):
-        self.tupper = tupper
-        self.pattern = tupper.template
-        self.charlist = set(self.pattern)
+        if tupper is None:
+            self.tupper = PseudoTupper(-1)
+            self.pattern = ""
+            self.charlist = set()
+            self.left_pattern_part = ""
+            self.right_pattern_part = ""
+            self.pattern_type = PatternType.NONE
+        else:
+            self.tupper = tupper
+            self.pattern = tupper.template
+            self.charlist = set(self.pattern)
 
-        self.left_pattern_part = tupper.template_l
-        self.right_pattern_part = tupper.template_r
+            self.left_pattern_part = tupper.template_l
+            self.right_pattern_part = tupper.template_r
 
-        if self.left_pattern_part and self.right_pattern_part:
-            self.pattern_type = PatternType.LEFT_AND_RIGHT
-        elif self.left_pattern_part and not self.right_pattern_part:
-            self.pattern_type = PatternType.LEFT_ONLY
-        elif not self.left_pattern_part and self.right_pattern_part:
-            self.pattern_type = PatternType.RIGHT_ONLY
+            if self.left_pattern_part and self.right_pattern_part:
+                self.pattern_type = PatternType.LEFT_AND_RIGHT
+            elif self.left_pattern_part and not self.right_pattern_part:
+                self.pattern_type = PatternType.LEFT_ONLY
+            elif not self.left_pattern_part and self.right_pattern_part:
+                self.pattern_type = PatternType.RIGHT_ONLY
 
     def __hash__(self):
         return f"{self.pattern}-{self.tupper.id}"
