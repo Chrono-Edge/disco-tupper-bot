@@ -21,10 +21,7 @@ class NonPrintableEncoder:
         Returns:
             str: The string with the encoded data embedded.
         """
-        json_dict = cbor2.dumps(data)
-        json_dict_bytes = json_dict.encode()
-
-        return NonPrintableEncoder.encode(text, json_dict_bytes)
+        return NonPrintableEncoder.encode(text, cbor2.dumps(data))
 
     @staticmethod
     def decode_dict(encoded_string: str) -> tuple[str, dict]:
@@ -42,7 +39,7 @@ class NonPrintableEncoder:
         """
         try:
             text, dict_bytes = NonPrintableEncoder.decode(encoded_string)
-            dict_data = cbor2.loads(dict_bytes.decode())
+            dict_data = cbor2.loads(dict_bytes)
         except ValueError:
             text, dict_data = encoded_string, None
         # TODO need get error catch
