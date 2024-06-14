@@ -41,16 +41,19 @@ class TupperCallPattern:
         if not pattern:
             left_pattern_part = ""
             right_pattern_part = ""
+        else:
+            left_pattern_part, right_pattern_part = split_template(tupper.call_pattern)
         if not tupper:
-            self.tupper = None
+            temp = namedtuple("dummy", "id")
+            self.tupper = temp(-1)
+        else:
+            self.tupper = tupper
 
-        left_pattern_part, right_pattern_part = split_template(tupper.call_pattern)
         self.pattern = pattern
 
         self.left_pattern_part = left_pattern_part
         self.right_pattern_part = right_pattern_part
 
-        self.tupper = tupper
         if left_pattern_part and right_pattern_part:
             self.pattern_type = PatternType.LEFT_AND_RIGHT
         elif left_pattern_part and not right_pattern_part:
@@ -68,10 +71,13 @@ class TupperCallPattern:
         return self.pattern_type == PatternType.LEFT_ONLY
 
     def is_only_right(self) -> bool:
-        return self.right_pattern_part == PatternType.RIGHT_ONLY
+        return self.pattern_type == PatternType.RIGHT_ONLY
 
     def is_left_and_right(self) -> bool:
         return self.pattern_type == PatternType.LEFT_AND_RIGHT
+
+    def is_none(self) -> bool:
+        return self.pattern_type == PatternType.NONE
 
     def text_startswith(self, text: str) -> bool:
         print(text, self.left_pattern_part)
@@ -84,7 +90,7 @@ class TupperCallPattern:
         if self.text_startswith(text):
             text = text[len(self.left_pattern_part):].lstrip()
         if self.text_endswith(text):
-            text = text[:len(text) - len(self.right_pattern_part)].rsplit()
+            text = text[:len(text) - len(self.right_pattern_part)].rstrip()
         return text
 
 
@@ -351,6 +357,9 @@ class TupperMessageCog(commands.Cog):
             await self._edit_tupper_message(message)
             return
 
+        if message.guild.id != config.guild:
+            return
+
         # message content
         message_content = message.content.strip()
         if not message_content:
@@ -361,21 +370,16 @@ class TupperMessageCog(commands.Cog):
         call_patterns_lr: list[TupperCallPattern] = []
 
         async for tupper in db_user.tuppers:
-            left_pattern_part, right_pattern_part = split_template(tupper.call_pattern)
             # TODO move this info in database... like left part, right part and pattern_type
-
+            # TODO charlist_filter
+            
             pattern_to_add = TupperCallPattern(pattern=tupper.call_pattern, tupper=tupper)
-            print(pattern_to_add)
             if pattern_to_add.pattern_type == PatternType.LEFT_ONLY:
                 call_patterns_l.append(pattern_to_add)
             elif pattern_to_add.pattern_type == PatternType.RIGHT_ONLY:
                 call_patterns_r.append(pattern_to_add)
             elif pattern_to_add.pattern_type == PatternType.LEFT_AND_RIGHT:
                 call_patterns_lr.append(pattern_to_add)
-
-        print(call_patterns_l)
-        print(call_patterns_r)
-        print(call_patterns_lr)
 
         first_pattern_l = None
         first_pattern_r = None
@@ -390,12 +394,9 @@ class TupperMessageCog(commands.Cog):
                 first_pattern_r = True
 
         for call_pattern in call_patterns_lr:
-            if call_pattern.text_startswith(message_content):
+            if call_pattern.text_startswith(message_content) or call_pattern.text_endswith(message_content):
                 first_pattern_lr = True
 
-        print("first_pattern_l", first_pattern_l)
-        print("first_pattern_r", first_pattern_r)
-        print("first_pattern_lr", first_pattern_lr)
         # if message not started from template we ignore this message
         if not first_pattern_l and not first_pattern_r and not first_pattern_lr:
             return
@@ -404,11 +405,9 @@ class TupperMessageCog(commands.Cog):
         message_per_line = message_content.split("\n")
 
         # fill with patterns
-        patterns_per_line: list[TupperCallPattern] = [None] * len(message_per_line)
+        patterns_per_line: list[TupperCallPattern] = [TupperCallPattern("", tupper=None)] * len(message_per_line)
         # fill with selected tuppers
         tupper_per_line: list[Tupper] = [None] * len(message_per_line)
-
-        print(message_per_line)
 
         # find possible patterns
         for i, line in enumerate(message_per_line):
@@ -419,7 +418,7 @@ class TupperMessageCog(commands.Cog):
                     tupper_per_line[i] = right_left_pattern.tupper
                     break
 
-            if patterns_per_line[i]:
+            if not patterns_per_line[i].is_none():
                 continue
 
             # only right text<
@@ -429,15 +428,16 @@ class TupperMessageCog(commands.Cog):
                     tupper_per_line[i] = right_pattern.tupper
                     break
 
-            if patterns_per_line[i]:
+            if not patterns_per_line[i].is_none():
                 continue
+
             # only left
             for left_pattern in call_patterns_l:
                 if left_pattern.text_startswith(line):
                     patterns_per_line[i] = left_pattern
                     tupper_per_line[i] = left_pattern.tupper
 
-            if patterns_per_line[i]:
+            if not patterns_per_line[i].is_none():
                 continue
 
             # right and left set to end. If some strange man set >text and text< and >text< template....
@@ -448,28 +448,26 @@ class TupperMessageCog(commands.Cog):
                     # not set tupper_per_line. we need find right part in text later...
                     break
 
-        print("patterns_per_line", patterns_per_line)
         # only right template
         for i, pattern in enumerate(patterns_per_line):
-            if not pattern:
-                continue
             if pattern.is_only_right():
-                for step_back in range(i, -1, -1):
+                for step_back in range(i - 1, -1, -1):
+                    print("STEP BACK", step_back)
                     temp_pattern = patterns_per_line[step_back]
-                    if (pattern.is_left_and_right() or not pattern) and not tupper_per_line[step_back]:
-                        tupper_per_line[step_back] = temp_pattern.tupper
+                    print("BAK TEMP", temp_pattern)
+                    if (temp_pattern.is_left_and_right() or temp_pattern.is_none()) and not tupper_per_line[step_back]:
+                        tupper_per_line[step_back] = pattern.tupper
                         patterns_per_line[step_back] = pattern
-                    else:
+                    elif temp_pattern.is_only_right() or temp_pattern.is_only_left():
                         break
-
+                    else:
+                        continue
         # only left template
         current_left_pattern = None
         for i, pattern in enumerate(patterns_per_line):
-            if not pattern:
-                continue
             if pattern.is_only_left():
                 current_left_pattern = pattern
-            elif (pattern.is_left_and_right() or not pattern) and not tupper_per_line[i] and current_left_pattern:
+            elif (pattern.is_left_and_right() or pattern.is_none()) and not tupper_per_line[i] and current_left_pattern:
                 tupper_per_line[i] = current_left_pattern.tupper
                 patterns_per_line[i] = current_left_pattern
             else:
@@ -482,7 +480,7 @@ class TupperMessageCog(commands.Cog):
         for i, pattern in enumerate(patterns_per_line):
             if not pattern:
                 continue
-            if pattern.is_left_and_right() and not tupper_per_line[i]:
+            if (pattern.is_left_and_right() or pattern.is_none()) and not tupper_per_line[i]:
                 if not current_left_and_right_pattern:
                     if pattern.text_startswith(message_per_line[i]):
                         current_left_and_right_pattern = pattern
@@ -511,8 +509,20 @@ class TupperMessageCog(commands.Cog):
         print(tupper_per_line)
         print(patterns_per_line)
 
+        last_tupper = tupper_per_line[0]
+        tupper_message = ""
         for tupper, message_line in zip(tupper_per_line, message_per_line):
-            pass
+            if tupper is None:
+                continue
+            if tupper != last_tupper:
+                await self._handle_message(last_tupper, message, tupper_message)
+                tupper_message = ""
+                last_tupper = tupper
+
+            tupper_message += f"{message_line}\n"
+
+        await self._handle_message(last_tupper, message, tupper_message)
+        await message.delete()
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
