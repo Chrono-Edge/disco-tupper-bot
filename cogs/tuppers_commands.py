@@ -51,7 +51,7 @@ class ListMenu(discord.ui.View):
             embed = discord.Embed(colour=0x00B0F4, timestamp=datetime.now())
             embed.set_author(name=f"{tupper.name}")
 
-            human_like_call_pattern = tupper.call_pattern
+            human_like_call_pattern = tupper.template
             human_like_owners = [
                 await client.fetch_user(user.discord_id)
                 for user in await tupper.owners.all()
