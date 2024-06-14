@@ -40,7 +40,7 @@ class NonPrintableEncoder:
         try:
             text, dict_bytes = NonPrintableEncoder.decode(encoded_string)
             dict_data = cbor2.loads(dict_bytes)
-        except ValueError:
+        except (ValueError, cbor2.CBORDecodeError):
             text, dict_data = encoded_string, None
         # TODO need get error catch
 

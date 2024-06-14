@@ -20,7 +20,7 @@ from utils.sign import Sign
 from utils.content.image_upload import ImageStorage
 from utils.encoding.non_printable import NonPrintableEncoder
 from utils.discord.get_webhook import get_webhook
-from utils.tupper_template import validate_template
+from utils.tupper_template import split_template
 from utils.discord.permissions import Permissions
 from localization import locale
 from tupper_commands import Context
@@ -191,18 +191,22 @@ class TupperCommandsCog(commands.Cog):
             return
 
         try:
-            call_pattern = validate_template(call_pattern)
+            template, template_l, template_r = split_template(call_pattern)
         except SyntaxError as e:
             await ctx.reply(str(e))
             return
 
-        if await user.tuppers.filter(call_pattern=call_pattern).first():
+        if await user.tuppers.filter(template=template).first():
             await ctx.reply(locale.tupper_already_exists)
 
             return
 
         tupper = await Tupper.create(
-            name=name, call_pattern=call_pattern, image=config.default_avatar_url
+            name=name,
+            template=template,
+            template_l=template_l,
+            template_r=template_r,
+            image=config.default_avatar_url,
         )
 
         # upload image on server
@@ -231,7 +235,7 @@ class TupperCommandsCog(commands.Cog):
             "log_create_tupper",
             log_author=ctx.message.author.name,
             log_tupper_name=tupper.name,
-            log_tupper_call_pattern=call_pattern,
+            log_tupper_call_pattern=template,
             log_jump_url=ctx.message.jump_url,
         )
 
@@ -302,7 +306,7 @@ class TupperCommandsCog(commands.Cog):
 
         if new_name:
             tupper_with_name = await user.tuppers.filter(
-                call_pattern=new_call_pattern
+                name=new_name
             ).first()
             if tupper_with_name:
                 await ctx.reply(locale.tupper_already_exists)
@@ -312,19 +316,21 @@ class TupperCommandsCog(commands.Cog):
 
         if new_call_pattern:
             try:
-                new_call_pattern = validate_template(new_call_pattern)
+                template, template_l, template_r = split_template(new_call_pattern)
             except SyntaxError as e:
                 await ctx.reply(str(e))
                 return
 
             tupper_with_pattern = await user.tuppers.filter(
-                call_pattern=new_call_pattern
+                template=template
             ).first()
             if tupper_with_pattern:
                 await ctx.reply(locale.tupper_already_exists)
                 return
-            tupper.call_pattern = new_call_pattern
-            log_keys["log_tupper_call_pattern"] = new_call_pattern
+            tupper.template = template
+            tupper.template_l = template_l
+            tupper.template_r = template_r
+            log_keys["log_tupper_call_pattern"] = template
 
         if avatar:
             # remove old one image
@@ -405,7 +411,7 @@ class TupperCommandsCog(commands.Cog):
         if not tupper:
             await ctx.reply(locale.format("no_such_tupper", tupper_name=tupper_name))
             return
-        #TODO check names and call_pattern
+        # TODO check names and call_pattern
 
         await user_to_add.tuppers.add(tupper)
         await ctx.reply(
@@ -598,7 +604,7 @@ class TupperCommandsCog(commands.Cog):
             await interaction.response.send_message(locale.not_verified, ephemeral=True)
 
             return
-        
+
         await interaction.response.send_message(
             locale.verified
             if Sign.verify(

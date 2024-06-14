@@ -1,10 +1,6 @@
-from collections import namedtuple
-from enum import Enum
-
 from discord.ext import commands
 import discord
 import json
-import string
 from builtins import str
 from typing import TYPE_CHECKING
 
@@ -16,81 +12,11 @@ from utils.discord.message_split import TextFormatterSplit
 from utils.encoding.non_printable import NonPrintableEncoder
 from utils.encoding.non_printable import HEADER
 from utils.discord.get_webhook import get_webhook
-from utils.tupper_template import get_template_start, split_template
+from utils.tupper_template import TupperCallPattern, PatternType
 from localization import locale
 
 if TYPE_CHECKING:
     from bot import DiscoTupperBot
-
-
-class PatternType(Enum):
-    NONE = 0
-    LEFT_AND_RIGHT = 1
-    LEFT_ONLY = 2
-    RIGHT_ONLY = 3
-
-
-class TupperCallPattern:
-    left_pattern_part = ""
-    right_pattern_part = ""
-    tupper = None
-    pattern = ""
-    pattern_type = PatternType.NONE
-
-    def __init__(self, pattern: str, tupper: Tupper):
-        if not pattern:
-            left_pattern_part = ""
-            right_pattern_part = ""
-        else:
-            left_pattern_part, right_pattern_part = split_template(tupper.call_pattern)
-        if not tupper:
-            temp = namedtuple("dummy", "id")
-            self.tupper = temp(-1)
-        else:
-            self.tupper = tupper
-
-        self.pattern = pattern
-
-        self.left_pattern_part = left_pattern_part
-        self.right_pattern_part = right_pattern_part
-
-        if left_pattern_part and right_pattern_part:
-            self.pattern_type = PatternType.LEFT_AND_RIGHT
-        elif left_pattern_part and not right_pattern_part:
-            self.pattern_type = PatternType.LEFT_ONLY
-        elif not left_pattern_part and right_pattern_part:
-            self.pattern_type = PatternType.RIGHT_ONLY
-
-    def __hash__(self):
-        return f"{self.pattern}-{self.tupper.id}"
-
-    def __repr__(self):
-        return f"TupperCallPattern({self.pattern}, {self.tupper.id}, [{self.left_pattern_part}|{self.right_pattern_part}])"
-
-    def is_only_left(self) -> bool:
-        return self.pattern_type == PatternType.LEFT_ONLY
-
-    def is_only_right(self) -> bool:
-        return self.pattern_type == PatternType.RIGHT_ONLY
-
-    def is_left_and_right(self) -> bool:
-        return self.pattern_type == PatternType.LEFT_AND_RIGHT
-
-    def is_none(self) -> bool:
-        return self.pattern_type == PatternType.NONE
-
-    def text_startswith(self, text: str) -> bool:
-        return text.startswith(self.left_pattern_part) and (self.left_pattern_part != "")
-
-    def text_endswith(self, text: str) -> bool:
-        return text.endswith(self.right_pattern_part) and (self.right_pattern_part != "")
-
-    def format_text(self, text):
-        if self.text_startswith(text):
-            text = text[len(self.left_pattern_part):].lstrip()
-        if self.text_endswith(text):
-            text = text[:len(text) - len(self.right_pattern_part)].rstrip()
-        return text
 
 
 class TupperMessageCog(commands.Cog):
@@ -375,10 +301,10 @@ class TupperMessageCog(commands.Cog):
         call_patterns_lr: list[TupperCallPattern] = []
 
         async for tupper in db_user.tuppers:
-            # TODO move this info in database... like left part, right part and pattern_type
-            # TODO charlist_filter
+            pattern_to_add = TupperCallPattern(tupper)
+            if not all(c in message_content for c in pattern_to_add.charlist):
+                continue
 
-            pattern_to_add = TupperCallPattern(pattern=tupper.call_pattern, tupper=tupper)
             if pattern_to_add.pattern_type == PatternType.LEFT_ONLY:
                 call_patterns_l.append(pattern_to_add)
             elif pattern_to_add.pattern_type == PatternType.RIGHT_ONLY:
