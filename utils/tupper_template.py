@@ -24,7 +24,7 @@ class TupperCallPattern:
         else:
             self.tupper = tupper
             self.pattern = tupper.template
-            self.charlist = set(self.pattern)
+            self.charlist = set(self.pattern.replace("text", "", 1))
 
             self.left_pattern_part = tupper.template_l
             self.right_pattern_part = tupper.template_r
