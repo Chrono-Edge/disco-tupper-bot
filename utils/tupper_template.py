@@ -2,6 +2,7 @@ from localization import locale
 
 
 async def get_template_start(user, text):
+    #
     async for tupper in user.tuppers:
         l, r = split_template(tupper.call_pattern)
 
@@ -12,8 +13,9 @@ async def get_template_start(user, text):
 
 
 def split_template(text):
-    text = text.strip()
+    # Левая и правая часть для поиска сообщения таппера
 
+    text = text.strip()
     l, r = text.split("text", 1)
 
     return l.lstrip(), r.strip()
@@ -26,7 +28,8 @@ def validate_template(text):
         text += "text"
 
     parts = split_template(text)
-    if len(parts) != 2 or not parts[0]:
+
+    if len(parts) <= 0:
         raise SyntaxError(
             locale.template_should_contain_something_aside_from_placeholder
         )

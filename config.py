@@ -32,7 +32,7 @@ prefixes = tuple(values.get("bot.prefixes", ()))
 
 log_channel_id = values.get("bot.log_channel_id")
 
-default_avatar_url= values.get("actor.default_avatar_url")
+default_avatar_url = values.get("actor.default_avatar_url")
 
 # Remove the existing logger
 logger.remove()
