@@ -237,6 +237,7 @@ class TupperCommandsCog(commands.Cog):
             log_author=ctx.message.author.name,
             log_tupper_name=tupper.name,
             log_tupper_call_pattern=template,
+            log_avatar_url=avatar_image_url,
             log_jump_url=ctx.message.jump_url,
         )
 
