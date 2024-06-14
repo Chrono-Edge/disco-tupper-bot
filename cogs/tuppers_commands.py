@@ -586,13 +586,18 @@ class TupperCommandsCog(commands.Cog):
             return
 
         try:
-            sign = bytes.fromhex(hidden_data["sign"])
+            sign = hidden_data["sign"]
             tupper_id = abs(int(hidden_data["tupper_id"]))
         except ValueError:
             await interaction.response.send_message(locale.not_verified, ephemeral=True)
 
             return
 
+        if not isinstance(sign, bytes):
+            await interaction.response.send_message(locale.not_verified, ephemeral=True)
+
+            return
+        
         await interaction.response.send_message(
             locale.verified
             if Sign.verify(

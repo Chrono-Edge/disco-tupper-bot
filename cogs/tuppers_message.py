@@ -198,7 +198,7 @@ class TupperMessageCog(commands.Cog):
             files_content = []
             hidden_data["sign"] = Sign.sign(
                 message_content, tupper.id, message.channel.id
-            ).hex()
+            )
             message_content = NonPrintableEncoder.encode_dict(
                 message_content, hidden_data
             )
@@ -247,7 +247,7 @@ class TupperMessageCog(commands.Cog):
                         {
                             "sign": Sign.sign(
                                 splited_message, tupper.id, message.channel.id
-                            ).hex()
+                            )
                         }
                     )
                     if "sign" in hidden_data

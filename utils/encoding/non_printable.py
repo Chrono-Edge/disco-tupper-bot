@@ -1,4 +1,4 @@
-﻿import json
+﻿import cbor2
 
 UTF8_MASK = 0xE0000
 HEADER = "\U000e0042\U000e0042\U000e0011\U000e0011"  # Unique header consisting of 4 non-printable UTF-8 characters
@@ -21,7 +21,7 @@ class NonPrintableEncoder:
         Returns:
             str: The string with the encoded data embedded.
         """
-        json_dict = json.dumps(data)
+        json_dict = cbor2.dumps(data)
         json_dict_bytes = json_dict.encode()
 
         return NonPrintableEncoder.encode(text, json_dict_bytes)
@@ -42,7 +42,7 @@ class NonPrintableEncoder:
         """
         try:
             text, dict_bytes = NonPrintableEncoder.decode(encoded_string)
-            dict_data = json.loads(dict_bytes.decode())
+            dict_data = cbor2.loads(dict_bytes.decode())
         except ValueError:
             text, dict_data = encoded_string, None
         # TODO need get error catch
