@@ -36,9 +36,9 @@ class ListMenu(discord.ui.View):
 
     @staticmethod
     async def tupper_list_page(
-            client: discord.Client,
-            discord_user: Union[discord.User, discord.Member],
-            page=0,
+        client: discord.Client,
+        discord_user: Union[discord.User, discord.Member],
+        page=0,
     ):
         user, _ = await User.get_or_create(discord_id=discord_user.id)
 
@@ -80,7 +80,7 @@ class ListMenu(discord.ui.View):
         custom_id="persistent_view:left",
     )
     async def left_step(
-            self, interaction: discord.Interaction, button: discord.ui.Button
+        self, interaction: discord.Interaction, button: discord.ui.Button
     ):
         client = interaction.client
         _, meta_dict = NonPrintableEncoder.decode_dict(interaction.message.content)
@@ -112,7 +112,7 @@ class ListMenu(discord.ui.View):
         custom_id="persistent_view:right",
     )
     async def right_step(
-            self, interaction: discord.Interaction, button: discord.ui.Button
+        self, interaction: discord.Interaction, button: discord.ui.Button
     ):
         client = interaction.client
         _, meta_dict = NonPrintableEncoder.decode_dict(interaction.message.content)
@@ -157,7 +157,7 @@ class TupperCommandsCog(commands.Cog):
         )
 
     async def _get_user_to_edit_tupper(
-            self, ctx: discord.ext.commands.Context, member: discord.Member
+        self, ctx: discord.ext.commands.Context, member: discord.Member
     ) -> typing.Tuple[discord.Member, database.models.user.User]:
         """get current user as target or specified by admin"""
         if await Permissions.get_user_is_admin(self.admin_roles, ctx) and member:
@@ -167,19 +167,19 @@ class TupperCommandsCog(commands.Cog):
         return ctx.author, user
 
     async def _get_webhook(
-            self, channel_id: int
+        self, channel_id: int
     ) -> tuple[discord.Webhook, discord.Thread]:
         return await get_webhook(self.bot, channel_id)
 
     @commands.hybrid_command(name="create_tupper")
     @commands.has_any_role(*config.player_roles)
     async def create_tupper(
-            self,
-            ctx: discord.ext.commands.Context,
-            name: str,
-            call_pattern: str,
-            avatar: discord.Attachment,
-            member: typing.Optional[discord.Member],
+        self,
+        ctx: discord.ext.commands.Context,
+        name: str,
+        call_pattern: str,
+        avatar: discord.Attachment,
+        member: typing.Optional[discord.Member],
     ):
         """Create new tupper."""
         await ctx.defer()
@@ -238,10 +238,10 @@ class TupperCommandsCog(commands.Cog):
     @commands.hybrid_command(name="remove_tupper")
     @commands.has_any_role(*config.player_roles)
     async def remove_tupper(
-            self,
-            ctx: discord.ext.commands.Context,
-            tupper_name: str,
-            member: typing.Optional[discord.Member],
+        self,
+        ctx: discord.ext.commands.Context,
+        tupper_name: str,
+        member: typing.Optional[discord.Member],
     ):
         """Delete existing tupper."""
         await ctx.defer()
@@ -279,13 +279,13 @@ class TupperCommandsCog(commands.Cog):
     @commands.hybrid_command(name="edit_tupper")
     @commands.has_any_role(*config.player_roles)
     async def edit_tupper(
-            self,
-            ctx: discord.ext.commands.Context,
-            tupper_name: str,
-            new_name: typing.Optional[str],
-            new_call_pattern: typing.Optional[str],
-            avatar: typing.Optional[discord.Attachment],
-            tupper_owner: typing.Optional[discord.Member],
+        self,
+        ctx: discord.ext.commands.Context,
+        tupper_name: str,
+        new_name: typing.Optional[str],
+        new_call_pattern: typing.Optional[str],
+        avatar: typing.Optional[discord.Attachment],
+        tupper_owner: typing.Optional[discord.Member],
     ):
         """Edit tupper."""
         await ctx.defer()
@@ -358,10 +358,10 @@ class TupperCommandsCog(commands.Cog):
     @commands.hybrid_command(name="set_diary")
     @commands.has_any_role(*config.player_roles)
     async def set_diary(
-            self,
-            ctx: discord.ext.commands.Context,
-            member: typing.Optional[discord.Member],
-            tupper_name: str,
+        self,
+        ctx: discord.ext.commands.Context,
+        member: typing.Optional[discord.Member],
+        tupper_name: str,
     ):
         """Set diary chat for a tupper."""
         await ctx.defer()
@@ -389,11 +389,11 @@ class TupperCommandsCog(commands.Cog):
     @commands.hybrid_command(name="add_user")
     @commands.has_any_role(*config.player_roles)
     async def add_user_to_tupper(
-            self,
-            ctx: discord.ext.commands.Context,
-            tupper_name: str,
-            user_add: discord.Member,
-            tupper_owner: typing.Optional[discord.Member],
+        self,
+        ctx: discord.ext.commands.Context,
+        tupper_name: str,
+        user_add: discord.Member,
+        tupper_owner: typing.Optional[discord.Member],
     ):
         """Add user to a tupper."""
         await ctx.defer()
@@ -426,11 +426,11 @@ class TupperCommandsCog(commands.Cog):
     @commands.hybrid_command(name="remove_user")
     @commands.has_any_role(*config.player_roles)
     async def remove_user_from_tupper(
-            self,
-            ctx: discord.ext.commands.Context,
-            tupper_name: str,
-            user_remove: discord.Member,
-            tupper_owner: typing.Optional[discord.Member],
+        self,
+        ctx: discord.ext.commands.Context,
+        tupper_name: str,
+        user_remove: discord.Member,
+        tupper_owner: typing.Optional[discord.Member],
     ):
         """Remove user from a tupper."""
         await ctx.defer()
@@ -497,11 +497,11 @@ class TupperCommandsCog(commands.Cog):
     @commands.hybrid_command(name="admin_give")
     @commands.has_any_role(*config.admin_roles)
     async def admin_balance_set(
-            self,
-            ctx: discord.ext.commands.Context,
-            tupper_owner: typing.Optional[discord.Member],
-            tupper_name: str,
-            balance: int,
+        self,
+        ctx: discord.ext.commands.Context,
+        tupper_owner: typing.Optional[discord.Member],
+        tupper_name: str,
+        balance: int,
     ):
         """Add balance for a tupper."""
         await ctx.defer()
@@ -544,12 +544,12 @@ class TupperCommandsCog(commands.Cog):
     @commands.hybrid_command(name="admin_do")
     @commands.has_any_role(*config.admin_roles)
     async def admin_tapper_do(
-            self,
-            ctx: discord.ext.commands.Context,
-            tupper_owner: discord.Member,
-            tupper_name: str,
-            command: str,
-            is_hidden: typing.Optional[bool],
+        self,
+        ctx: discord.ext.commands.Context,
+        tupper_owner: discord.Member,
+        tupper_name: str,
+        command: str,
+        is_hidden: typing.Optional[bool],
     ):
         """Run tupper command."""
         await ctx.defer(ephemeral=bool(is_hidden))
@@ -577,9 +577,9 @@ class TupperCommandsCog(commands.Cog):
         message_content, hidden_data = NonPrintableEncoder.decode_dict(message.content)
 
         if (
-                hidden_data is None
-                or "sign" not in hidden_data
-                or "tupper_id" not in hidden_data
+            hidden_data is None
+            or "sign" not in hidden_data
+            or "tupper_id" not in hidden_data
         ):
             await interaction.response.send_message(locale.not_verified, ephemeral=True)
 
@@ -596,7 +596,11 @@ class TupperCommandsCog(commands.Cog):
         await interaction.response.send_message(
             locale.verified
             if Sign.verify(
-                message_content, sign, int(message.created_at.timestamp()), tupper_id
+                message_content,
+                sign,
+                int(message.created_at.timestamp()),
+                tupper_id,
+                message.channel.id,
             )
             else locale.not_verified,
             ephemeral=True,
