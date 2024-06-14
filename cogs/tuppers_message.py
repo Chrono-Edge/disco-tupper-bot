@@ -1,3 +1,6 @@
+from collections import namedtuple
+from enum import Enum
+
 from discord.ext import commands
 import discord
 import json
@@ -13,11 +16,76 @@ from utils.discord.message_split import TextFormatterSplit
 from utils.encoding.non_printable import NonPrintableEncoder
 from utils.encoding.non_printable import HEADER
 from utils.discord.get_webhook import get_webhook
-from utils.tupper_template import get_template_start
+from utils.tupper_template import get_template_start, split_template
 from localization import locale
 
 if TYPE_CHECKING:
     from bot import DiscoTupperBot
+
+
+class PatternType(Enum):
+    NONE = 0
+    LEFT_AND_RIGHT = 1
+    LEFT_ONLY = 2
+    RIGHT_ONLY = 3
+
+
+class TupperCallPattern:
+    left_pattern_part = ""
+    right_pattern_part = ""
+    tupper = None
+    pattern = ""
+    pattern_type = PatternType.NONE
+
+    def __init__(self, pattern: str, tupper: Tupper):
+        if not pattern:
+            left_pattern_part = ""
+            right_pattern_part = ""
+        if not tupper:
+            self.tupper = None
+
+        left_pattern_part, right_pattern_part = split_template(tupper.call_pattern)
+        self.pattern = pattern
+
+        self.left_pattern_part = left_pattern_part
+        self.right_pattern_part = right_pattern_part
+
+        self.tupper = tupper
+        if left_pattern_part and right_pattern_part:
+            self.pattern_type = PatternType.LEFT_AND_RIGHT
+        elif left_pattern_part and not right_pattern_part:
+            self.pattern_type = PatternType.LEFT_ONLY
+        elif not left_pattern_part and right_pattern_part:
+            self.pattern_type = PatternType.RIGHT_ONLY
+
+    def __hash__(self):
+        return f"{self.pattern}-{self.tupper.id}"
+
+    def __repr__(self):
+        return f"TupperCallPattern({self.pattern}, {self.tupper.id}, [{self.left_pattern_part}|{self.right_pattern_part}])"
+
+    def is_only_left(self) -> bool:
+        return self.pattern_type == PatternType.LEFT_ONLY
+
+    def is_only_right(self) -> bool:
+        return self.right_pattern_part == PatternType.RIGHT_ONLY
+
+    def is_left_and_right(self) -> bool:
+        return self.pattern_type == PatternType.LEFT_AND_RIGHT
+
+    def text_startswith(self, text: str) -> bool:
+        print(text, self.left_pattern_part)
+        return text.startswith(self.left_pattern_part) and (self.left_pattern_part != "")
+
+    def text_endswith(self, text: str) -> bool:
+        return text.endswith(self.right_pattern_part) and (self.right_pattern_part != "")
+
+    def format_text(self, text):
+        if self.text_startswith(text):
+            text = text[len(self.left_pattern_part):].lstrip()
+        if self.text_endswith(text):
+            text = text[:len(text) - len(self.right_pattern_part)].rsplit()
+        return text
 
 
 class TupperMessageCog(commands.Cog):
@@ -28,12 +96,12 @@ class TupperMessageCog(commands.Cog):
         self.text_splitter = TextFormatterSplit()
 
     async def _get_webhook(
-        self, channel_id: int
+            self, channel_id: int
     ) -> tuple[discord.Webhook, discord.Thread]:
         return await get_webhook(self.bot, channel_id)
 
     async def _remove_message(
-        self, payload: discord.RawReactionActionEvent, db_user: User, metadata_dict
+            self, payload: discord.RawReactionActionEvent, db_user: User, metadata_dict
     ):
         """Remove message on reaction"""
         if str(payload.emoji) != self.reaction_to_remove:
@@ -45,7 +113,7 @@ class TupperMessageCog(commands.Cog):
         await webhook.delete_message(payload.message_id, thread=thread)
 
     async def _create_edit_message(
-        self, payload: discord.RawReactionActionEvent, db_user: User, metadata_dict
+            self, payload: discord.RawReactionActionEvent, db_user: User, metadata_dict
     ):
         """Create message in personal chat to edit message"""
         if str(payload.emoji) != self.reaction_to_edit:
@@ -90,7 +158,7 @@ class TupperMessageCog(commands.Cog):
 
         # TODO check this strange bruh moment. need support custom emoji
         if (str(payload.emoji) != self.reaction_to_edit) and (
-            str(payload.emoji) != self.reaction_to_remove
+                str(payload.emoji) != self.reaction_to_remove
         ):
             return
 
@@ -118,7 +186,7 @@ class TupperMessageCog(commands.Cog):
         message_with_metadata = None
 
         async for message in new_message.channel.history(
-            before=new_message, limit=10, oldest_first=False
+                before=new_message, limit=10, oldest_first=False
         ):
             # find message with metadata to edit
             if message.content.find(HEADER) > -1:
@@ -283,63 +351,168 @@ class TupperMessageCog(commands.Cog):
             await self._edit_tupper_message(message)
             return
 
+        # message content
         message_content = message.content.strip()
         if not message_content:
             return
 
-        matches = []
-        i = 0
-        while i < len(message_content):
-            if len(matches) >= 10:
-                return
+        call_patterns_l: list[TupperCallPattern] = []
+        call_patterns_r: list[TupperCallPattern] = []
+        call_patterns_lr: list[TupperCallPattern] = []
 
-            while i < len(message_content) and message_content[i] in string.whitespace:
-                i += 1
+        async for tupper in db_user.tuppers:
+            left_pattern_part, right_pattern_part = split_template(tupper.call_pattern)
+            # TODO move this info in database... like left part, right part and pattern_type
 
-            if match := await get_template_start(db_user, message_content[i:]):
-                tupper, l, r = match
-                buffer = ""
+            pattern_to_add = TupperCallPattern(pattern=tupper.call_pattern, tupper=tupper)
+            print(pattern_to_add)
+            if pattern_to_add.pattern_type == PatternType.LEFT_ONLY:
+                call_patterns_l.append(pattern_to_add)
+            elif pattern_to_add.pattern_type == PatternType.RIGHT_ONLY:
+                call_patterns_r.append(pattern_to_add)
+            elif pattern_to_add.pattern_type == PatternType.LEFT_AND_RIGHT:
+                call_patterns_lr.append(pattern_to_add)
 
-                i += len(l)
+        print(call_patterns_l)
+        print(call_patterns_r)
+        print(call_patterns_lr)
 
-                while i < len(message_content):
-                    if (
-                        r and message_content[i:].startswith(r)
-                    ) or await get_template_start(db_user, message_content[i:]):
-                        break
+        first_pattern_l = None
+        first_pattern_r = None
+        first_pattern_lr = None
 
-                    buffer += message_content[i]
+        for call_pattern in call_patterns_l:
+            if call_pattern.text_startswith(message_content):
+                first_pattern_l = True
 
-                    i += 1
+        for call_pattern in call_patterns_r:
+            if call_pattern.text_endswith(message_content):
+                first_pattern_r = True
 
-                if r:
-                    if not message_content[i:].startswith(r):
-                        return
+        for call_pattern in call_patterns_lr:
+            if call_pattern.text_startswith(message_content):
+                first_pattern_lr = True
 
-                    i += len(r)
-
-                buffer = buffer.strip()
-                if not buffer:
-                    return
-
-                matches.append((tupper, buffer))
-
-                continue
-            elif i == 0:
-                return
-
-            i += 1
-
-        if not matches:
+        print("first_pattern_l", first_pattern_l)
+        print("first_pattern_r", first_pattern_r)
+        print("first_pattern_lr", first_pattern_lr)
+        # if message not started from template we ignore this message
+        if not first_pattern_l and not first_pattern_r and not first_pattern_lr:
             return
 
-        try:
-            await message.delete()
-        except Exception:
-            pass
+        # split message per line to check
+        message_per_line = message_content.split("\n")
 
-        for tupper, message_content in matches:
-            await self._handle_message(tupper, message, message_content)
+        # fill with patterns
+        patterns_per_line: list[TupperCallPattern] = [None] * len(message_per_line)
+        # fill with selected tuppers
+        tupper_per_line: list[Tupper] = [None] * len(message_per_line)
+
+        print(message_per_line)
+
+        # find possible patterns
+        for i, line in enumerate(message_per_line):
+            # if left and right in one line this full one actor per line
+            for right_left_pattern in call_patterns_lr:
+                if right_left_pattern.text_startswith(line) and right_left_pattern.text_endswith(line):
+                    patterns_per_line[i] = right_left_pattern
+                    tupper_per_line[i] = right_left_pattern.tupper
+                    break
+
+            if patterns_per_line[i]:
+                continue
+
+            # only right text<
+            for right_pattern in call_patterns_r:
+                if right_pattern.text_endswith(line):
+                    patterns_per_line[i] = right_pattern
+                    tupper_per_line[i] = right_pattern.tupper
+                    break
+
+            if patterns_per_line[i]:
+                continue
+            # only left
+            for left_pattern in call_patterns_l:
+                if left_pattern.text_startswith(line):
+                    patterns_per_line[i] = left_pattern
+                    tupper_per_line[i] = left_pattern.tupper
+
+            if patterns_per_line[i]:
+                continue
+
+            # right and left set to end. If some strange man set >text and text< and >text< template....
+            for right_left_pattern in call_patterns_lr:
+                if line.startswith(right_left_pattern.left_pattern_part) or line.endswith(
+                        right_left_pattern.right_pattern_part):
+                    patterns_per_line[i] = right_left_pattern
+                    # not set tupper_per_line. we need find right part in text later...
+                    break
+
+        print("patterns_per_line", patterns_per_line)
+        # only right template
+        for i, pattern in enumerate(patterns_per_line):
+            if not pattern:
+                continue
+            if pattern.is_only_right():
+                for step_back in range(i, -1, -1):
+                    temp_pattern = patterns_per_line[step_back]
+                    if (pattern.is_left_and_right() or not pattern) and not tupper_per_line[step_back]:
+                        tupper_per_line[step_back] = temp_pattern.tupper
+                        patterns_per_line[step_back] = pattern
+                    else:
+                        break
+
+        # only left template
+        current_left_pattern = None
+        for i, pattern in enumerate(patterns_per_line):
+            if not pattern:
+                continue
+            if pattern.is_only_left():
+                current_left_pattern = pattern
+            elif (pattern.is_left_and_right() or not pattern) and not tupper_per_line[i] and current_left_pattern:
+                tupper_per_line[i] = current_left_pattern.tupper
+                patterns_per_line[i] = current_left_pattern
+            else:
+                current_left_pattern = None
+                continue
+
+        # left with right
+        current_left_and_right_pattern = None
+        start_index = -1
+        for i, pattern in enumerate(patterns_per_line):
+            if not pattern:
+                continue
+            if pattern.is_left_and_right() and not tupper_per_line[i]:
+                if not current_left_and_right_pattern:
+                    if pattern.text_startswith(message_per_line[i]):
+                        current_left_and_right_pattern = pattern
+                        start_index = i
+                elif pattern == current_left_and_right_pattern:
+                    if pattern.text_endswith(message_per_line[i]):
+                        # end of left and right pattern
+                        for index_to_set in range(start_index, i + 1):
+                            patterns_per_line[index_to_set] = pattern
+                            tupper_per_line[index_to_set] = pattern.tupper
+                        current_left_and_right_pattern = None
+                        start_index = -1
+                else:
+                    current_left_and_right_pattern = None
+                    start_index = -1
+            else:
+                current_left_and_right_pattern = None
+                start_index = -1
+
+        for i, pattern in enumerate(patterns_per_line):
+            if not pattern:
+                continue
+            message_per_line[i] = pattern.format_text(message_per_line[i])
+
+        print(message_per_line)
+        print(tupper_per_line)
+        print(patterns_per_line)
+
+        for tupper, message_line in zip(tupper_per_line, message_per_line):
+            pass
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):

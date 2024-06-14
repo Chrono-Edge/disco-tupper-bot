@@ -405,6 +405,7 @@ class TupperCommandsCog(commands.Cog):
         if not tupper:
             await ctx.reply(locale.format("no_such_tupper", tupper_name=tupper_name))
             return
+        #TODO check names and call_pattern
 
         await user_to_add.tuppers.add(tupper)
         await ctx.reply(
