@@ -447,18 +447,6 @@ class TupperMessageCog(commands.Cog):
                     # not set tupper_per_line. we need find right part in text later...
                     break
 
-        # only right template
-        for i, pattern in enumerate(patterns_per_line):
-            if pattern.is_only_right():
-                for step_back in range(i - 1, -1, -1):
-                    temp_pattern = patterns_per_line[step_back]
-                    if (temp_pattern.is_left_and_right() or temp_pattern.is_none()) and not tupper_per_line[step_back]:
-                        tupper_per_line[step_back] = pattern.tupper
-                        patterns_per_line[step_back] = pattern
-                    elif temp_pattern.is_only_right() or temp_pattern.is_only_left():
-                        break
-                    else:
-                        continue
         # only left template
         current_left_pattern = None
         for i, pattern in enumerate(patterns_per_line):
@@ -470,6 +458,20 @@ class TupperMessageCog(commands.Cog):
             else:
                 current_left_pattern = None
                 continue
+
+        # only right template
+        for i, pattern in enumerate(patterns_per_line):
+            if pattern.is_only_right():
+                tupper_per_line[i] = pattern.tupper
+                for step_back in range(i - 1, -1, -1):
+                    temp_pattern = patterns_per_line[step_back]
+                    if (temp_pattern.is_left_and_right() or temp_pattern.is_none()) and not tupper_per_line[step_back]:
+                        tupper_per_line[step_back] = pattern.tupper
+                        patterns_per_line[step_back] = pattern
+                    elif temp_pattern.is_only_right() or temp_pattern.is_only_left():
+                        break
+                    else:
+                        continue
 
         # left and right
         current_left_and_right_pattern = None
@@ -504,6 +506,7 @@ class TupperMessageCog(commands.Cog):
 
         last_tupper = tupper_per_line[0]
         tupper_message = ""
+
         for tupper, message_line in zip(tupper_per_line, message_per_line):
             if tupper is None:
                 continue
