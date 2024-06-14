@@ -80,7 +80,6 @@ class TupperCallPattern:
         return self.pattern_type == PatternType.NONE
 
     def text_startswith(self, text: str) -> bool:
-        print(text, self.left_pattern_part)
         return text.startswith(self.left_pattern_part) and (self.left_pattern_part != "")
 
     def text_endswith(self, text: str) -> bool:
@@ -372,7 +371,7 @@ class TupperMessageCog(commands.Cog):
         async for tupper in db_user.tuppers:
             # TODO move this info in database... like left part, right part and pattern_type
             # TODO charlist_filter
-            
+
             pattern_to_add = TupperCallPattern(pattern=tupper.call_pattern, tupper=tupper)
             if pattern_to_add.pattern_type == PatternType.LEFT_ONLY:
                 call_patterns_l.append(pattern_to_add)
@@ -452,9 +451,7 @@ class TupperMessageCog(commands.Cog):
         for i, pattern in enumerate(patterns_per_line):
             if pattern.is_only_right():
                 for step_back in range(i - 1, -1, -1):
-                    print("STEP BACK", step_back)
                     temp_pattern = patterns_per_line[step_back]
-                    print("BAK TEMP", temp_pattern)
                     if (temp_pattern.is_left_and_right() or temp_pattern.is_none()) and not tupper_per_line[step_back]:
                         tupper_per_line[step_back] = pattern.tupper
                         patterns_per_line[step_back] = pattern
@@ -474,12 +471,10 @@ class TupperMessageCog(commands.Cog):
                 current_left_pattern = None
                 continue
 
-        # left with right
+        # left and right
         current_left_and_right_pattern = None
         start_index = -1
         for i, pattern in enumerate(patterns_per_line):
-            if not pattern:
-                continue
             if (pattern.is_left_and_right() or pattern.is_none()) and not tupper_per_line[i]:
                 if not current_left_and_right_pattern:
                     if pattern.text_startswith(message_per_line[i]):
@@ -493,6 +488,8 @@ class TupperMessageCog(commands.Cog):
                             tupper_per_line[index_to_set] = pattern.tupper
                         current_left_and_right_pattern = None
                         start_index = -1
+                elif pattern.is_none():
+                    continue
                 else:
                     current_left_and_right_pattern = None
                     start_index = -1
@@ -504,10 +501,6 @@ class TupperMessageCog(commands.Cog):
             if not pattern:
                 continue
             message_per_line[i] = pattern.format_text(message_per_line[i])
-
-        print(message_per_line)
-        print(tupper_per_line)
-        print(patterns_per_line)
 
         last_tupper = tupper_per_line[0]
         tupper_message = ""
