@@ -5,7 +5,7 @@ from localization import locale
 from utils.rand import randint
 
 
-def _roll(count, sides):
+async def _roll(count, sides):
     if count <= 0:
         raise ValueError(locale.number_of_dices_should_be_gtz)
 
@@ -14,7 +14,7 @@ def _roll(count, sides):
 
     rolls = []
     for _ in range(count):
-        rolls.append(randint(1, sides))
+        rolls.append(await randint(1, sides))
 
     return rolls
 
@@ -168,13 +168,13 @@ class Dices:
 
         return match
 
-    def _parse_dice(self, left=1):
+    async def _parse_dice(self, left=1):
         if self._match(T_OPEN_PAREN):
-            right = self._parse_expr()
+            right = await self._parse_expr()
 
             self._expect(T_CLOSE_PAREN)
         else:
-            right = self._parse_atom()
+            right = await self._parse_atom()
 
         left = int(left)
         right = int(right)
@@ -182,24 +182,26 @@ class Dices:
         if left > 1000 or right > 1000:
             raise SyntaxError(locale.too_long_number)
 
-        roll = Value(_roll(left, right))
+        roll = Value(await _roll(left, right))
 
         self._rolls.append((left, right, roll))
 
         return roll
 
-    def _parse_atom(self):
+    async def _parse_atom(self):
         if self._match(T_OPEN_PAREN):
-            expr = self._parse_expr()
+            expr = await self._parse_expr()
 
             self._expect(T_CLOSE_PAREN)
 
             if self._match(T_DICE, skip_ws=False):
-                return self._parse_dice(expr)
+                return await self._parse_dice(expr)
 
             return expr
         elif self._match(T_MINUS):
-            return self._parse_atom().apply(operator.neg)
+            value = await self._parse_atom()
+
+            return value.apply(operator.neg)
         elif match := self._match(T_DIGIT):
             try:
                 left = int(match[0])
@@ -207,11 +209,11 @@ class Dices:
                 raise SyntaxError(locale.too_long_number)
 
             if match := self._match(T_DICE, skip_ws=False):
-                return self._parse_dice(left)
+                return await self._parse_dice(left)
 
             return Value(left)
         elif self._match(T_DICE):
-            return self._parse_dice()
+            return await self._parse_dice()
         elif match := self._match(T_NAME):
             name = match[0].upper()
 
@@ -223,18 +225,18 @@ class Dices:
             expr = self.names[name]
 
             if self._match(T_DICE, skip_ws=False):
-                return self._parse_dice(expr)
+                return await self._parse_dice(expr)
 
             return expr
 
         self._expected(locale.number_dice_or_a_variable)
 
-    def _parse_expr(self):
-        left = self._parse_atom()
+    async def _parse_expr(self):
+        left = await self._parse_atom()
 
         if op := self._match(T_OP):
             op = OPS[op[0]]
-            right = self._parse_expr()
+            right = await self._parse_expr()
 
             left = left.apply(op, right)
         elif self._match(T_COLON):
@@ -244,7 +246,7 @@ class Dices:
 
         return left
 
-    def _parse_exprs(self):
+    async def _parse_exprs(self):
         exprs = []
         while not self._done():
             if len(exprs) >= 10:
@@ -252,7 +254,7 @@ class Dices:
 
             rolls_count = len(self._rolls)
 
-            expr = self._parse_expr()
+            expr = await self._parse_expr()
 
             if len(self._rolls) == rolls_count:
                 raise SyntaxError(locale.expression_does_not_contain_rolls)
@@ -266,37 +268,25 @@ class Dices:
 
         return Value(exprs)
 
-    def roll(self, vars={}):
+    async def roll(self, vars={}):
         self.names = {str(k).upper(): Value(vars[k]) for k in vars}
         self.position = 0
         self.rolls = []
         self._rolls = []
 
-        self.result = self._parse_exprs()
+        self.result = await self._parse_exprs()
 
         return self
 
 
-def roll_dices(dices, vars={}):
+async def roll_dices(dices, vars={}):
     dices = Dices(dices)
 
     try:
-        dices.roll(vars=vars)
+        await dices.roll(vars=vars)
     except (ValueError, SyntaxError, NameError) as e:
         return str(e)
     except ZeroDivisionError:
         return locale.division_by_zero
 
     return str(dices)
-
-
-if __name__ == "__main__":
-    print(Dices("d20 d20").roll())
-    print(Dices("d20+3").roll())
-    print(Dices("d20 + d20").roll())
-    print(Dices("d20:x dx").roll())
-    print(Dices("d20+ЛВК").roll({"ЛВК": 5}))
-    print(Dices("2d5:x d4+x").roll())
-    print(Dices("2d20+РАЗ").roll({"РАЗ": -5}))
-    print(Dices("2d7+ЛВК").roll({"ЛВК": 4}))
-    print(Dices("d20+5 d20+5").roll())

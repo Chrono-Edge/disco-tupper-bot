@@ -14,7 +14,7 @@ async def handle(ctx):
     async for attr in ctx.tupper.attrs:
         vars[attr.name] = attr.value
 
-    roll = roll_dices(" ".join(ctx.command.args), vars=vars)
+    roll = await roll_dices(" ".join(ctx.command.args), vars=vars)
 
     await ctx.bot.discord_logger.send_log(
         "log_roll",
