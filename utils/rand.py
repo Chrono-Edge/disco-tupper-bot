@@ -1,7 +1,6 @@
 import random
 import asyncio
-
-import aiohttp
+from urllib.request import urlopen, Request
 from loguru import logger
 
 import config
@@ -18,25 +17,25 @@ def _pyrandom(min, max):
 
 
 # TODO: make it sane
-async def _get(url):
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url) as resp:
-            return await resp.text()
+def _get(url):
+    req = Request(
+        url,
+        headers={
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:127.0) Gecko/20100101 Firefox/127.0"
+        },
+    )
+    return urlopen(req).read().decode("ASCII")
 
 
 def _randomorg(min, max):
-    n = asyncio.get_event_loop().run_until_complete(
-        _get(
-            f"https://www.random.org/integers/?num=1&min={min}&max={max}&format=plain&col=1&base=10"
-        )
+    n = _get(
+        f"https://www.random.org/integers/?num=1&min={min}&max={max}&format=plain&col=1&base=10"
     )
     return int(n)
 
 
 def _trngtxlyre(min, max):
-    n = asyncio.get_event_loop().run_until_complete(
-        _get(f"https://r.txlyre.website/getnum.php?min={min}&max={max}")
-    )
+    n = _get(f"https://r.txlyre.website/getnum.php?min={min}&max={max}")
     return int(n)
 
 
