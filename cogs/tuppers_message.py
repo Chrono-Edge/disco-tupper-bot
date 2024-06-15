@@ -185,6 +185,10 @@ class TupperMessageCog(commands.Cog):
         # Main idea it is create new child message and sent to function bot.process_commands
         # Not sure about of this variant but this code also not ideal...
 
+        message_content = message_content.strip()
+        if not message_content:
+            return False
+        
         webhook, thread = await self._get_webhook(message.channel.id)
         hidden_data = {"tupper_id": tupper.id, "author_id": message.author.id}
 
@@ -270,6 +274,8 @@ class TupperMessageCog(commands.Cog):
                 files=files_content,
                 thread=thread,
             )
+
+        return True
 
     async def _on_message(self, message: discord.Message):
         """parse on message"""
@@ -439,18 +445,21 @@ class TupperMessageCog(commands.Cog):
         last_tupper = tupper_per_line[0]
         tupper_message = ""
 
+        handled = False
         for tupper, message_line in zip(tupper_per_line, message_per_line):
             if tupper is None:
                 continue
             if tupper != last_tupper:
-                await self._handle_message(last_tupper, message, tupper_message)
+                handled = await self._handle_message(last_tupper, message, tupper_message)
                 tupper_message = ""
                 last_tupper = tupper
 
             tupper_message += f"{message_line}\n"
 
-        await self._handle_message(last_tupper, message, tupper_message)
-        await message.delete()
+        handled = await self._handle_message(last_tupper, message, tupper_message)
+        
+        if handled:
+            await message.delete()
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):

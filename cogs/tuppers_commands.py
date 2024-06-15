@@ -413,7 +413,14 @@ class TupperCommandsCog(commands.Cog):
         if not tupper:
             await ctx.reply(locale.format("no_such_tupper", tupper_name=tupper_name))
             return
-        # TODO check names and call_pattern
+
+        if await user_to_add.tuppers.filter(name=tupper.name).exists():
+            await ctx.reply(locale.tupper_already_exists)
+            return
+        
+        if await user_to_add.tuppers.filter(template=tupper.template).exists():
+            await ctx.reply(locale.tupper_already_exists)
+            return
 
         await user_to_add.tuppers.add(tupper)
         await ctx.reply(
