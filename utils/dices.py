@@ -2,6 +2,7 @@ import re
 import random
 import operator
 from localization import locale
+from utils.rand import randint
 
 
 def _roll(count, sides):
@@ -13,7 +14,7 @@ def _roll(count, sides):
 
     rolls = []
     for _ in range(count):
-        rolls.append(random.randint(1, sides))
+        rolls.append(randint(1, sides))
 
     return rolls
 

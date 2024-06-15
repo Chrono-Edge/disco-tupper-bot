@@ -595,7 +595,7 @@ class TupperCommandsCog(commands.Cog):
             log_jump_url=ctx.message.jump_url,
         )
 
-        command_output = f"`{tupper.name}`:\n"
+        command_output = f"`{tupper.name}`:\n{command_output}"
 
         await ctx.reply(command_output)
 

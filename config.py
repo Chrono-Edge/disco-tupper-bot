@@ -23,6 +23,8 @@ if len(sign_key) > 16:
 else:
     sign_key += b'a' * (16 - len(sign_key))
 
+random_source = values.get("bot.random_source")
+
 admin_roles = values.get("bot.admin_roles")
 player_roles = values.get("bot.player_roles")
 
