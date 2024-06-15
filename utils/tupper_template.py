@@ -35,6 +35,8 @@ class TupperCallPattern:
                 self.pattern_type = PatternType.LEFT_ONLY
             elif not self.left_pattern_part and self.right_pattern_part:
                 self.pattern_type = PatternType.RIGHT_ONLY
+            else:
+                self.pattern_type = PatternType.NONE
 
     def __hash__(self):
         return f"{self.pattern}-{self.tupper.id}"
