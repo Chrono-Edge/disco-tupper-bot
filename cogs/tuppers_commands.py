@@ -586,6 +586,17 @@ class TupperCommandsCog(commands.Cog):
                 "wrong_usage", command_name=command, usage=".help"
             )
 
+        await self.bot.discord_logger.send_log(
+            "log_do_command",
+            log_author=ctx.message.author.name,
+            log_tupper_name=tupper.name,
+            log_command=command,
+            log_result=command_output,
+            log_jump_url=ctx.message.jump_url,
+        )
+
+        command_output = f"`{tupper.name}`:\n"
+
         await ctx.reply(command_output)
 
     @app_commands.checks.has_any_role(*config.admin_roles)
