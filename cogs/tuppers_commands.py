@@ -91,10 +91,15 @@ class ListMenu(discord.ui.View):
 
         member_id = meta_dict.get("member_id")
         page = meta_dict.get("page")
+        if interaction.user.id != member_id:
+            return
+
+        user, ___ = await User.get_or_create(discord_id=member_id)
 
         page = page - 1
-        if page < 0:
-            page = 0
+        max_page = math.ceil(await user.tuppers.all().count() / 10) - 1
+        if page > max_page:
+            page = max_page
 
         member = await interaction.guild.fetch_member(member_id)
         is_user_admin = await Permissions.is_user_admin(
