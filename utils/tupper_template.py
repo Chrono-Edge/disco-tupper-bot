@@ -5,7 +5,9 @@ from localization import locale
 
 PseudoTupper = namedtuple("Tupper", "id")
 
+
 class PatternType(Enum):
+    TEXT = -1
     NONE = 0
     LEFT_AND_RIGHT = 1
     LEFT_ONLY = 2
@@ -42,7 +44,7 @@ class TupperCallPattern:
         return f"{self.pattern}-{self.tupper.id}"
 
     def __repr__(self):
-        return f"TupperCallPattern({self.pattern}, {self.tupper.id}, [{self.left_pattern_part}|{self.right_pattern_part}])"
+        return f"TupperCallPattern({self.pattern}, {self.tupper.id}, [{self.left_pattern_part}|{self.right_pattern_part}] {self.pattern_type})"
 
     def is_only_left(self) -> bool:
         return self.pattern_type == PatternType.LEFT_ONLY
@@ -56,19 +58,22 @@ class TupperCallPattern:
     def is_none(self) -> bool:
         return self.pattern_type == PatternType.NONE
 
+    def is_text(self) -> bool:
+        return self.pattern_type == PatternType.TEXT
+
     def text_startswith(self, text: str) -> bool:
         return text.startswith(self.left_pattern_part) and (
-            self.left_pattern_part != ""
+                self.left_pattern_part != ""
         )
 
     def text_endswith(self, text: str) -> bool:
         return text.endswith(self.right_pattern_part) and (
-            self.right_pattern_part != ""
+                self.right_pattern_part != ""
         )
 
     def format_text(self, text):
         if self.text_startswith(text):
-            text = text[len(self.left_pattern_part) :].lstrip()
+            text = text[len(self.left_pattern_part):].lstrip()
         if self.text_endswith(text):
             text = text[: len(text) - len(self.right_pattern_part)].rstrip()
         return text

@@ -1,3 +1,4 @@
+import copy
 from collections import namedtuple
 from enum import Enum
 
@@ -21,80 +22,6 @@ from localization import locale
 
 if TYPE_CHECKING:
     from bot import DiscoTupperBot
-
-
-class PatternType(Enum):
-    TEXT = -1
-    NONE = 0
-    LEFT_AND_RIGHT = 1
-    LEFT_ONLY = 2
-    RIGHT_ONLY = 3
-
-
-class TupperCallPattern:
-    left_pattern_part = ""
-    right_pattern_part = ""
-    tupper = None
-    pattern = ""
-    pattern_type = PatternType.NONE
-
-    def __init__(self, pattern: str, tupper: Tupper):
-        if not pattern:
-            left_pattern_part = ""
-            right_pattern_part = ""
-        else:
-            left_pattern_part, right_pattern_part = split_template(tupper.call_pattern)
-        if not tupper:
-            temp = namedtuple("dummy", "id")
-            self.tupper = temp(-1)
-        else:
-            self.tupper = tupper
-
-        self.pattern = pattern
-
-        self.left_pattern_part = left_pattern_part
-        self.right_pattern_part = right_pattern_part
-
-        if left_pattern_part and right_pattern_part:
-            self.pattern_type = PatternType.LEFT_AND_RIGHT
-        elif left_pattern_part and not right_pattern_part:
-            self.pattern_type = PatternType.LEFT_ONLY
-        elif not left_pattern_part and right_pattern_part:
-            self.pattern_type = PatternType.RIGHT_ONLY
-
-    def __hash__(self):
-        return f"{self.pattern}-{self.tupper.id}"
-
-    def __repr__(self):
-        return f"TupperCallPattern({self.pattern}, {self.tupper.id}, [{self.left_pattern_part}|{self.right_pattern_part}] {self.pattern_type})"
-
-    def is_only_left(self) -> bool:
-        return self.pattern_type == PatternType.LEFT_ONLY
-
-    def is_only_right(self) -> bool:
-        return self.pattern_type == PatternType.RIGHT_ONLY
-
-    def is_left_and_right(self) -> bool:
-        return self.pattern_type == PatternType.LEFT_AND_RIGHT
-
-    def is_none(self) -> bool:
-        return self.pattern_type == PatternType.NONE
-
-    def is_text(self) -> bool:
-        return self.pattern_type == PatternType.TEXT
-
-    def text_startswith(self, text: str) -> bool:
-        return text.startswith(self.left_pattern_part) and (self.left_pattern_part != "")
-
-    def text_endswith(self, text: str) -> bool:
-        return text.endswith(self.right_pattern_part) and (self.right_pattern_part != "")
-
-    def format_text(self, text):
-        if self.text_startswith(text):
-            text = text[len(self.left_pattern_part):].lstrip()
-        if self.text_endswith(text):
-            text = text[:len(text) - len(self.right_pattern_part)].rstrip()
-        return text
 
 
 class TupperMessageCog(commands.Cog):
@@ -267,8 +194,8 @@ class TupperMessageCog(commands.Cog):
         if not message_content:
             return False
 
-        webhook, thread = await self._get_webhook(message.channel.id)
-        hidden_data = {"tupper_id": tupper.id, "author_id": message.author.id}
+        webhook, thread = await self._get_webhook(original_message.channel.id)
+        hidden_data = {"tupper_id": tupper.id, "author_id": original_message.author.id}
 
         command_content = await self.bot.tupper_commands.handle_command(
             tupper, original_message, message_content
@@ -358,6 +285,13 @@ class TupperMessageCog(commands.Cog):
     async def _on_message(self, message: discord.Message):
         """parse on message"""
         # cut off bots and selfmessages
+        # if channel is private
+        if message.channel.type == discord.ChannelType.private:
+            await self._edit_tupper_message(message)
+            return
+
+        if message.guild.id != config.guild:
+            return
 
         if (message.author.id == self.bot.user.id) or message.author.bot:
             return
@@ -365,14 +299,6 @@ class TupperMessageCog(commands.Cog):
         # take user form database by discord id
         db_user = await User.filter(discord_id=message.author.id).first()
         if not db_user:
-            return
-
-        # if channel is private
-        if message.channel.type == discord.ChannelType.private:
-            await self._edit_tupper_message(message)
-            return
-
-        if message.guild.id != config.guild:
             return
 
         # message content
@@ -459,15 +385,14 @@ class TupperMessageCog(commands.Cog):
                 continue
 
             # right and left set to end. If some strange man set >text and text< and >text< template....
-            for right_left_pattern in call_patterns_lr:
-                if line.startswith(right_left_pattern.left_pattern_part) or line.endswith(
-                        right_left_pattern.right_pattern_part):
-                    patterns_per_line[i] = right_left_pattern
-                    # not set tupper_per_line. we need find right part in text later...
-                    break
 
-        print(tupper_per_line)
-        print("pf", patterns_per_line)
+            for right_left_pattern in call_patterns_lr:
+                if right_left_pattern.text_startswith(line) or right_left_pattern.text_endswith(line):
+                    patterns_per_line[i] = right_left_pattern
+                    tupper_per_line[i] = right_left_pattern.tupper
+
+        for dddd in patterns_per_line:
+            print(f"pf\t", dddd)
 
         # only left template
         current_left_pattern = None
@@ -475,8 +400,10 @@ class TupperMessageCog(commands.Cog):
             if pattern.is_only_left():
                 current_left_pattern = pattern
                 continue
+            elif not current_left_pattern:
+                continue
             elif pattern.is_none():
-                copy_pattern = current_left_pattern
+                copy_pattern = copy.deepcopy(current_left_pattern)
                 copy_pattern.pattern_type = PatternType.TEXT
                 patterns_per_line[i] = copy_pattern
             else:
@@ -485,79 +412,100 @@ class TupperMessageCog(commands.Cog):
 
         # only right template
         for i, pattern in enumerate(patterns_per_line):
+            if pattern.is_none() or pattern.is_left_and_right():
+                continue
+
             if pattern.is_only_right():
                 # go back for find all strings
                 for step_back in range(i - 1, -1, -1):
                     step_back_pattern = patterns_per_line[step_back]
-
+                    print(step_back, step_back_pattern, step_back_pattern.is_left_and_right(),
+                          step_back_pattern.is_none())
                     if step_back_pattern.is_left_and_right() or step_back_pattern.is_none():
-                        copy_pattern = pattern
+                        copy_pattern = copy.deepcopy(pattern)
                         copy_pattern.pattern_type = PatternType.TEXT
-                        patterns_per_line[i] = copy_pattern
+                        patterns_per_line[step_back] = copy_pattern
                     elif step_back_pattern.is_only_right() or step_back_pattern.is_only_left():
                         break
-                    else:
-                        continue
 
         # left and right
         current_left_and_right_pattern = None
         start_index = -1
         for i, pattern in enumerate(patterns_per_line):
             if pattern.is_left_and_right() or pattern.is_none():
+                # if we get only left and right or none pattern
                 if not current_left_and_right_pattern:
                     if pattern.text_startswith(message_per_line[i]):
                         current_left_and_right_pattern = pattern
                         start_index = i
                 elif pattern == current_left_and_right_pattern:
                     if pattern.text_endswith(message_per_line[i]):
-                        # end of left and right pattern
-                        for index_to_set in range(start_index, i + 1):
-                            patterns_per_line[index_to_set] = pattern
-                            tupper_per_line[index_to_set] = pattern.tupper
-                            copy_pattern = pattern
+                        # we find the end go back to set for text!
+                        for index_to_set in range(start_index + 1, i + 1):
+                            copy_pattern = copy.deepcopy(pattern)
                             copy_pattern.pattern_type = PatternType.TEXT
-                            patterns_per_line[i] = copy_pattern
-
+                            patterns_per_line[index_to_set] = copy_pattern
+                            tupper_per_line[index_to_set] = pattern.tupper
+                        # End work with current pattern
                         current_left_and_right_pattern = None
                         start_index = -1
                 elif pattern.is_none():
                     continue
                 else:
+                    # if we catch another patterns
                     current_left_and_right_pattern = None
                     start_index = -1
             else:
+                # if we catch another pattern type
                 current_left_and_right_pattern = None
                 start_index = -1
 
+        # format message if this has start pattern
         for i, pattern in enumerate(patterns_per_line):
             if not pattern:
                 continue
             if not pattern.is_none() and not pattern.is_text():
                 message_per_line[i] = pattern.format_text(message_per_line[i])
 
-        print(patterns_per_line)
-        print(message_per_line)
-
-        previous_pattern = TupperCallPattern("", None)
-        pattern_tupper = patterns_per_line[0]
+        previous_pattern = TupperCallPattern(None)
         tupper_message = ""
+
+        message_task = []
+
+        for dddd in patterns_per_line:
+            print(f"pfin\t", dddd)
 
         for pattern, message_line in zip(patterns_per_line, message_per_line):
             if pattern.is_none():
                 continue
-            if pattern.tupper != pattern_tupper.tupper:
-                await self._handle_message(pattern_tupper.tupper, message, tupper_message)
-                tupper_message = ""
-                pattern_tupper = pattern
-            elif not previous_pattern.is_text() and not previous_pattern.is_none():
-                await self._handle_message(pattern.tupper, message, tupper_message)
+            print(pattern, message_line)
+            print(previous_pattern.tupper.id != pattern.tupper.id, pattern.is_only_right())
+
+            if previous_pattern.tupper.id != pattern.tupper.id:
+                # start another tupper
+                message_task.append(self._handle_message(previous_pattern.tupper, message, tupper_message))
                 tupper_message = ""
 
-            previous_pattern = pattern
+            if pattern.is_only_right():
+                tupper_message += f"{message_line}\n"
+                message_task.append(self._handle_message(pattern.tupper, message, tupper_message))
+                tupper_message = ""
+                previous_pattern = pattern
+                continue
+            elif not pattern.is_text():
+                message_task.append(self._handle_message(previous_pattern.tupper, message, tupper_message))
+                tupper_message = ""
+
             tupper_message += f"{message_line}\n"
+            previous_pattern = pattern
 
-        await self._handle_message(pattern_tupper.tupper, message, tupper_message)
+        message_task.append(self._handle_message(previous_pattern.tupper, message, tupper_message))
         await message.delete()
+        if message_task:
+            for task in message_task:
+                await task
+
+        return
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
