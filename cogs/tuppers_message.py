@@ -442,10 +442,14 @@ class TupperMessageCog(commands.Cog):
                     if pattern.text_endswith(message_per_line[i]):
                         # we find the end go back to set for text!
                         for index_to_set in range(start_index + 1, i + 1):
+                            print("old one", patterns_per_line[index_to_set])
                             copy_pattern = copy.deepcopy(pattern)
                             copy_pattern.pattern_type = PatternType.TEXT
                             patterns_per_line[index_to_set] = copy_pattern
+                            print("new one", patterns_per_line[index_to_set])
+
                             tupper_per_line[index_to_set] = pattern.tupper
+
                         # End work with current pattern
                         current_left_and_right_pattern = None
                         start_index = -1
