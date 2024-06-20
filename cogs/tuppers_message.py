@@ -2,6 +2,7 @@ import copy
 from collections import namedtuple
 from enum import Enum
 
+from discord import MessageType
 from discord.ext import commands
 import discord
 import json
@@ -288,9 +289,13 @@ class TupperMessageCog(commands.Cog):
         """parse on message"""
         # cut off bots and selfmessages
         # if channel is private
-        if message.channel.type == discord.ChannelType.private:
-            await self._edit_tupper_message(message)
+        print(message.type)
+        print(message.channel.type)
+        if message.type == MessageType.chat_input_command:
             return
+
+        if message.channel.type == discord.ChannelType.private:
+            return await self._edit_tupper_message(message)
 
         if message.guild.id != config.guild:
             return
