@@ -1,3 +1,4 @@
+from discord import MessageType
 from discord.ext import commands
 import discord
 import json
@@ -280,6 +281,9 @@ class TupperMessageCog(commands.Cog):
     async def _on_message(self, message: discord.Message):
         """parse on message"""
         # cut off bots and selfmessages
+
+        if message.type == MessageType.chat_input_command:
+            return
 
         if (message.author.id == self.bot.user.id) or message.author.bot:
             return
