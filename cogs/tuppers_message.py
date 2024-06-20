@@ -320,30 +320,27 @@ class TupperMessageCog(commands.Cog):
 
         await tupper_message_worker.find_all_patterns_on_lines()
 
+        await tupper_message_worker.text_fill_left_pattern()
+        await tupper_message_worker.text_fill_right_pattern()
+        await tupper_message_worker.text_fill_right_and_left()
 
-
-
-
+        message_lines = tupper_message_worker.message_lines
         # format message if this has start pattern
-        for i, pattern in enumerate(patterns_per_line):
+        for i, pattern in enumerate(tupper_message_worker.pattern_on_lines):
             if not pattern:
                 continue
             if not pattern.is_none() and not pattern.is_text():
-                message_per_line[i] = pattern.format_text(message_per_line[i])
+                message_lines[i] = pattern.format_text(message_lines[i])
 
         previous_pattern = TupperCallPattern(None)
         tupper_message = ""
 
         message_task = []
 
-        for dddd in patterns_per_line:
-            print(f"pfin\t", dddd)
-
-        for pattern, message_line in zip(patterns_per_line, message_per_line):
+        for pattern, message_line in zip(tupper_message_worker.pattern_on_lines, message_lines):
             if pattern.is_none():
                 continue
             print(pattern, message_line)
-            print(previous_pattern.tupper.id != pattern.tupper.id, pattern.is_only_right())
 
             if previous_pattern.tupper.id != pattern.tupper.id:
                 # start another tupper
@@ -356,6 +353,8 @@ class TupperMessageCog(commands.Cog):
                 tupper_message = ""
                 previous_pattern = pattern
                 continue
+            elif pattern.шы_
+
             elif not pattern.is_text():
                 message_task.append(self._handle_message(previous_pattern.tupper, message, tupper_message))
                 tupper_message = ""

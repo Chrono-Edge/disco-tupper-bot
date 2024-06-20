@@ -146,40 +146,35 @@ class MessageUtilsForTuppers:
 
     async def text_fill_right_and_left(self):
         # left and right
-        current_left_and_right_pattern = None
+        current_left_and_right_pattern: TupperCallPattern = None
         start_index = -1
         for i, pattern in enumerate(self.pattern_on_lines):
-            if pattern.is_left_and_right() or pattern.is_none():
-                # if we get only left and right or none pattern
-                if not current_left_and_right_pattern:
-                    if pattern.text_startswith(self.message_lines[i]):
-                        current_left_and_right_pattern = pattern
-                        start_index = i
-                    else:
-                        pattern.pattern_type = PatternType.NONE
-                        self.pattern_on_lines[i] = pattern
-                        continue
-                elif pattern == current_left_and_right_pattern:
-                    if pattern.text_endswith(message_per_line[i]):
-                        # we find the end go back to set for text!
-                        for index_to_set in range(start_index + 1, i + 1):
-                            print("old one", patterns_per_line[index_to_set])
-                            copy_pattern = copy.deepcopy(pattern)
-                            copy_pattern.pattern_type = PatternType.TEXT
-                            patterns_per_line[index_to_set] = copy_pattern
-                            print("new one", patterns_per_line[index_to_set])
-
-                        # End work with current pattern
+            current_text_line = self.message_lines[i]
+            if not current_left_and_right_pattern:
+                if not pattern.is_left_and_right():
+                    continue
+                if pattern.text_startswith(current_text_line):
+                    if pattern.text_endswith(current_text_line):
                         current_left_and_right_pattern = None
-                        start_index = -1
-                elif pattern.is_none():
+                    else:
+                        current_left_and_right_pattern = pattern
                     continue
                 else:
-                    # if we catch another patterns
+                    pattern.pattern_type = PatternType.NONE
+            elif pattern.is_left_and_right() and current_left_and_right_pattern:
+                if (pattern == current_left_and_right_pattern) \
+                        and current_left_and_right_pattern.text_endswith(current_text_line):
                     current_left_and_right_pattern = None
-                    start_index = -1
-            else:
-                # if we catch another pattern type
-                current_left_and_right_pattern = None
-                start_index = -1
-        pass
+                    continue
+                print(pattern, current_left_and_right_pattern)
+                pattern_copy = copy.deepcopy(current_left_and_right_pattern)
+                pattern_copy.pattern_type = PatternType.TEXT
+                self.pattern_on_lines[i] = pattern_copy
+                continue
+            elif current_left_and_right_pattern and pattern.is_none():
+                pattern_copy = copy.deepcopy(current_left_and_right_pattern)
+                pattern_copy.pattern_type = PatternType.TEXT
+
+                self.pattern_on_lines[i] = pattern_copy
+
+        return True
