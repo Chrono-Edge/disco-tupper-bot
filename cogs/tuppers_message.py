@@ -163,6 +163,8 @@ class TupperMessageCog(commands.Cog):
 
         # TODO we need to edit files or not?
         channel = await self.bot.fetch_channel(metadata_dict.get("channel_id"))
+        if channel.guild.id != config.guild:
+            return
 
         webhook, thread = await self._get_webhook(channel.id)
 
