@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING
 import config
 from database.models.tupper import Tupper
 from database.models.user import User
+from utils.messages.tupper_parser import MessageUtilsForTuppers
 from utils.sign import Sign
 from utils.discord.message_split import TextFormatterSplit
 from utils.encoding.non_printable import NonPrintableEncoder
@@ -289,8 +290,7 @@ class TupperMessageCog(commands.Cog):
         """parse on message"""
         # cut off bots and selfmessages
         # if channel is private
-        print(message.type)
-        print(message.channel.type)
+
         if message.type == MessageType.chat_input_command:
             return
 
@@ -313,163 +313,16 @@ class TupperMessageCog(commands.Cog):
         if not message_content:
             return
 
-        call_patterns_l: list[TupperCallPattern] = []
-        call_patterns_r: list[TupperCallPattern] = []
-        call_patterns_lr: list[TupperCallPattern] = []
+        tupper_message_worker = MessageUtilsForTuppers(db_user, message_content)
 
-        async for tupper in db_user.tuppers:
-            pattern_to_add = TupperCallPattern(tupper)
-            if not all(c in message_content for c in pattern_to_add.charlist):
-                continue
-
-            if pattern_to_add.pattern_type == PatternType.LEFT_ONLY:
-                call_patterns_l.append(pattern_to_add)
-            elif pattern_to_add.pattern_type == PatternType.RIGHT_ONLY:
-                call_patterns_r.append(pattern_to_add)
-            elif pattern_to_add.pattern_type == PatternType.LEFT_AND_RIGHT:
-                call_patterns_lr.append(pattern_to_add)
-
-        first_pattern_l = None
-        first_pattern_r = None
-        first_pattern_lr = None
-
-        # Find only left patterns
-        for call_pattern in call_patterns_l:
-            if call_pattern.text_startswith(message_content):
-                first_pattern_l = True
-
-        # Find only right patterns
-        for call_pattern in call_patterns_r:
-            if call_pattern.text_endswith(message_content):
-                first_pattern_r = True
-
-        # Find left with right patterns
-        for call_pattern in call_patterns_lr:
-            if call_pattern.text_startswith(message_content) or call_pattern.text_endswith(message_content):
-                first_pattern_lr = True
-
-        # if message not started from template we ignore this message
-        if not first_pattern_l and not first_pattern_r and not first_pattern_lr:
+        if not await tupper_message_worker.is_message_for_tuppers():
             return
 
-        # split message per line to check
-        message_per_line = message_content.split("\n")
+        await tupper_message_worker.find_all_patterns_on_lines()
 
-        # fill with patterns
-        patterns_per_line: list[TupperCallPattern] = [TupperCallPattern(None)] * len(message_per_line)
-        # fill with selected tuppers
-        tupper_per_line: list[Tupper] = [None] * len(message_per_line)
 
-        # find possible patterns
-        for i, line in enumerate(message_per_line):
-            # if left and right in one line this full one actor per line
-            for right_left_pattern in call_patterns_lr:
-                if right_left_pattern.text_startswith(line) and right_left_pattern.text_endswith(line):
-                    patterns_per_line[i] = right_left_pattern
-                    tupper_per_line[i] = right_left_pattern.tupper
-                    break
 
-            if not patterns_per_line[i].is_none():
-                continue
 
-            # only right text<
-            for right_pattern in call_patterns_r:
-                if right_pattern.text_endswith(line):
-                    patterns_per_line[i] = right_pattern
-                    tupper_per_line[i] = right_pattern.tupper
-                    break
-
-            if not patterns_per_line[i].is_none():
-                continue
-
-            # only left
-            for left_pattern in call_patterns_l:
-                if left_pattern.text_startswith(line):
-                    patterns_per_line[i] = left_pattern
-                    tupper_per_line[i] = left_pattern.tupper
-
-            if not patterns_per_line[i].is_none():
-                continue
-
-            # right and left set to end. If some strange man set >text and text< and >text< template....
-
-            for right_left_pattern in call_patterns_lr:
-                if right_left_pattern.text_startswith(line) or right_left_pattern.text_endswith(line):
-                    patterns_per_line[i] = right_left_pattern
-                    tupper_per_line[i] = right_left_pattern.tupper
-
-        for dddd in patterns_per_line:
-            print(f"pf\t", dddd)
-
-        # only left template
-        current_left_pattern = None
-        for i, pattern in enumerate(patterns_per_line):
-            if pattern.is_only_left():
-                current_left_pattern = pattern
-                continue
-            elif not current_left_pattern:
-                continue
-            elif pattern.is_none():
-                copy_pattern = copy.deepcopy(current_left_pattern)
-                copy_pattern.pattern_type = PatternType.TEXT
-                patterns_per_line[i] = copy_pattern
-            else:
-                current_left_pattern = None
-                continue
-
-        # only right template
-        for i, pattern in enumerate(patterns_per_line):
-            if pattern.is_none() or pattern.is_left_and_right():
-                continue
-
-            if pattern.is_only_right():
-                # go back for find all strings
-                for step_back in range(i - 1, -1, -1):
-                    step_back_pattern = patterns_per_line[step_back]
-                    print(step_back, step_back_pattern, step_back_pattern.is_left_and_right(),
-                          step_back_pattern.is_none())
-                    if step_back_pattern.is_left_and_right() or step_back_pattern.is_none():
-                        copy_pattern = copy.deepcopy(pattern)
-                        copy_pattern.pattern_type = PatternType.TEXT
-                        patterns_per_line[step_back] = copy_pattern
-                    elif step_back_pattern.is_only_right() or step_back_pattern.is_only_left():
-                        break
-
-        # left and right
-        current_left_and_right_pattern = None
-        start_index = -1
-        for i, pattern in enumerate(patterns_per_line):
-            if pattern.is_left_and_right() or pattern.is_none():
-                # if we get only left and right or none pattern
-                if not current_left_and_right_pattern:
-                    if pattern.text_startswith(message_per_line[i]):
-                        current_left_and_right_pattern = pattern
-                        start_index = i
-                elif pattern == current_left_and_right_pattern:
-                    if pattern.text_endswith(message_per_line[i]):
-                        # we find the end go back to set for text!
-                        for index_to_set in range(start_index + 1, i + 1):
-                            print("old one", patterns_per_line[index_to_set])
-                            copy_pattern = copy.deepcopy(pattern)
-                            copy_pattern.pattern_type = PatternType.TEXT
-                            patterns_per_line[index_to_set] = copy_pattern
-                            print("new one", patterns_per_line[index_to_set])
-
-                            tupper_per_line[index_to_set] = pattern.tupper
-
-                        # End work with current pattern
-                        current_left_and_right_pattern = None
-                        start_index = -1
-                elif pattern.is_none():
-                    continue
-                else:
-                    # if we catch another patterns
-                    current_left_and_right_pattern = None
-                    start_index = -1
-            else:
-                # if we catch another pattern type
-                current_left_and_right_pattern = None
-                start_index = -1
 
         # format message if this has start pattern
         for i, pattern in enumerate(patterns_per_line):
