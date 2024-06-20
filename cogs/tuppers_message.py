@@ -353,7 +353,13 @@ class TupperMessageCog(commands.Cog):
                 tupper_message = ""
                 previous_pattern = pattern
                 continue
-            elif pattern.шы_
+            elif pattern.is_left_and_right():
+                if pattern.text_startswith(message_line) and pattern.text_endswith(message_line):
+                    tupper_message += f"{message_line}\n"
+                    message_task.append(self._handle_message(pattern.tupper, message_line, tupper_message))
+                    tupper_message = ""
+                    previous_pattern = pattern
+                    pass
 
             elif not pattern.is_text():
                 message_task.append(self._handle_message(previous_pattern.tupper, message, tupper_message))
