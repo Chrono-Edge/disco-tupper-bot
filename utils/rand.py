@@ -10,6 +10,7 @@ class RandomSource:
     PYRANDOM = "pyrandom"
     RANDOMORG = "random.org"
     TRNGTXLYRE = "trng.txlyre.website"
+    TRNGIIKE = "trng.iike.ru"
 
 
 async def _pyrandom(min, max):
@@ -34,10 +35,16 @@ async def _trngtxlyre(min, max):
     return int(n)
 
 
+async def _trngiikeru(min, max):
+    n = await _get(f"https://trng.iike.ru/api/numbers?min={min}&max={max}")
+    return int(n)
+
+
 SOURCES = {
     RandomSource.PYRANDOM: _pyrandom,
     RandomSource.RANDOMORG: _randomorg,
     RandomSource.TRNGTXLYRE: _trngtxlyre,
+    RandomSource.TRNGIIKE: _trngiikeru,
 }
 
 
