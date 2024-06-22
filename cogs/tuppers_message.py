@@ -327,12 +327,14 @@ class TupperMessageCog(commands.Cog):
         message_lines = tupper_message_worker.message_lines
         # format message if this has start pattern
         for i, pattern in enumerate(tupper_message_worker.pattern_on_lines):
+            print("pfin", i, pattern)
             if not pattern:
                 continue
-            if not pattern.is_none() and not pattern.is_text():
+            if not pattern.is_none() and not pattern.is_text() and not pattern.is_left_and_right():
                 message_lines[i] = pattern.format_text(message_lines[i])
 
         previous_pattern = TupperCallPattern(None)
+        pattern_left_right = TupperCallPattern(None)
         tupper_message = ""
 
         message_task = []
@@ -340,30 +342,54 @@ class TupperMessageCog(commands.Cog):
         for pattern, message_line in zip(tupper_message_worker.pattern_on_lines, message_lines):
             if pattern.is_none():
                 continue
-            print(pattern, message_line)
 
             if previous_pattern.tupper.id != pattern.tupper.id:
                 # start another tupper
                 message_task.append(self._handle_message(previous_pattern.tupper, message, tupper_message))
                 tupper_message = ""
+                pattern_left_right = TupperCallPattern(None)
 
             if pattern.is_only_right():
                 tupper_message += f"{message_line}\n"
                 message_task.append(self._handle_message(pattern.tupper, message, tupper_message))
+
                 tupper_message = ""
                 previous_pattern = pattern
                 continue
             elif pattern.is_left_and_right():
+                print(message_line)
+                print("patter rltest", pattern.text_startswith(message_line), pattern.text_endswith(message_line))
                 if pattern.text_startswith(message_line) and pattern.text_endswith(message_line):
-                    tupper_message += f"{message_line}\n"
-                    message_task.append(self._handle_message(pattern.tupper, message_line, tupper_message))
+                    message_temp = pattern.format_text(message_line)
+
+                    tupper_message += f"{message_temp}\n"
+                    message_task.append(self._handle_message(pattern.tupper, message, tupper_message))
+
                     tupper_message = ""
                     previous_pattern = pattern
-                    pass
+                    continue
+                elif pattern.text_startswith(message_line):
+                    message_temp = pattern.format_text(message_line)
+                    tupper_message += f"{message_temp}\n"
 
+                    pattern_left_right = pattern
+                    previous_pattern = pattern
+                    continue
+                elif (pattern_left_right == pattern) and pattern.text_endswith(message_line):
+                    message_temp = pattern.format_text(message_line)
+
+                    tupper_message += f"{message_temp}\n"
+                    message_task.append(self._handle_message(pattern.tupper, message, tupper_message))
+
+                    tupper_message = ""
+
+                    pattern_left_right = TupperCallPattern(None)
+                    previous_pattern = pattern
+                    continue
             elif not pattern.is_text():
                 message_task.append(self._handle_message(previous_pattern.tupper, message, tupper_message))
                 tupper_message = ""
+                pattern_left_right = TupperCallPattern(None)
 
             tupper_message += f"{message_line}\n"
             previous_pattern = pattern
