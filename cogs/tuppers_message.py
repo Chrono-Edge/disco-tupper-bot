@@ -327,7 +327,6 @@ class TupperMessageCog(commands.Cog):
         message_lines = tupper_message_worker.message_lines
         # format message if this has start pattern
         for i, pattern in enumerate(tupper_message_worker.pattern_on_lines):
-            print("pfin", i, pattern)
             if not pattern:
                 continue
             if not pattern.is_none() and not pattern.is_text() and not pattern.is_left_and_right():
@@ -357,8 +356,6 @@ class TupperMessageCog(commands.Cog):
                 previous_pattern = pattern
                 continue
             elif pattern.is_left_and_right():
-                print(message_line)
-                print("patter rltest", pattern.text_startswith(message_line), pattern.text_endswith(message_line))
                 if pattern.text_startswith(message_line) and pattern.text_endswith(message_line):
                     message_temp = pattern.format_text(message_line)
 
