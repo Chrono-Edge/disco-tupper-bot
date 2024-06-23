@@ -3,6 +3,7 @@ from collections import namedtuple
 from enum import Enum
 
 from discord import MessageType
+from discord import MessageType
 from discord.ext import commands
 import discord
 import json

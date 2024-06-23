@@ -45,12 +45,10 @@ class DiscoTupperBot(commands.Bot):
         for extension in self.initial_extensions:
             await self.load_extension(f"cogs.{extension}")
             logger.success(f"Loaded extension: {extension}")
-
         self.add_view(ListMenu())
 
-        
-
     async def on_ready(self):
+
         self.log_channel = await self.fetch_channel(config.log_channel_id)
         self.tupper_commands.register_commands()
 
@@ -59,7 +57,7 @@ class DiscoTupperBot(commands.Bot):
         logger.info(
             f"Logged in as: {self.user.name} - {self.user.id} Version: {discord.__version__}\n"
         )
-        await self.change_presence(status=discord.Status.dnd)
+        await self.change_presence(status=discord.Status.online)
         logger.success("Successfully loaded, the initialization of the modules...")
 
     async def on_error(self, interaction, *args, **kwargs):

@@ -31,15 +31,17 @@ if TYPE_CHECKING:
 
 
 class ListMenu(discord.ui.View):
-    def __init__(self):
+    # https://gist.github.com/lykn/bac99b06d45ff8eed34c2220d86b6bf4?permalink_comment_id=4109065
+    def __init__(self, page=0, max_page=0):
         super().__init__(timeout=None)
         self.value = None
+        self._set_page(page, max_page)
 
     @staticmethod
     async def tupper_list_page(
-        client: discord.Client,
-        discord_user: Union[discord.User, discord.Member],
-        page=0,
+            client: discord.Client,
+            discord_user: Union[discord.User, discord.Member],
+            page=0,
     ):
         user, _ = await User.get_or_create(discord_id=discord_user.id)
 
@@ -49,7 +51,7 @@ class ListMenu(discord.ui.View):
         hidden_text = NonPrintableEncoder.encode_dict("", hidden_data)
 
         for tupper in await user.tuppers.offset(page * 10).limit(10).all():
-            embed = discord.Embed(colour=0x00B0F4, timestamp=datetime.now())
+            embed = discord.Embed(colour=0x00B0F4, timestamp=None)
             embed.set_author(name=f"{tupper.name}")
 
             human_like_call_pattern = tupper.template
@@ -75,15 +77,9 @@ class ListMenu(discord.ui.View):
 
         return hidden_text, embeds_list
 
-    @discord.ui.button(
-        label="Left",
-        style=discord.ButtonStyle.blurple,
-        custom_id="persistent_view:left",
-    )
-    async def left_step(
-        self, interaction: discord.Interaction, button: discord.ui.Button
-    ):
-        client = interaction.client
+    @staticmethod
+    async def _get_user(interaction: discord.Interaction):
+
         _, meta_dict = NonPrintableEncoder.decode_dict(interaction.message.content)
 
         if ("member_id" not in meta_dict) and ("page" not in meta_dict):
@@ -95,59 +91,101 @@ class ListMenu(discord.ui.View):
             return
 
         user, ___ = await User.get_or_create(discord_id=member_id)
+        member = await interaction.guild.fetch_member(member_id)
+
+        return user, page, member
+
+    def _set_page(self, current_page, max_page):
+        self.page_button.label = f"{current_page + 1}/{max_page + 1}"
+
+    @discord.ui.button(
+        label="<<",
+        style=discord.ButtonStyle.blurple,
+        custom_id="persistent_view:<<",
+    )
+    async def first_page(
+            self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
+        await interaction.response.defer()
+        client = interaction.client
+
+        user, page, member = await self._get_user(interaction)
+
+        max_page = math.ceil(await user.tuppers.all().count() / 10) - 1
+        page = 0
+
+        message, embeds = await ListMenu.tupper_list_page(client, member, page)
+        self._set_page(page, max_page)
+        await interaction.edit_original_response(content=message, embeds=embeds, view=self)
+
+    @discord.ui.button(
+        label="<-",
+        style=discord.ButtonStyle.blurple,
+        custom_id="persistent_view:<",
+    )
+    async def left_step(
+            self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
+        await interaction.response.defer()
+        client = interaction.client
+
+        user, page, member = await self._get_user(interaction)
 
         page = page - 1
         max_page = math.ceil(await user.tuppers.all().count() / 10) - 1
         if page > max_page:
             page = max_page
-
-        member = await interaction.guild.fetch_member(member_id)
-        is_user_admin = await Permissions.is_user_admin(
-            config.admin_roles, member, interaction.guild
-        )
-
-        if (interaction.user.id != member_id) and not is_user_admin:
-            return
-
+        self._set_page(page, max_page)
         message, embeds = await ListMenu.tupper_list_page(client, member, page)
-        await interaction.response.edit_message(content=message, embeds=embeds)
+        await interaction.edit_original_response(content=message, embeds=embeds, view=self)
 
     @discord.ui.button(
-        label="Right",
+        label=f"0/0",
+        style=discord.ButtonStyle.gray,
+        custom_id="none",
+        disabled=True,
+    )
+    async def page_button(self):
+        pass
+
+    @discord.ui.button(
+        label="->",
         style=discord.ButtonStyle.blurple,
-        custom_id="persistent_view:right",
+        custom_id="persistent_view:>",
     )
     async def right_step(
-        self, interaction: discord.Interaction, button: discord.ui.Button
+            self, interaction: discord.Interaction, button: discord.ui.Button
     ):
+        await interaction.response.defer()
         client = interaction.client
-        _, meta_dict = NonPrintableEncoder.decode_dict(interaction.message.content)
 
-        if ("member_id" not in meta_dict) and ("page" not in meta_dict):
-            return
-
-        member_id = meta_dict.get("member_id")
-        page = meta_dict.get("page")
-        if interaction.user.id != member_id:
-            return
-
-        user, ___ = await User.get_or_create(discord_id=member_id)
+        user, page, member = await self._get_user(interaction)
 
         page = page + 1
         max_page = math.ceil(await user.tuppers.all().count() / 10) - 1
         if page > max_page:
             page = max_page
-
-        member = await interaction.guild.fetch_member(member_id)
-        is_user_admin = await Permissions.is_user_admin(
-            config.admin_roles, member, interaction.guild
-        )
-
-        if (interaction.user.id != member_id) and not is_user_admin:
-            return
-
+        self._set_page(page, max_page)
         message, embeds = await ListMenu.tupper_list_page(client, member, page)
-        await interaction.response.edit_message(content=message, embeds=embeds)
+        await interaction.edit_original_response(content=message, embeds=embeds, view=self)
+
+    @discord.ui.button(
+        label=">>",
+        style=discord.ButtonStyle.blurple,
+        custom_id="persistent_view:>>",
+    )
+    async def last_page(
+            self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
+        await interaction.response.defer()
+        client = interaction.client
+
+        user, page, member = await self._get_user(interaction)
+
+        page = math.ceil(await user.tuppers.all().count() / 10) - 1
+        self._set_page(page, page)
+        message, embeds = await ListMenu.tupper_list_page(client, member, page)
+        await interaction.edit_original_response(content=message, embeds=embeds, view=self)
 
 
 class TupperCommandsCog(commands.Cog):
@@ -156,14 +194,16 @@ class TupperCommandsCog(commands.Cog):
         self.bot = bot
         self.reaction_to_edit = config.values.get("bot.reaction_to_edit")
         self.reaction_to_remove = config.values.get("bot.reaction_to_remove")
+
         self.admin_roles = config.values.get("bot.admin_roles")
         self.image_storage = ImageStorage()
+
         self.bot.tree.add_command(
             app_commands.ContextMenu(name=locale.verify, callback=self.verify)
         )
 
     async def _get_user_to_edit_tupper(
-        self, ctx: discord.ext.commands.Context, member: discord.Member
+            self, ctx: discord.ext.commands.Context, member: discord.Member
     ) -> typing.Tuple[discord.Member, database.models.user.User]:
         """get current user as target or specified by admin"""
         if await Permissions.get_user_is_admin(self.admin_roles, ctx) and member:
@@ -173,19 +213,19 @@ class TupperCommandsCog(commands.Cog):
         return ctx.author, user
 
     async def _get_webhook(
-        self, channel_id: int
+            self, channel_id: int
     ) -> tuple[discord.Webhook, discord.Thread]:
         return await get_webhook(self.bot, channel_id)
 
     @commands.hybrid_command(name="create_tupper")
     @commands.has_any_role(*config.player_roles)
     async def create_tupper(
-        self,
-        ctx: discord.ext.commands.Context,
-        name: str,
-        call_pattern: str,
-        avatar: discord.Attachment,
-        member: typing.Optional[discord.Member],
+            self,
+            ctx: discord.ext.commands.Context,
+            name: str,
+            call_pattern: str,
+            avatar: discord.Attachment,
+            member: typing.Optional[discord.Member],
     ):
         """Create new tupper."""
         await ctx.defer()
@@ -249,10 +289,10 @@ class TupperCommandsCog(commands.Cog):
     @commands.hybrid_command(name="remove_tupper")
     @commands.has_any_role(*config.player_roles)
     async def remove_tupper(
-        self,
-        ctx: discord.ext.commands.Context,
-        tupper_name: str,
-        member: typing.Optional[discord.Member],
+            self,
+            ctx: discord.ext.commands.Context,
+            tupper_name: str,
+            member: typing.Optional[discord.Member],
     ):
         """Delete existing tupper."""
         await ctx.defer()
@@ -290,13 +330,13 @@ class TupperCommandsCog(commands.Cog):
     @commands.hybrid_command(name="edit_tupper")
     @commands.has_any_role(*config.player_roles)
     async def edit_tupper(
-        self,
-        ctx: discord.ext.commands.Context,
-        tupper_name: str,
-        new_name: typing.Optional[str],
-        new_call_pattern: typing.Optional[str],
-        avatar: typing.Optional[discord.Attachment],
-        tupper_owner: typing.Optional[discord.Member],
+            self,
+            ctx: discord.ext.commands.Context,
+            tupper_name: str,
+            new_name: typing.Optional[str],
+            new_call_pattern: typing.Optional[str],
+            avatar: typing.Optional[discord.Attachment],
+            tupper_owner: typing.Optional[discord.Member],
     ):
         """Edit tupper."""
         await ctx.defer()
@@ -371,10 +411,10 @@ class TupperCommandsCog(commands.Cog):
     @commands.hybrid_command(name="set_diary")
     @commands.has_any_role(*config.player_roles)
     async def set_diary(
-        self,
-        ctx: discord.ext.commands.Context,
-        member: typing.Optional[discord.Member],
-        tupper_name: str,
+            self,
+            ctx: discord.ext.commands.Context,
+            member: typing.Optional[discord.Member],
+            tupper_name: str,
     ):
         """Set diary chat for a tupper."""
         await ctx.defer()
@@ -402,11 +442,11 @@ class TupperCommandsCog(commands.Cog):
     @commands.hybrid_command(name="add_user")
     @commands.has_any_role(*config.player_roles)
     async def add_user_to_tupper(
-        self,
-        ctx: discord.ext.commands.Context,
-        tupper_name: str,
-        user_add: discord.Member,
-        tupper_owner: typing.Optional[discord.Member],
+            self,
+            ctx: discord.ext.commands.Context,
+            tupper_name: str,
+            user_add: discord.Member,
+            tupper_owner: typing.Optional[discord.Member],
     ):
         """Add user to a tupper."""
         await ctx.defer()
@@ -422,7 +462,7 @@ class TupperCommandsCog(commands.Cog):
         if await user_to_add.tuppers.filter(name=tupper.name).exists():
             await ctx.reply(locale.tupper_already_exists)
             return
-        
+
         if await user_to_add.tuppers.filter(template=tupper.template).exists():
             await ctx.reply(locale.tupper_already_exists)
             return
@@ -447,11 +487,11 @@ class TupperCommandsCog(commands.Cog):
     @commands.hybrid_command(name="remove_user")
     @commands.has_any_role(*config.player_roles)
     async def remove_user_from_tupper(
-        self,
-        ctx: discord.ext.commands.Context,
-        tupper_name: str,
-        user_remove: discord.Member,
-        tupper_owner: typing.Optional[discord.Member],
+            self,
+            ctx: discord.ext.commands.Context,
+            tupper_name: str,
+            user_remove: discord.Member,
+            tupper_owner: typing.Optional[discord.Member],
     ):
         """Remove user from a tupper."""
         await ctx.defer()
@@ -507,22 +547,21 @@ class TupperCommandsCog(commands.Cog):
         count_tuppers = await user.tuppers.all().count()
         if count_tuppers == 0:
             await ctx.reply(locale.empty)
-
             return
-
         if count_tuppers > 10:
-            view = ListMenu()
+            max_page = math.ceil(count_tuppers / 10) - 1
+            view = ListMenu(0, max_page)
 
-        await ctx.reply(content=message, embeds=embeds, view=view)
+        await ctx.reply(content=message, embeds=embeds, view=view, ephemeral=True)
 
     @commands.hybrid_command(name="admin_give")
     @commands.has_any_role(*config.admin_roles)
     async def admin_balance_set(
-        self,
-        ctx: discord.ext.commands.Context,
-        tupper_owner: typing.Optional[discord.Member],
-        tupper_name: str,
-        balance: int,
+            self,
+            ctx: discord.ext.commands.Context,
+            tupper_owner: typing.Optional[discord.Member],
+            tupper_name: str,
+            balance: int,
     ):
         """Add balance for a tupper."""
         await ctx.defer()
@@ -565,12 +604,12 @@ class TupperCommandsCog(commands.Cog):
     @commands.hybrid_command(name="admin_do")
     @commands.has_any_role(*config.admin_roles)
     async def admin_tapper_do(
-        self,
-        ctx: discord.ext.commands.Context,
-        tupper_owner: discord.Member,
-        tupper_name: str,
-        command: str,
-        is_hidden: typing.Optional[bool],
+            self,
+            ctx: discord.ext.commands.Context,
+            tupper_owner: discord.Member,
+            tupper_name: str,
+            command: str,
+            is_hidden: typing.Optional[bool],
     ):
         """Run tupper command."""
         await ctx.defer(ephemeral=bool(is_hidden))
@@ -609,9 +648,9 @@ class TupperCommandsCog(commands.Cog):
         message_content, hidden_data = NonPrintableEncoder.decode_dict(message.content)
 
         if (
-            hidden_data is None
-            or "sign" not in hidden_data
-            or "tupper_id" not in hidden_data
+                hidden_data is None
+                or "sign" not in hidden_data
+                or "tupper_id" not in hidden_data
         ):
             await interaction.response.send_message(locale.not_verified, ephemeral=True)
 
