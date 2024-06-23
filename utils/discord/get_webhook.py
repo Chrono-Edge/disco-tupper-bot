@@ -1,9 +1,11 @@
 import discord
+from async_lru import alru_cache
 from loguru import logger
 
 
+@alru_cache(ttl=256)
 async def get_webhook(
-    bot: discord.Client, channel_id: int
+        bot: discord.Client, channel_id: int
 ) -> tuple[discord.Webhook, discord.Thread]:
     # TODO exception if limit of used webhooks
     try:

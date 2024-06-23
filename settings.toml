@@ -11,7 +11,7 @@ colorize = "True"
 
 [bot]
 initial_extensions = ['roll', 'tuppers_message', 'tuppers_commands', 'users']
-prefixes = [".", "dt ", "disco "]
+prefixes = [".", "/"]
 admin_roles = ['test_admin_role']
 player_roles = ['test_player_role']
 reaction_to_edit = "📝"
