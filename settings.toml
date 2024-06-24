@@ -10,7 +10,7 @@ enqueue = "True"
 colorize = "True"
 
 [bot]
-initial_extensions = ['roll', 'tuppers_message', 'tuppers_manage_commands', 'users']
+initial_extensions = ['roll', 'tuppers_message', 'tuppers_manage_commands', 'users', 'tuppers_extra_commands']
 prefixes = [".", "/"]
 admin_roles = ['test_admin_role']
 player_roles = ['test_player_role']

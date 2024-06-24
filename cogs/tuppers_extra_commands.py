@@ -36,11 +36,19 @@ class TupperExtraCommandsCog(commands.Cog):
         self.admin_roles = config.values.get("bot.admin_roles")
         self.image_storage = ImageStorage()
 
-    @commands.command(aliases=['aea'])
+    @commands.command(aliases=['cft'])
     @app_commands.checks.has_any_role(*config.admin_roles)
-    async def admin_edit_attribute(self, ctx):
+    async def command_form_tapper(self, ctx: discord.ext.commands.Context):
         """Hidden edit for own tuppers and unhidden for another"""
-        pass
+        print(ctx.message.type)
+        channel = await self.bot.fetch_channel(ctx.message.reference.channel_id)
+        message = await channel.fetch_message(ctx.message.reference.message_id)
+        message, dict_data = NonPrintableEncoder.decode_dict(message.content)
+        tupper = await Tupper.filter(id=dict_data.get(''))
+
+        print(dict_data)
+
+        # NonPrintableEncoder.decode_dict()
 
 
 async def setup(bot: "DiscoTupperBot"):
