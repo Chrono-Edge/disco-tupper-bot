@@ -87,13 +87,13 @@ class ListMenu(discord.ui.View):
 
         member_id = meta_dict.get("member_id")
         page = meta_dict.get("page")
-        if interaction.user.id != member_id:
-            return
+        # if interaction.user.id != member_id:
+        #     return
 
         user, ___ = await User.get_or_create(discord_id=member_id)
-        member = await interaction.guild.fetch_member(member_id)
+        target_member = await interaction.guild.fetch_member(member_id)
 
-        return user, page, member
+        return user, page, target_member
 
     def _set_page(self, current_page, max_page):
         self.page_button.label = f"{current_page + 1}/{max_page + 1}"
@@ -109,12 +109,12 @@ class ListMenu(discord.ui.View):
         await interaction.response.defer()
         client = interaction.client
 
-        user, page, member = await self._get_user(interaction)
+        user, page, target_member = await self._get_user(interaction)
 
         max_page = math.ceil(await user.tuppers.all().count() / 10) - 1
         page = 0
 
-        message, embeds = await ListMenu.tupper_list_page(client, member, page)
+        message, embeds = await ListMenu.tupper_list_page(client, target_member, page)
         self._set_page(page, max_page)
         await interaction.edit_original_response(content=message, embeds=embeds, view=self)
 
