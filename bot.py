@@ -6,7 +6,7 @@ from tortoise import Tortoise
 
 import config
 from utils.discord.action_logger import DiscordLogger
-from cogs.tuppers_commands import ListMenu
+from cogs.tuppers_manage_commands import ListMenu
 from tupper_commands import TupperCommands
 from config import logger
 

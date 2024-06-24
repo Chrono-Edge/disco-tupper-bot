@@ -286,7 +286,7 @@ class TupperCommandsCog(commands.Cog):
             log_jump_url=ctx.message.jump_url,
         )
 
-    @commands.hybrid_command(name="remove_tupper")
+    @commands.hybrid_command(name="tupper_remove")
     @commands.has_any_role(*config.player_roles)
     async def remove_tupper(
             self,
@@ -439,7 +439,7 @@ class TupperCommandsCog(commands.Cog):
             log_jump_url=ctx.message.jump_url,
         )
 
-    @commands.hybrid_command(name="add_user")
+    @commands.hybrid_command(name="user_add")
     @commands.has_any_role(*config.player_roles)
     async def add_user_to_tupper(
             self,
@@ -484,7 +484,7 @@ class TupperCommandsCog(commands.Cog):
             log_jump_url=ctx.message.jump_url,
         )
 
-    @commands.hybrid_command(name="remove_user")
+    @commands.hybrid_command(name="user_remove")
     @commands.has_any_role(*config.player_roles)
     async def remove_user_from_tupper(
             self,
@@ -533,7 +533,7 @@ class TupperCommandsCog(commands.Cog):
             log_jump_url=ctx.message.jump_url,
         )
 
-    @commands.hybrid_command(name="tupper_list")
+    @commands.hybrid_command(name="list_tuppers")
     @commands.has_any_role(*config.player_roles)
     async def list_tuppers(self, ctx, member: typing.Optional[discord.Member]):
         """List all tuppers for a user."""
@@ -554,7 +554,7 @@ class TupperCommandsCog(commands.Cog):
 
         await ctx.reply(content=message, embeds=embeds, view=view, ephemeral=True)
 
-    @commands.hybrid_command(name="admin_give")
+    @commands.hybrid_command(name="balance_give")
     @commands.has_any_role(*config.admin_roles)
     async def admin_balance_set(
             self,
