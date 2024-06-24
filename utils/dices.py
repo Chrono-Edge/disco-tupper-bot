@@ -2,7 +2,7 @@ import re
 import random
 import operator
 from localization import locale
-from utils.rand import randint
+from utils.rand import rolldices
 
 
 async def _roll(count, sides):
@@ -12,11 +12,7 @@ async def _roll(count, sides):
     if sides <= 0:
         raise ValueError(locale.number_of_sides_should_be_gtz)
 
-    rolls = []
-    for _ in range(count):
-        rolls.append(await randint(1, sides))
-
-    return rolls
+    return await rolldices(count, sides)
 
 
 OPS = {
