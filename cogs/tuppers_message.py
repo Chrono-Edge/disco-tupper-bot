@@ -1,3 +1,4 @@
+import asyncio
 import copy
 from collections import namedtuple
 from enum import Enum
@@ -397,6 +398,7 @@ class TupperMessageCog(commands.Cog):
         if message_task:
             for task in message_task:
                 await task
+                await asyncio.sleep(0)
 
         return
 
