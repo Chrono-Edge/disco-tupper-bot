@@ -31,7 +31,8 @@ class DiscoTupperBot(commands.Bot):
 
     @staticmethod
     def setup_intents():
-        intents = discord.Intents.default()
+        intents = discord.Intents.all()
+        intents.presences = True
         intents.members = True
         intents.message_content = True
         intents.messages = True

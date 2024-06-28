@@ -19,8 +19,8 @@
     "admin_balance_add" : "Отправлено `{balance}` на баланс актёра `{tupper_name}`.",
     "current_balance": "Текущий баланс: `{balance}`.",
     "balance_is_too_low": "Недостаточно средств на балансе: нужно: `{need}`, но имеется лишь: `{have}`.",
-    "editing_message": "Редактирование сообщения ```{message}```:",
-    "send_content_of_new_message": "Отправьте новое содержимое сообщение сюда:",
+    "editing_message": "## Оригинальное сообщение:\n```{message}```",
+    "send_content_of_new_message": "**Скопируйте сообщение если нужно.\nОтправьте новое содержимое сообщение сюда:",
     "nothing_to_edit": "Нечего редактировать.",
     "message_edited": "Сообщение {jump_url} отредактировано.",
 

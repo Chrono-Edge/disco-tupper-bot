@@ -58,23 +58,26 @@ class TupperMessageCog(commands.Cog):
         """Create message in personal chat to edit message"""
         if str(payload.emoji) != self.reaction_to_edit:
             return
+
         tupper = await db_user.tuppers.filter(id=metadata_dict["tupper_id"]).first()
+
         if not tupper:
             return
 
-        user = await self.bot.fetch_user(payload.user_id)
-        channel = await self.bot.fetch_channel(payload.channel_id)
+        guild = self.bot.get_guild(payload.guild_id)
+        member = guild.get_member(payload.user_id)
+        channel = await guild.fetch_channel(payload.channel_id)
         message = await channel.fetch_message(payload.message_id)
-        await message.remove_reaction(payload.emoji, user)
+
+        await message.remove_reaction(payload.emoji, member)
 
         message_content, message_hidden_dict = NonPrintableEncoder.decode_dict(
             message.content
         )
 
         if message_hidden_dict is None or "sign" in message_hidden_dict:
+            # TODO hiden text return
             return
-
-        await user.send(locale.format("editing_message", message=message_content))
 
         second_message = locale.send_content_of_new_message
 
@@ -89,7 +92,13 @@ class TupperMessageCog(commands.Cog):
             second_message, hidden_dict
         )
 
-        await user.send(second_message_content)
+        if member.is_on_mobile() or ("```" in message_content):
+            await member.send(locale.format("editing_message", message=f"{'v' * 16}"))
+            await member.send(message_content)
+            await member.send(f"```{'^' * 16}```\n" + second_message_content)
+        else:
+            await member.send(locale.format("editing_message", message=message_content))
+            await member.send(second_message_content)
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
@@ -292,6 +301,8 @@ class TupperMessageCog(commands.Cog):
         """parse on message"""
         # cut off bots and selfmessages
         # if channel is private
+        if (message.author.id == self.bot.user.id) or message.author.bot:
+            return
 
         if message.type == MessageType.chat_input_command:
             return
@@ -300,9 +311,6 @@ class TupperMessageCog(commands.Cog):
             return await self._edit_tupper_message(message)
 
         if message.guild.id != config.guild:
-            return
-
-        if (message.author.id == self.bot.user.id) or message.author.bot:
             return
 
         # take user form database by discord id
