@@ -10,8 +10,6 @@ class ImageStorage:
     def __init__(self):
         self.client = SSHClient()
         sftp_path = urlparse(config.values.get("secrets.sftp_path"))
-        print(sftp_path)
-
         self.client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         temp = sftp_path.netloc.split("@")
         self.path = sftp_path.path
@@ -48,4 +46,4 @@ if __name__ == "__main__":
     with open("test.png", "rb") as png_test:
         iS.upload_file(png_test.read(), "pngtest.png")
 
-    #iS.remove_file("pngtest.png")
+    # iS.remove_file("pngtest.png")

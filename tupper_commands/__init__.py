@@ -33,10 +33,13 @@ class Context:
             self.tupper = old_tupper
 
     async def log(self, label, **kwargs):
-        text = "; ".join(map(lambda key: locale.format(key, value=kwargs[key]), kwargs))
+        text = "\n".join(map(lambda key: locale.format(key, value=kwargs[key]), kwargs))
         text = f"[{getattr(locale, label)}] {text}"
 
+        await self.bot.discord_logger.send_log(label, **kwargs)
+
         try:
+            # TODO why need try?
             webhook, thread = await get_webhook(self.bot, self.tupper.inventory_chat_id)
             if not webhook:
                 return
@@ -55,10 +58,10 @@ class Context:
                 suppress_embeds=True,
             )
         except (
-            discord.InvalidData,
-            discord.HTTPException,
-            discord.NotFound,
-            discord.Forbidden,
+                discord.InvalidData,
+                discord.HTTPException,
+                discord.NotFound,
+                discord.Forbidden,
         ) as e:
             logger.warning(f"Failed to log: {e}")
 
@@ -105,7 +108,7 @@ class TupperCommands:
                     params, desc = self.help_lines[command]
 
                     command = (
-                        "[" + command[0] + "|" + lat_to_cyr(command[0]) + "]" + command[1:]
+                            "[" + command[0] + "|" + lat_to_cyr(command[0]) + "]" + command[1:]
                     )
 
                     if not params:
@@ -114,7 +117,7 @@ class TupperCommands:
                         buffer += f"{command} {params}: {desc}\n"
 
                 return f"```{buffer.strip()}```"
-        
+
             if ctx.command.argc == 0:
                 buffer = locale.help_preline
 
@@ -124,7 +127,7 @@ class TupperCommands:
                 buffer += locale.help_postline
 
                 return buffer
-            
+
             query = []
             for command in ctx.command.args:
                 command = command.strip().lower()
@@ -133,14 +136,14 @@ class TupperCommands:
 
                 if command not in self.commands:
                     return locale.format("wrong_usage", command_name=command, usage="?")
-                
+
                 query.append(command)
 
             if not query:
                 return locale.empty
-            
+
             buffer = ""
-            
+
             for command in self.help_lines:
                 if command not in query and command[0] not in query and lat_to_cyr(command[0]) not in query:
                     continue
@@ -172,7 +175,8 @@ class TupperCommands:
         if command.name not in self.commands:
             return None
 
-        if command.name not in ("help", "h", "х") and tupper.inventory_chat_id == 0:
+        # TODO remove hardcode
+        if command.name not in ("help", "h", "х", "roll", "r", "р") and tupper.inventory_chat_id == 0:
             return locale.tupper_is_disabled
 
         return await self.commands[command.name](

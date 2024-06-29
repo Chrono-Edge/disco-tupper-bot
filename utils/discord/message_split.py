@@ -18,7 +18,6 @@ class TextFormatterSplit:
 
         # Выбрать все предложения которые длинее определенной длины
         self.long_words_regex = f"[^{self.separator_escaped} ]{{{self.max_world_length},}}"
-        print(self.long_words_regex)
 
     def format_text(self, text):
 
