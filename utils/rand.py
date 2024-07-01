@@ -9,8 +9,7 @@ import config
 class RandomSource:
     PYRANDOM = "pyrandom"
     RANDOMORG = "random.org"
-    TRNGTXLYRE = "trng.txlyre.website"
-    TRNGIIKE = "trng.iike.ru"
+    YEBISU = "yebi.su"
 
 
 async def _pyrandom(min, max, is_dice=False):
@@ -40,18 +39,10 @@ async def _randomorg(min, max, is_dice=False):
     return int(n)
 
 
-async def _trngtxlyre(min, max, is_dice=False):
-    if is_dice:
-        raise NotImplemented
-
-    n = await _get(f"https://r.txlyre.website/getnum.php?min={min}&max={max}")
-    return int(n)
-
-
-async def _trngiikeru(min, max, is_dice=False):
+async def _trngyebisu(min, max, is_dice=False):
     if is_dice:
         n = await _get(
-            f"https://trng.iike.ru/api/numbers?min=1&max={max}&count={min}&fallback_to_prng=1&size=8&endianness=l"
+            f"https://yebi.su/api/numbers?min=1&max={max}&count={min}&fallback_to_prng=1&size=8&endianness=l"
         )
         ns = n.split(" ")
         ns = map(int, ns)
@@ -59,7 +50,7 @@ async def _trngiikeru(min, max, is_dice=False):
         return list(ns)
 
     n = await _get(
-        f"https://trng.iike.ru/api/numbers?min={min}&max={max}&fallback_to_prng=1&size=8&endianness=l"
+        f"https://yebi.su/api/numbers?min={min}&max={max}&fallback_to_prng=1&size=8&endianness=l"
     )
     return int(n)
 
@@ -67,8 +58,7 @@ async def _trngiikeru(min, max, is_dice=False):
 SOURCES = {
     RandomSource.PYRANDOM: _pyrandom,
     RandomSource.RANDOMORG: _randomorg,
-    RandomSource.TRNGTXLYRE: _trngtxlyre,
-    RandomSource.TRNGIIKE: _trngiikeru,
+    RandomSource.YEBISU: _trngyebisu,
 }
 
 
