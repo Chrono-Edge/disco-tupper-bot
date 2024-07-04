@@ -402,12 +402,12 @@ class TupperMessageCog(commands.Cog):
             previous_pattern = pattern
 
         message_task.append(self._handle_message(previous_pattern.tupper, message, tupper_message))
-        await message.delete()
+
         if message_task:
             for task in message_task:
                 await task
                 await asyncio.sleep(0)
-
+        await message.delete()
         return
 
     @commands.Cog.listener()
