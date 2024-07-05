@@ -406,7 +406,7 @@ class TupperMessageCog(commands.Cog):
         if message_task:
             for task in message_task:
                 await task
-                await asyncio.sleep(0)
+                await asyncio.sleep(0.3)
         await message.delete()
         return
 
