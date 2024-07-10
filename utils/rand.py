@@ -12,6 +12,10 @@ class RandomSource:
     YEBISU = "yebi.su"
 
 
+# TODO make seed base generator and timeout to update
+# TODO make count for generate numbers
+# TODO make optimal class?
+
 async def _pyrandom(min, max, is_dice=False):
     if is_dice:
         rolls = []
@@ -30,35 +34,34 @@ async def _get(url):
 
 
 async def _randomorg(min, max, is_dice=False):
-    if is_dice:
-        raise NotImplemented
-
-    n = await _get(
-        f"https://www.random.org/integers/?num=1&min={min}&max={max}&format=plain&col=1&base=10"
+    random_hex_string = await _get(
+        f"https://www.random.org/cgi-bin/randbyte?nbytes=32&format=h"
     )
-    return int(n)
-
-
-async def _trngyebisu(min, max, is_dice=False):
+    random_hex_string = random_hex_string.replace(" ", "")
+    random.seed(random_hex_string)
     if is_dice:
-        n = await _get(
-            f"https://yebi.su/api/numbers?min=1&max={max}&count={min}&fallback_to_prng=1&size=8&endianness=l"
-        )
-        ns = n.split(" ")
-        ns = map(int, ns)
+        number_list = [random.randint(1, max) for _ in range(min)]
+        return number_list
 
-        return list(ns)
+    return random.randint(min, max)
 
-    n = await _get(
-        f"https://yebi.su/api/numbers?min={min}&max={max}&fallback_to_prng=1&size=8&endianness=l"
+
+async def _trng_yebisu(min, max, is_dice=False):
+    random_hex_string = await _get(
+        f"https://yebi.su/api/pool?count=32&format=hexstring&mode=trng"
     )
-    return int(n)
+    random.seed(random_hex_string)
+    if is_dice:
+        number_list = [random.randint(1, max) for _ in range(min)]
+        return number_list
+
+    return random.randint(min, max)
 
 
 SOURCES = {
     RandomSource.PYRANDOM: _pyrandom,
     RandomSource.RANDOMORG: _randomorg,
-    RandomSource.YEBISU: _trngyebisu,
+    RandomSource.YEBISU: _trng_yebisu,
 }
 
 
