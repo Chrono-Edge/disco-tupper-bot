@@ -346,6 +346,11 @@ class TupperMessageCog(commands.Cog):
         pattern_left_right = TupperCallPattern(None)
         tupper_message = ""
 
+        for i, message_line in enumerate(message_lines):
+            head_start = message_line.find(HEADER)
+            if head_start > -1:
+                message_lines[i] = message_line[:head_start]
+
         message_task = []
 
         for pattern, message_line in zip(tupper_message_worker.pattern_on_lines, message_lines):
