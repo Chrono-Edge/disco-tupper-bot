@@ -45,6 +45,7 @@ class TupperExtraCommandsCog(commands.Cog):
     @app_commands.checks.has_any_role(*config.admin_roles)
     async def command_form_tapper(self, ctx: discord.ext.commands.Context, *, command: str):
         """Hidden edit for own tuppers and unhidden for another"""
+        #TODO force move items and take and balance
         if not ctx.message.reference:
             await ctx.message.delete()
             # TODO relpy
